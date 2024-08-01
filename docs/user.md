@@ -26,7 +26,7 @@ Response Body :
     "email": "johndoe@example.com",
     "name": "Jogn Doe",
     "dinas": "TU",
-    "role": "super admin",
+    "role": "user",
     "no_peg": "12345"
   }
 }
