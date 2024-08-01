@@ -213,7 +213,7 @@ Headers :
 Request Body :
 
 ```json
-{
+{ 
   "email": "johndoe@example.com, optional",
   "name": "John Doe, optional",
   "password": "rahasia, optional",
