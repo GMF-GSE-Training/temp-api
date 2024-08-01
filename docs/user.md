@@ -13,7 +13,8 @@ Request Body :
   "email": "johndoe@example.com",
   "name": "Jogn Doe",
   "password": "rahasia",
-  "dinas": "TU",
+  "confirm_passord": "rahasia",
+  "dinas": "TU"
 }
 ```
 
@@ -21,6 +22,7 @@ Response Body :
 
 ```json
 {
+  "status": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -41,7 +43,7 @@ Request Body :
 ```json
 {
   "identifier": "johndoe@example.com, 12345",
-  "password": "rahasia",
+  "password": "rahasia"
 }
 ```
 
@@ -49,6 +51,7 @@ Response Body :
 
 ```json
 {
+  "status": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -66,19 +69,20 @@ Response Body :
 Endpoint : POST /api/users
 
 Headers :
+
 - Authorization : token
 
 Request Body :
 
 ```json
 {
-    "no_pegawai": "12345, optional",
-    "nik": "1234567890, optional",
-    "email": "johndoe@example.com",
-    "name": "John Doe",
-    "password": "rahasia",
-    "dinas": "TU",
-    "role": "super admin",
+  "no_pegawai": "12345, optional",
+  "nik": "1234567890, optional",
+  "email": "johndoe@example.com",
+  "name": "John Doe",
+  "password": "rahasia",
+  "dinas": "TU",
+  "role": "super admin"
 }
 ```
 
@@ -86,6 +90,7 @@ Response Body :
 
 ```json
 {
+  "status": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -103,12 +108,14 @@ Response Body :
 Endpoint : GET /api/users/me
 
 Headers :
+
 - Authorization : token
 
 Response Body :
 
 ```json
 {
+  "status": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -126,30 +133,32 @@ Response Body :
 Endpoint : GET /api/users
 
 Headers :
+
 - Authorization : token
 
 Response Body :
 
 ```json
 {
+  "status": "success",
   "data": [
     {
-        "id": 1,
-        "email": "johndoe@example.com",
-        "name": "Jogn Doe",
-        "dinas": "TU",
-        "role": "super admin",
-        "no_peg": "12345",
-        "token": "session_id_generated"
+      "id": 1,
+      "email": "johndoe@example.com",
+      "name": "Jogn Doe",
+      "dinas": "TU",
+      "role": "super admin",
+      "no_peg": "12345",
+      "token": "session_id_generated"
     },
     {
-        "id": 2,
-        "email": "johndoe@example.com",
-        "name": "Jogn Doe",
-        "dinas": "TU",
-        "role": "super admin",
-        "no_peg": "12345",
-        "token": "session_id_generated"
+      "id": 2,
+      "email": "johndoe@example.com",
+      "name": "Jogn Doe",
+      "dinas": "TU",
+      "role": "super admin",
+      "no_peg": "12345",
+      "token": "session_id_generated"
     }
   ]
 }
@@ -160,18 +169,19 @@ Response Body :
 Endpoint : PATCH /api/users/me
 
 Headers :
+
 - Authorization : token
 
 Request Body :
 
 ```json
 {
-    "email": "johndoe@example.com, optional",
-    "name": "John Doe, optional",
-    "password": "rahasia, optional",
-    "dinas": "TU, optional",
-    "role": "super admin, optional",
-    "no_peg": "12345, optional"
+  "email": "johndoe@example.com, optional",
+  "name": "John Doe, optional",
+  "password": "rahasia, optional",
+  "dinas": "TU, optional",
+  "role": "super admin, optional",
+  "no_peg": "12345, optional"
 }
 ```
 
@@ -179,6 +189,7 @@ Response Body :
 
 ```json
 {
+  "statuc": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -193,21 +204,22 @@ Response Body :
 
 ## Update User By Id
 
-Endpoint : PATCH /api/users
+Endpoint : PATCH /api/users/:userId
 
 Headers :
+
 - Authorization : token
 
 Request Body :
 
 ```json
 {
-    "email": "johndoe@example.com, optional",
-    "name": "John Doe, optional",
-    "password": "rahasia, optional",
-    "dinas": "TU, optional",
-    "role": "super admin, optional",
-    "no_peg": "12345, optional"
+  "email": "johndoe@example.com, optional",
+  "name": "John Doe, optional",
+  "password": "rahasia, optional",
+  "dinas": "TU, optional",
+  "role": "super admin, optional",
+  "no_peg": "12345, optional"
 }
 ```
 
@@ -215,6 +227,7 @@ Response Body :
 
 ```json
 {
+  "status": "success",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -232,13 +245,15 @@ Response Body :
 Endpoint : DELETE /api/users
 
 Headers :
+
 - Authorization : token
 
 Response Body :
 
 ```json
 {
-    "data": true
+  "status": "success",
+  "data": true
 }
 ```
 
@@ -247,12 +262,14 @@ Response Body :
 Endpoint : DELETE /api/users/me
 
 Headers :
+
 - Authorization : token
 
 Response Body :
 
 ```json
 {
+  "status": "success",
   "data": true
 }
 ```
