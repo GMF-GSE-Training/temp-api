@@ -8,12 +8,12 @@ Request Body :
 
 ```json
 {
+  "no_pegawai": "123456, optional",
+  "nik": "1234567890, optional",
   "email": "johndoe@example.com",
   "name": "Jogn Doe",
   "password": "rahasia",
   "dinas": "TU",
-  "role": "super admin",
-  "no_peg": "12345"
 }
 ```
 
@@ -72,12 +72,13 @@ Request Body :
 
 ```json
 {
+    "no_pegawai": "12345, optional",
+    "nik": "1234567890, optional",
     "email": "johndoe@example.com",
     "name": "John Doe",
     "password": "rahasia",
     "dinas": "TU",
     "role": "super admin",
-    "no_peg": "12345"
 }
 ```
 
@@ -226,9 +227,24 @@ Response Body :
 }
 ```
 
+## Delete User
+
+Endpoint : DELETE /api/users
+
+Headers :
+- Authorization : token
+
+Response Body :
+
+```json
+{
+    "data": true
+}
+```
+
 ## Logout User
 
-Endpoint : PATCH /api/users/me
+Endpoint : DELETE /api/users/me
 
 Headers :
 - Authorization : token
