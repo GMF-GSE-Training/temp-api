@@ -1,18 +1,19 @@
 export class RegisterUserRequest {
     no_pegawai?: string;
-    nik: string;
+    nik?: string;
     email: string;
     name: string;
     password: string;
-    confirm_password: string;
     dinasId?: number;
+    roleId: number;
 }
 
 export class UserResponse {
     no_pegawai?: string;
-    nik: string;
+    nik?: string;
     email: string;
     name: string;
     dinasId?: number;
+    roleId: number;
     token?: string;
 }

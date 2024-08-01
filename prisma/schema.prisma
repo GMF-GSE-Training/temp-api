@@ -17,14 +17,15 @@ model User {
   id         Int     @id @default(autoincrement())
   no_pegawai String? @db.VarChar(20)
   email      String  @db.VarChar(50)
-  nama       String  @db.VarChar(50)
+  nik        String? @db.VarChar(50)
+  name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
   token      String? @db.VarChar(100)
   dinasId    Int?
   roleId     Int
 
   dinas Dinas? @relation(fields: [dinasId], references: [id])
-  role  Role  @relation(fields: [roleId], references: [id])
+  role  Role   @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
