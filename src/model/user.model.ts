@@ -4,8 +4,13 @@ export class RegisterUserRequest {
     email: string;
     name: string;
     password: string;
-    dinasId?: number;
+    dinasId: number;
     roleId: number;
+}
+
+export class LoginUserRequest {
+    identifier: string;
+    password: string;
 }
 
 export class UserResponse {

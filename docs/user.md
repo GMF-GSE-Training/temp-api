@@ -56,7 +56,7 @@ Response Body :
     "id": 1,
     "email": "johndoe@example.com",
     "name": "Jogn Doe",
-    "dinas": "TU",
+    "dinas": "TU",  
     "role": "super admin",
     "no_peg": "12345",
     "token": "session_id_generated"

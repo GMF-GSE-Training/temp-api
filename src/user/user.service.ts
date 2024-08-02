@@ -2,10 +2,12 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/prisma.service";
 import { ValidationService } from "../common/validation.service";
-import { RegisterUserRequest, UserResponse } from "../model/user.model";
+import { LoginUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
+import { User } from "@prisma/client";
 
 @Injectable()
 export class UserService {
@@ -16,24 +18,22 @@ export class UserService {
     ) {}
 
     async register(req: RegisterUserRequest): Promise<UserResponse> {
-        this.logger.info(`Register new user ${JSON.stringify(req)}`);
+        this.logger.info(`UserService.register(${JSON.stringify(req)})`);
 
-        if (!req.roleId) {
-            const defaultRole = await this.prismaService.role.findFirst({
-                where: { 
-                    role: {
-                        equals: "user",
-                        mode: "insensitive"
-                    }
+        const defaultRole = await this.prismaService.role.findFirst({
+            where: { 
+                role: {
+                    equals: "user",
+                    mode: "insensitive"
                 }
-            });
-
-            if (!defaultRole) {
-                throw new HttpException("Default role 'user' not found", 500);
             }
+        });
 
-            req.roleId = defaultRole.id;
+        if (!defaultRole) {
+            throw new HttpException("Role 'user' not found", 500);
         }
+
+        req.roleId = defaultRole.id;
 
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
@@ -64,6 +64,55 @@ export class UserService {
         });
 
         
+        return {
+            no_pegawai: user.no_pegawai,
+            nik: user.nik,
+            email: user.email,
+            name: user.name,
+            dinasId: user.dinasId,
+            roleId: user.roleId,
+        };
+    }
+
+    async login(req: LoginUserRequest): Promise<UserResponse> {
+        this.logger.info(`UserService.login(${JSON.stringify(req)})`);
+
+        const loginRequest: LoginUserRequest = this.validationService.validate(UserValidation.LOGIN, req);
+
+        let user: User;
+        if(loginRequest.identifier.includes('@')) {
+            user = await this.prismaService.user.findFirst({
+                where: {
+                    email: loginRequest.identifier,
+                }
+            });
+        } else {
+            user = await this.prismaService.user.findFirst({
+                where: {
+                    no_pegawai: loginRequest.identifier
+                }
+            });
+        }
+
+        if(!user) {
+            throw new HttpException('no_pegawai or email or password is invalid', 401);
+        }
+
+        const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
+
+        if(!isPasswordValid) {
+            throw new HttpException('no_pegawai or email or password is invalid', 401);
+        }
+
+        user = await this.prismaService.user.update({
+            where: { 
+                id: user.id 
+            },
+            data: { 
+                token: uuid(),
+            },
+        });
+
         return {
             no_pegawai: user.no_pegawai,
             nik: user.nik,
