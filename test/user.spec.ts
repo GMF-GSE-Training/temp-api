@@ -27,7 +27,7 @@ describe('AppController (e2e)', () => {
   describe('POST /users', () => {
     beforeEach(async () => {
       testService.deleteUser();
-    })
+    });
 
     it('should be rejected if request is invalid', async () => {
       const response = await request(app.getHttpServer())
@@ -69,6 +69,45 @@ describe('AppController (e2e)', () => {
       expect(response.body.data.name).toBe('test');
       expect(response.body.data.dinasId).toBe(1);
       expect(response.body.data.roleId).toBe(4);
+    });
+
+    it('should be able to user register super admin', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          no_pegawai: 'test',
+          email: 'test@example.com',
+          name: 'test',
+          password: 'test',
+          roleId: 1,
+        });
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.no_pegawai).toBe('test');
+      expect(response.body.data.email).toBe('test@example.com');
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.roleId).toBe(1);
+    });
+
+    it('should be rejected if no_pegawai already exists', async () => {
+      await testService.createUser();
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          no_pegawai: 'test',
+          nik: 'abcd',
+          email: 'test@example.com',
+          name: 'test',
+          password: 'test',
+          dinasId: 1,
+        });
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
     });
   });
 });
