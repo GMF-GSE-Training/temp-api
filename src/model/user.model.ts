@@ -14,6 +14,7 @@ export class LoginUserRequest {
 }
 
 export class UserResponse {
+    id: number;
     no_pegawai?: string;
     nik?: string;
     email: string;

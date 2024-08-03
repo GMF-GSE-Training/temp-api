@@ -65,6 +65,7 @@ export class UserService {
 
         
         return {
+            id: user.id,
             no_pegawai: user.no_pegawai,
             nik: user.nik,
             email: user.email,
@@ -114,6 +115,7 @@ export class UserService {
         });
 
         return {
+            id: user.id,
             no_pegawai: user.no_pegawai,
             nik: user.nik,
             email: user.email,

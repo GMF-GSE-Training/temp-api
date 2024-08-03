@@ -7,7 +7,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { TestService } from './test.service';
 import { TestModule } from './test.module';
 
-describe('AppController (e2e)', () => {
+describe('UserController', () => {
   let app: INestApplication;
   let logger: Logger;
   let testService: TestService;
@@ -24,7 +24,7 @@ describe('AppController (e2e)', () => {
     testService = app.get(TestService);
   });
 
-  describe('POST /users/login', () => {
+  describe('POST /users', () => {
     beforeEach(async () => {
       testService.deleteUser();
     });
@@ -91,7 +91,7 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  describe('POST /users', () => {
+  describe('POST /users/login', () => {
     beforeEach(async () => {
       await testService.deleteUser();
       await testService.createUser();
@@ -122,6 +122,7 @@ describe('AppController (e2e)', () => {
       logger.info(response.body);
 
       expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
       expect(response.body.data.no_pegawai).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
@@ -140,6 +141,7 @@ describe('AppController (e2e)', () => {
       logger.info(response.body);
 
       expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
       expect(response.body.data.no_pegawai).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
