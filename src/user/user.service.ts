@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/prisma.service";
 import { ValidationService } from "../common/validation.service";
-import { LoginUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
+import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
@@ -136,12 +136,16 @@ export class UserService {
         };
     }
 
-    async get(user: User): Promise<UserResponse> {
-        this.prismaService.user.findUnique({
+    async me(userId: number): Promise<UserResponse> {
+        const user = await this.prismaService.user.findUnique({
             where: { 
-                id: user.id 
+                id: userId
             },
         });
+
+        if (!user) {
+            throw new HttpException('User not found', 404);
+        }
 
         return {
             id: user.id,
@@ -151,6 +155,7 @@ export class UserService {
             name: user.name,
             dinasId: user.dinasId,
             roleId: user.roleId,
-        }
+            token: user.token,
+        };
     }
 }

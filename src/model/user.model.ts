@@ -1,3 +1,6 @@
+import { Request } from 'express';
+import { User } from '@prisma/client';
+
 export interface RegisterUserRequest {
     no_pegawai?: string;
     nik?: string;
@@ -13,8 +16,8 @@ export interface LoginUserRequest {
     password: string;
 }
 
-export interface UpdateUserRequest {
-
+export interface CurrentUserRequest extends Request {
+    user: User;
 }
 
 export interface UserResponse {

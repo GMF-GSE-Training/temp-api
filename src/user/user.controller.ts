@@ -1,11 +1,10 @@
-import { Body, Controller, Get, HttpCode, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, Header, HttpCode, Post, Req } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { WebResponse } from "src/model/web.model";
-import { LoginUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
+import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
 import { User } from "@prisma/client";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/auth.guard";
-import { AuthenticatedRequest } from "src/common/authRequest.interface";
 
 @Controller("/users")
 export class UserController {
@@ -32,19 +31,11 @@ export class UserController {
     @UseGuards(AuthGuard)
     @Get('/current')
     @HttpCode(200)
-    async get(@Req() req: AuthenticatedRequest): Promise<WebResponse<UserResponse>> {
-        const user = req.user;
+    async get(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+        const user = req['user'];
+        const result = await this.userService.me(user.id);
         return {
-            data: {
-                id: user.id,
-                no_pegawai: user.no_pegawai,
-                nik: user.nik,
-                email: user.email,
-                name: user.name,
-                dinasId: user.dinasId,
-                roleId: user.roleId,
-                token: req.headers.authorization.split(' ')[1]
-            }
+            data: result,
         };
     }
 }
