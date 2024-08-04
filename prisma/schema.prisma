@@ -20,7 +20,7 @@ model User {
   nik        String? @db.VarChar(50)
   name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
-  token      String? @db.VarChar(100)
+  token      String? @db.VarChar(255)
   dinasId    Int?
   roleId     Int
 

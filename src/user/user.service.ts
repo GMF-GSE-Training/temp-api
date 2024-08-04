@@ -8,6 +8,7 @@ import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { User } from "@prisma/client";
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -15,6 +16,7 @@ export class UserService {
         private validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private prismaService: PrismaService,
+        private jwtService: JwtService
     ) {}
 
     async register(req: RegisterUserRequest): Promise<UserResponse> {
@@ -33,7 +35,9 @@ export class UserService {
             throw new HttpException("Role 'user' not found", 500);
         }
 
-        req.roleId = defaultRole.id;
+        if (!req.roleId) {
+            req.roleId = defaultRole.id;
+        }
 
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
@@ -105,14 +109,20 @@ export class UserService {
             throw new HttpException('no_pegawai or email or password is invalid', 401);
         }
 
-        user = await this.prismaService.user.update({
-            where: { 
-                id: user.id 
-            },
-            data: { 
-                token: uuid(),
-            },
-        });
+        const payload = { sub: user.id };
+
+        try {
+            user = await this.prismaService.user.update({
+                where: { 
+                    id: user.id 
+                },
+                data: { 
+                    token: await this.jwtService.signAsync(payload),
+                },
+            });
+        } catch (error) {
+            throw new HttpException('Failed to generate token', 500);
+        }
 
         return {
             id: user.id,
@@ -122,10 +132,17 @@ export class UserService {
             name: user.name,
             dinasId: user.dinasId,
             roleId: user.roleId,
+            token: user.token,
         };
     }
 
     async get(user: User): Promise<UserResponse> {
+        this.prismaService.user.findUnique({
+            where: { 
+                id: user.id 
+            },
+        });
+
         return {
             id: user.id,
             no_pegawai: user.no_pegawai,

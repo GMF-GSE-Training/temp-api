@@ -26,7 +26,7 @@ describe('UserController', () => {
 
   describe('POST /users', () => {
     beforeEach(async () => {
-      testService.deleteUser();
+      await testService.deleteUser();
     });
 
     it('should be rejected if request is invalid', async () => {
@@ -152,9 +152,18 @@ describe('UserController', () => {
   });
 
   describe('GET /users/current', () => {
+    let token: string;
+
     beforeEach(async () => {
       await testService.deleteUser();
       await testService.createUser();
+      const response = await request(app.getHttpServer())
+        .post('/users/login')
+        .send({
+          identifier: 'test@example.com',
+          password: 'test',
+        });
+      token = response.body.data.token;
     });
 
     it('should be rejected if token is invalid', async () => {
@@ -171,7 +180,7 @@ describe('UserController', () => {
     it('should be able to get user', async () => {
       const response = await request(app.getHttpServer())
         .get('/users/current')
-        .set('Authorization', 'test');
+        .set('Authorization', `Bearer ${token}`);
 
       logger.info(response.body);
 
@@ -183,6 +192,5 @@ describe('UserController', () => {
       expect(response.body.data.dinasId).toBeDefined();
       expect(response.body.data.roleId).toBeDefined();
     });
-
   });
 });
