@@ -6,7 +6,6 @@ import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
-import { v4 as uuid } from 'uuid';
 import { User } from "@prisma/client";
 import { JwtService } from '@nestjs/jwt';
 
