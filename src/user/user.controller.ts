@@ -31,7 +31,7 @@ export class UserController {
     @UseGuards(AuthGuard)
     @Get('/current')
     @HttpCode(200)
-    async get(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+    async me(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
         const user = req.user;
         const result = await this.userService.me(user);
         return {
@@ -42,7 +42,7 @@ export class UserController {
     @UseGuards(AuthGuard)
     @Patch('/current')
     @HttpCode(200)
-    async update(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
+    async updateMe(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
         const result = await this.userService.updateMe(userCurrent.user, req);
         return {
             data: result,
