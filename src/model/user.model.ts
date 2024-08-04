@@ -1,4 +1,4 @@
-export class RegisterUserRequest {
+export interface RegisterUserRequest {
     no_pegawai?: string;
     nik?: string;
     email: string;
@@ -8,12 +8,16 @@ export class RegisterUserRequest {
     roleId: number;
 }
 
-export class LoginUserRequest {
+export interface LoginUserRequest {
     identifier: string;
     password: string;
 }
 
-export class UserResponse {
+export interface UpdateUserRequest {
+
+}
+
+export interface UserResponse {
     id: number;
     no_pegawai?: string;
     nik?: string;
