@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/prisma.service";
 import { ValidationService } from "../common/validation.service";
-import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse } from "../model/user.model";
+import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse, UpdateUserRequest } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
@@ -20,7 +20,7 @@ export class UserService {
     ) {}
 
     async register(req: RegisterUserRequest): Promise<UserResponse> {
-        this.logger.info(`UserService.register(${JSON.stringify(req)})`);
+        this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
         const defaultRole = await this.prismaService.role.findFirst({
             where: { 
@@ -80,7 +80,7 @@ export class UserService {
     }
 
     async login(req: LoginUserRequest): Promise<UserResponse> {
-        this.logger.info(`UserService.login(${JSON.stringify(req)})`);
+        this.logger.debug(`UserService.login(${JSON.stringify(req)})`);
 
         const loginRequest: LoginUserRequest = this.validationService.validate(UserValidation.LOGIN, req);
 
@@ -136,10 +136,12 @@ export class UserService {
         };
     }
 
-    async me(userId: number): Promise<UserResponse> {
-        const user = await this.prismaService.user.findUnique({
+    async me(user: User): Promise<UserResponse> {
+        this.logger.debug(`UserService.login(${JSON.stringify(user)})`);
+
+        await this.prismaService.user.findUnique({
             where: { 
-                id: userId
+                id: user.id
             },
         });
 

@@ -20,6 +20,16 @@ export interface CurrentUserRequest extends Request {
     user: User;
 }
 
+export interface UpdateUserRequest {
+    no_pegawai?: string;
+    nik?: string;
+    email?: string;
+    name?: string;
+    password?: string;
+    dinasId?: number;
+    roleId?: number;
+}
+
 export interface UserResponse {
     id: number;
     no_pegawai?: string;
