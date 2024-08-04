@@ -42,9 +42,8 @@ export class UserController {
     @UseGuards(AuthGuard)
     @Patch('/current')
     @HttpCode(200)
-    async update(@Req() req, @Body() updateUserRequest: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        const user = req.user;
-        const result = await this.userService.update(user, updateUserRequest);
+    async update(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
+        const result = await this.userService.updateMe(userCurrent.user, req);
         return {
             data: result,
         };

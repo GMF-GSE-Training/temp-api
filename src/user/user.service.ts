@@ -160,7 +160,7 @@ export class UserService {
         };
     }
 
-    async update(user: User, req: UpdateUserRequest): Promise<UserResponse> {
+    async updateMe(user: User, req: UpdateUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.update(${user}, ${JSON.stringify(req)})`);
 
         const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
