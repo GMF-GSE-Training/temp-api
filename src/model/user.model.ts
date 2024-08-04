@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { User } from '@prisma/client';
 
 export interface RegisterUserRequest {
@@ -16,7 +15,7 @@ export interface LoginUserRequest {
     password: string;
 }
 
-export interface CurrentUserRequest extends Request {
+export interface CurrentUserRequest {
     user: User;
 }
 

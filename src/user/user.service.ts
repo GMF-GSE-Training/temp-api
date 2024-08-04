@@ -160,4 +160,38 @@ export class UserService {
             token: user.token,
         };
     }
+
+    async update(user: User, req: UpdateUserRequest): Promise<UserResponse> {
+        this.logger.debug(`UserService.update(${user}, ${JSON.stringify(req)})`);
+
+        const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
+
+        for (const key of Object.keys(updateRequest)) {
+            if (updateRequest[key] !== undefined) {
+                if (key === 'password') {
+                    user.password = await bcrypt.hash(updateRequest.password, 10);
+                } else {
+                    (   user as any)[key] = updateRequest[key];
+                }
+            }
+        }   
+
+        const result = await this.prismaService.user.update({
+            where: {
+                id: user.id,
+            },
+            data: user,
+        });
+
+        return {
+            id: result.id,
+            no_pegawai: result.no_pegawai,
+            nik: result.nik,
+            email: result.email,
+            name: result.name,
+            dinasId: result.dinasId,
+            roleId: result.roleId,
+            token: result.token,
+        }
+    }
 }

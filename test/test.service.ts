@@ -10,7 +10,10 @@ export class TestService {
     async deleteUser() {
         await this.prismaService.user.deleteMany({
             where: {
-                email: 'test@example.com'
+                OR: [
+                    { email: 'test@example.com' },
+                    { email: 'testupdated@example.com' },
+                ]
             }
         });
     }
