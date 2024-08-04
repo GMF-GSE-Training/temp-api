@@ -150,4 +150,39 @@ describe('UserController', () => {
     });
 
   });
+
+  describe('GET /users/current', () => {
+    beforeEach(async () => {
+      await testService.deleteUser();
+      await testService.createUser();
+    });
+
+    it('should be rejected if token is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users/current')
+        .set('Authorization', 'wrong');
+
+        logger.info(response.body);
+
+      expect(response.status).toBe(401);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be able to get user', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users/current')
+        .set('Authorization', 'test');
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.no_pegawai).toBe('test');
+      expect(response.body.data.email).toBe('test@example.com');
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.dinasId).toBeDefined();
+      expect(response.body.data.roleId).toBeDefined();
+    });
+
+  });
 });

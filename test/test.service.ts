@@ -25,6 +25,7 @@ export class TestService {
                 password: await bcrypt.hash('test', 10),
                 dinasId: 1,
                 roleId: 4,
+                token: 'test',
             }
         })
     }

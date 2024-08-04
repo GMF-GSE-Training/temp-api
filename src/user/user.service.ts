@@ -124,4 +124,16 @@ export class UserService {
             roleId: user.roleId,
         };
     }
+
+    async get(user: User): Promise<UserResponse> {
+        return {
+            id: user.id,
+            no_pegawai: user.no_pegawai,
+            nik: user.nik,
+            email: user.email,
+            name: user.name,
+            dinasId: user.dinasId,
+            roleId: user.roleId,
+        }
+    }
 }
