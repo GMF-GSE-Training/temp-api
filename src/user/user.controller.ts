@@ -1,10 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Patch, Post, Req } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { WebResponse } from "src/model/web.model";
-import { LoginUserRequest, CurrentUserRequest, RegisterUserRequest, UserResponse, UpdateUserRequest } from "../model/user.model";
-import { User } from "@prisma/client";
-import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../common/auth.guard";
+import { RegisterUserRequest, UserResponse } from "../model/user.model";
 
 @Controller("/users")
 export class UserController {
@@ -17,45 +14,5 @@ export class UserController {
         return{
             data: result,
         }
-    }
-
-    @Post('/login')
-    @HttpCode(200)
-    async login(@Body() req: LoginUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.login(req);
-        return{
-            data: result,
-        }
-    }
-
-    @UseGuards(AuthGuard)
-    @Get('/current')
-    @HttpCode(200)
-    async me(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
-        const user = req.user;
-        const result = await this.userService.me(user);
-        return {
-            data: result,
-        };
-    }
-
-    @UseGuards(AuthGuard)
-    @Patch('/current')
-    @HttpCode(200)
-    async updateMe(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.updateMe(userCurrent.user, req);
-        return {
-            data: result,
-        };
-    }
-
-    @UseGuards(AuthGuard)
-    @Delete('/current')
-    @HttpCode(200)
-    async logout(@Req() req: CurrentUserRequest): Promise<WebResponse<boolean>> {
-        await this.userService.logout(req.user);
-        return {
-            data: true,
-        };
     }
 }
