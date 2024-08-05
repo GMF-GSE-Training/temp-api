@@ -50,4 +50,18 @@ export class TestService {
             }
         });
     }
+
+    async createLCU(){
+        await this.prismaService.user.create({
+            data: {
+                no_pegawai: 'lcu',
+                nik: 'lcu',
+                email: 'lcu@example.com',
+                name: 'lcu',
+                password: await bcrypt.hash('lcu', 10),
+                dinasId: 1,
+                roleId: 3,
+            }
+        });
+    }
 }
