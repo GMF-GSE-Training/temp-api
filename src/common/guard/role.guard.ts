@@ -20,7 +20,6 @@ export class RoleGuard implements CanActivate {
             return true;
         }
 
-        // Normalisasi roles yang diperlukan menjadi huruf kecil
         const normalizedRequiredRoles = requiredRoles.map(role => role.toLowerCase());
 
         const request = context.switchToHttp().getRequest();
@@ -31,7 +30,6 @@ export class RoleGuard implements CanActivate {
             throw new HttpException('Unauthorized', 401);
         }
 
-        // Ambil role dari database dan normalisasi ke huruf kecil
         const userWithRole = await this.prismaService.user.findUnique({
             where: { id: user.id },
             include: { role: true }
@@ -41,7 +39,7 @@ export class RoleGuard implements CanActivate {
             throw new HttpException('Forbidden', 403);
         }
 
-        const userRoleName = userWithRole.role.role.toLowerCase(); // Normalisasi ke huruf kecil
+        const userRoleName = userWithRole.role.role.toLowerCase();
         const hasRole = normalizedRequiredRoles.includes(userRoleName);
         console.log('User role:', userRoleName, 'Required roles:', normalizedRequiredRoles);
 
