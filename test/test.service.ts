@@ -8,14 +8,7 @@ export class TestService {
     }
 
     async deleteUser() {
-        await this.prismaService.user.deleteMany({
-            where: {
-                OR: [
-                    { email: 'test@example.com' },
-                    { email: 'testupdated@example.com' },
-                ]
-            }
-        });
+        await this.prismaService.user.deleteMany();
     }
 
     async createUser(){
@@ -28,6 +21,19 @@ export class TestService {
                 password: await bcrypt.hash('test', 10),
                 dinasId: 1,
                 roleId: 4,
+            }
+        });
+    }
+
+    async createSuperAdmin(){
+        await this.prismaService.user.create({
+            data: {
+                no_pegawai: 'super admin',
+                nik: 'super admin',
+                email: 'superadmin@example.com',
+                name: 'super admin',
+                password: await bcrypt.hash('super admin', 10),
+                roleId: 1,
             }
         });
     }

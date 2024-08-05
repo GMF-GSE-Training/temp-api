@@ -6,7 +6,7 @@ export interface RegisterUserRequest {
     email: string;
     name: string;
     password: string;
-    dinasId: number;
+    dinasId?: number;
     roleId: number;
 }
 

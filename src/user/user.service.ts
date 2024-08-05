@@ -37,25 +37,7 @@ export class UserService {
 
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
-        const totalUserwithSameNoPegawai = await this.prismaService.user.count({
-            where: {
-                no_pegawai: registerRequest.no_pegawai,
-            }
-        });
-
-        if(totalUserwithSameNoPegawai != 0) {
-            throw new HttpException("No pegawai sudah digunakan", 400);
-        }
-
-        const totalUserwithSameEmail = await this.prismaService.user.count({
-            where: {
-                email: registerRequest.email,
-            }
-        });
-
-        if(totalUserwithSameEmail != 0) {
-            throw new HttpException("Email sudah digunakan", 400);
-        }
+        await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
 
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
@@ -73,5 +55,52 @@ export class UserService {
             dinasId: user.dinasId,
             roleId: user.roleId,
         };
+    }
+
+    async createUser(req: RegisterUserRequest): Promise<UserResponse> {
+        this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
+
+        const updateRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
+
+        await this.checkUserExists(updateRequest.no_pegawai, updateRequest.email);
+
+        updateRequest.password = await bcrypt.hash(updateRequest.password, 10);
+
+        const user = await this.prismaService.user.create({
+            data: updateRequest,
+        });
+
+        
+        return {
+            id: user.id,
+            no_pegawai: user.no_pegawai,
+            nik: user.nik,
+            email: user.email,
+            name: user.name,
+            dinasId: user.dinasId,
+            roleId: user.roleId,
+        };
+    }
+
+    async checkUserExists(no_pegawai: string, email: string) {
+        const totalUserwithSameNoPegawai = await this.prismaService.user.count({
+            where: {
+                no_pegawai: no_pegawai,
+            }
+        });
+
+        if(totalUserwithSameNoPegawai != 0) {
+            throw new HttpException("No pegawai sudah digunakan", 400);
+        }
+
+        const totalUserwithSameEmail = await this.prismaService.user.count({
+            where: {
+                email: email,
+            }
+        });
+
+        if(totalUserwithSameEmail != 0) {
+            throw new HttpException("Email sudah digunakan", 400);
+        }
     }
 }
