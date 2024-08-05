@@ -37,4 +37,17 @@ export class TestService {
             }
         });
     }
+
+    async createSupervisor(){
+        await this.prismaService.user.create({
+            data: {
+                no_pegawai: 'supervisor',
+                nik: 'supervisor',
+                email: 'supervisor@example.com',
+                name: 'supervisor',
+                password: await bcrypt.hash('supervisor', 10),
+                roleId: 2,
+            }
+        });
+    }
 }

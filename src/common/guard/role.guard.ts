@@ -30,19 +30,51 @@ export class RoleGuard implements CanActivate {
         }
 
         const userWithRole = await this.prismaService.user.findUnique({
-            where: { id: user.id },
-            include: { role: true }
+            where: { 
+                id: user.id, 
+            },
+            include: { 
+                role: true, 
+            }
         });
 
         if (!userWithRole || !userWithRole.role) {
             throw new HttpException('Forbidden', 403);
         }
 
-        const userRoleName = userWithRole.role.role.toLowerCase();
-        const hasRole = normalizedRequiredRoles.includes(userRoleName);
+        const userRole = userWithRole.role.role.toLowerCase();
+        const hasRole = normalizedRequiredRoles.includes(userRole);
 
         if (!hasRole) {
             throw new HttpException('Forbidden', 403);
+        }
+
+        console.log(userWithRole);
+        console.log(request.body);
+
+        const requestedRoleId = request.body.roleId;
+
+        if(!requestedRoleId) {
+            throw new HttpException('Validation Error', 400);
+        }
+
+        const requestedRole = await this.prismaService.role.findUnique({
+            where: { 
+                id: requestedRoleId,
+            }
+        });
+
+        const requestedRoleName = requestedRole.role.toLowerCase();
+        console.log(requestedRoleName);
+
+        if (userRole === 'supervisor') {
+            if (requestedRoleName === 'super admin' || !['supervisor', 'lcu', 'user'].includes(requestedRoleName)) {
+                throw new HttpException('Forbidden: Supervisors can only create Supervisor, LCU, or User accounts', 403);
+            }
+        } else if (userRole === 'lcu') {
+            if (request.body.dinasId !== user.dinasId) {
+                throw new HttpException('Forbidden: LCU can only create User accounts within the same dinas', 403);
+            }
         }
 
         return true;
