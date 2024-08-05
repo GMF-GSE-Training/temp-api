@@ -24,7 +24,6 @@ export class RoleGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-        console.log('User in RoleGuard:', user);
 
         if (!user) {
             throw new HttpException('Unauthorized', 401);
@@ -41,7 +40,6 @@ export class RoleGuard implements CanActivate {
 
         const userRoleName = userWithRole.role.role.toLowerCase();
         const hasRole = normalizedRequiredRoles.includes(userRoleName);
-        console.log('User role:', userRoleName, 'Required roles:', normalizedRequiredRoles);
 
         if (!hasRole) {
             throw new HttpException('Forbidden', 403);
