@@ -110,7 +110,7 @@ export class AuthService {
                 if (key === 'password') {
                     user.password = await bcrypt.hash(updateRequest.password, 10);
                 } else {
-                    (   user as any)[key] = updateRequest[key];
+                    (user as any)[key] = updateRequest[key];
                 }
             }
         }   

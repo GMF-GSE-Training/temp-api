@@ -20,6 +20,7 @@ export interface CurrentUserRequest {
 }
 
 export interface UpdateUserRequest {
+    id: number;
     no_pegawai?: string;
     nik?: string;
     email?: string;

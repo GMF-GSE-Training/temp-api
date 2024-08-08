@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../src/common/service/prisma.service";
 import * as bcrypt from 'bcrypt';
+import { User } from "@prisma/client";
 
 @Injectable()
 export class TestService {
@@ -61,6 +62,75 @@ export class TestService {
                 password: await bcrypt.hash('lcu', 10),
                 dinasId: 1,
                 roleId: 3,
+            }
+        });
+    }
+
+    async getSuperAdmin(): Promise<User> {
+        return this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    { no_pegawai: 'super admin' },
+                    { email: 'superadmin@example.com' },
+                ]
+            }
+        });
+    }
+
+    async getSupervisor(): Promise<User> {
+        return this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    { no_pegawai: 'supervisor' },
+                    { email: 'supervisor@example.com' },
+                ]
+            }
+        });
+    }
+
+    async getLCU(): Promise<User> {
+        return this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    { no_pegawai: 'lcu' },
+                    { email: 'lcu@example.com' },
+                ]
+            }
+        });
+    }
+
+    async getUser(): Promise<User> {
+        return this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    { no_pegawai: 'test' },
+                    { email: 'test@example.com' },
+                ]
+            }
+        });
+    }
+
+    async createUserDinasTC(){
+        await this.prismaService.user.create({
+            data: {
+                no_pegawai: 'tc',
+                nik: 'tc',
+                email: 'tc@example.com',
+                name: 'tc',
+                password: await bcrypt.hash('tc', 10),
+                dinasId: 2,
+                roleId: 4,
+            }
+        });
+    }
+
+    async getUserDinasTC(): Promise<User> {
+        return this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    { no_pegawai: 'tc' },
+                    { email: 'tc@example.com' },
+                ]
             }
         });
     }
