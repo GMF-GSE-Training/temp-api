@@ -9,6 +9,7 @@ export class TestService {
     }
 
     async deleteUser() {
+<<<<<<< HEAD
         await this.prismaService.user.deleteMany({
             where: {
                 OR:[
@@ -20,6 +21,9 @@ export class TestService {
                 ]
             }
         });
+=======
+        await this.prismaService.user.deleteMany();
+>>>>>>> 26e7f240b1e5c39b1f62d1df44880af5801b880a
     }
 
     async createUser(){
