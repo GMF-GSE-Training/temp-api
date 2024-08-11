@@ -174,7 +174,6 @@ export class RoleGuard implements CanActivate {
             }
 
             const request = context.switchToHttp().getRequest();
-            console.log(request);
             const user = request.user;
 
             if (!user) {
@@ -189,8 +188,6 @@ export class RoleGuard implements CanActivate {
                     role: true, 
                 }
             });
-
-            console.log(`User with role: ${userWithRole.role.role}`);
     
             if (!userWithRole || !userWithRole.role) {
                 throw new HttpException('Forbidden', 403);

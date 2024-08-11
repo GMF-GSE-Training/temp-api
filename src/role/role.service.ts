@@ -5,6 +5,8 @@ import { ValidationService } from "../common/service/validation.service";
 import { Logger } from 'winston';
 import { CreateRoleRequest, RoleResponse } from "src/model/role.model";
 import { RoleValidation } from "./role.validation";
+import { Role } from "@prisma/client";
+import { identity } from "rxjs";
 
 @Injectable()
 export class RoleService {
@@ -31,6 +33,20 @@ export class RoleService {
             data: createRequest,
         });
 
+        return this.toRoleResponse(role);
+    }
+
+    async getAll(): Promise<RoleResponse[]> {
+        const roles = await this.prismaService.role.findMany();
+
+        if(!roles) {
+            throw new HttpException('Role Not Found', 404);
+        }
+
+        return roles.map((role) => this.toRoleResponse(role));
+    }
+
+    toRoleResponse(role: Role) {
         return {
             id: role.id,
             role: role.role,

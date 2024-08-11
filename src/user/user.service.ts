@@ -47,7 +47,7 @@ export class UserService {
         });
 
         
-        return this.toContactResponse(user);
+        return this.toUserResponse(user);
     }
 
     async createUser(req: RegisterUserRequest): Promise<UserResponse> {
@@ -64,7 +64,7 @@ export class UserService {
         });
 
         
-        return this.toContactResponse(user);
+        return this.toUserResponse(user);
     }
 
     async getUserById(userId: number): Promise<UserResponse> {
@@ -73,12 +73,12 @@ export class UserService {
                 id: userId,
             }
         });
-        
+
         if(!user) {
             throw new HttpException('User Not Found', 404);
         }
 
-        return this.toContactResponse(user);
+        return this.toUserResponse(user);
     }
 
     async updateUser(req: UpdateUserRequest): Promise<UserResponse> {
@@ -103,7 +103,7 @@ export class UserService {
             data: updateRequest,
         });
         
-        return this.toContactResponse(result);
+        return this.toUserResponse(result);
     }
 
     async checkUserExists(no_pegawai: string, email: string) {
@@ -128,7 +128,7 @@ export class UserService {
         }
     }
 
-    toContactResponse(user: User) {
+    toUserResponse(user: User) {
         return {
             id: user.id,
             no_pegawai: user.no_pegawai,
