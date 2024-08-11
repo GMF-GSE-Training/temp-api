@@ -36,7 +36,6 @@ export class UserController {
     @HttpCode(200)
     async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<UserResponse>> {
         const result = await this.userService.getUserById(userId);
-        console.log(result);
         return{
             data: result,
         }

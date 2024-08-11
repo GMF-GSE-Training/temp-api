@@ -15,10 +15,12 @@ export class RoleGuard implements CanActivate {
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
-        if (!requiredRoles) {
-            return true;
-        }
+        const controller = context.getClass().name;
+        if(controller === 'UserController') {
+            const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+            if (!requiredRoles) {
+                return true;
+            }
 
         const request = context.switchToHttp().getRequest();
         const user = request.user;
@@ -56,11 +58,11 @@ export class RoleGuard implements CanActivate {
                 throw new HttpException('Validation Error', 400);
             }
 
-            const requestedRole = await this.prismaService.role.findUnique({
-                where: { 
-                    id: requestedRoleId,
-                }
-            });
+                const requestedRole = await this.prismaService.role.findUnique({
+                    where: { 
+                        id: requestedRoleId,
+                    }
+                });
 
             if (!requestedRole) {
                 throw new HttpException('Invalid Role', 400);
@@ -106,25 +108,25 @@ export class RoleGuard implements CanActivate {
                 throw new HttpException('Forbidden: Supervisors cannot update data on Super Admin accounts', 403);
             }
 
-            if (requestedRoleId) {
-                const requestedRole = await this.prismaService.role.findUnique({
-                    where: { 
-                        id: requestedRoleId,
-                    }
-                });
-    
-                const requestedRoleName = requestedRole.role.toLowerCase();
-    
-                if (userRole === 'supervisor') {
-                    if (requestedRoleName === 'super admin' || !['supervisor', 'lcu', 'user'].includes(requestedRoleName)) {
-                        throw new HttpException('Forbidden: Supervisors can only update Supervisor, LCU, or User accounts', 403);
-                    }
-                } else if (userRole === 'lcu') {
-                    if(requestedRoleName !== 'user') {
-                        throw new HttpException('Forbidden: LCU cannot update to any role other than User', 403);
+                if (requestedRoleId) {
+                    const requestedRole = await this.prismaService.role.findUnique({
+                        where: { 
+                            id: requestedRoleId,
+                        }
+                    });
+        
+                    const requestedRoleName = requestedRole.role.toLowerCase();
+        
+                    if (userRole === 'supervisor') {
+                        if (requestedRoleName === 'super admin' || !['supervisor', 'lcu', 'user'].includes(requestedRoleName)) {
+                            throw new HttpException('Forbidden: Supervisors can only update Supervisor, LCU, or User accounts', 403);
+                        }
+                    } else if (userRole === 'lcu') {
+                        if(requestedRoleName !== 'user') {
+                            throw new HttpException('Forbidden: LCU cannot update to any role other than User', 403);
+                        }
                     }
                 }
-            }
 
             if(requestedDinasId && userRole === 'lcu' && requestedDinasId !== user.dinasId) {
                 throw new HttpException('Forbidden: LCU can only update User accounts within the same dinas', 403);
@@ -163,6 +165,7 @@ export class RoleGuard implements CanActivate {
             }
         }
 
-        return true;
+            return true;
+        }
     }
 }

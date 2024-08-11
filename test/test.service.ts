@@ -9,7 +9,17 @@ export class TestService {
     }
 
     async deleteUser() {
-        await this.prismaService.user.deleteMany();
+        await this.prismaService.user.deleteMany({
+            where: {
+                OR:[
+                    { email: 'superadmin@example.com' },
+                    { email: 'supervisor@example.com' },
+                    { email: 'lcu@example.com' },
+                    { email: 'test@example.com' },
+                    { email: 'tc@example.com' },
+                ]
+            }
+        });
     }
 
     async createUser(){
