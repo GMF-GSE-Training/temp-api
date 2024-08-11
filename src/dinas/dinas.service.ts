@@ -33,6 +33,16 @@ export class DinasService{
         return this.toDinasResponse(dinas);
     }
 
+    async getAll(): Promise<DinasResponse[]> {
+        const dinas = await this.prismaService.dinas.findMany();
+
+        if(!dinas) {
+            throw new HttpException('Dinas Not Found', 404);
+        }
+
+        return dinas.map((dinas) => this.toDinasResponse(dinas));
+    }
+
     toDinasResponse(dinas: Dinas) {
         return {
             id: dinas.id,

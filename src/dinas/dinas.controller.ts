@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
 import { DinasService } from "./dinas.service";
 import { CreateDinasRequest, DinasResponse } from "../model/dinas.model";
 import { WebResponse } from "../model/web.model";
@@ -16,6 +16,17 @@ export class DinasController {
     @UseGuards(AuthGuard, RoleGuard)
     async create(@Body() req: CreateDinasRequest): Promise<WebResponse<DinasResponse>> {
         const result = await this.dinasService.create(req);
+        return {
+            data: result,
+        }
+    }
+
+    @Get()
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getAll(): Promise<WebResponse<DinasResponse[]>> {
+        const result = await this.dinasService.getAll();
         return {
             data: result,
         }
