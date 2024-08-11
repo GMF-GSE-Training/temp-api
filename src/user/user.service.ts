@@ -73,17 +73,7 @@ export class UserService {
                 id: userId,
             }
         });
-
-<<<<<<< HEAD
-        console.log(user)
-
-=======
-<<<<<<< HEAD
-=======
-        console.log(user)
-
->>>>>>> 26e7f240b1e5c39b1f62d1df44880af5801b880a
->>>>>>> 8bea987433aeb3e5b7f85c45a2fa637bdef314f1
+        
         if(!user) {
             throw new HttpException('User Not Found', 404);
         }
