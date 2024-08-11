@@ -1,36 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { AppModule } from '../../src/app.module';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { TestService } from './test.service';
-import { TestModule } from './test.module';
+import { UserTestService } from './user.test.service';
+import { UserTestModule } from './user.test.module';
 
 describe('UserController', () => {
   let app: INestApplication;
   let logger: Logger;
-  let testService: TestService;
+  let userTestService: UserTestService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, TestModule],
+      imports: [AppModule, UserTestModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
 
     logger = app.get(WINSTON_MODULE_PROVIDER);
-    testService = app.get(TestService);
+    userTestService = app.get(UserTestService);
   });
 
   afterEach(async () => {
-    await testService.deleteMany();
+    await userTestService.deleteMany();
   });
 
   describe('POST /users/register', () => {
     beforeEach(async () => {
-      await testService.deleteUser();
+      await userTestService.deleteUser();
     });
 
     it('should be rejected if request is invalid', async () => {
@@ -76,7 +76,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if no_pegawai already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/register')
         .send({
@@ -99,8 +99,8 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -227,7 +227,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if no_pegawai already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/create')
         .set('Authorization', `Bearer ${token}`)
@@ -251,8 +251,8 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSupervisor();
+      await userTestService.deleteUser();
+      await userTestService.createSupervisor();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -375,7 +375,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if no_pegawai already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/create')
         .set('Authorization', `Bearer ${token}`)
@@ -395,7 +395,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if email already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/create')
         .set('Authorization', `Bearer ${token}`)
@@ -419,8 +419,8 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createLCU();
+      await userTestService.deleteUser();
+      await userTestService.createLCU();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -553,7 +553,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if no_pegawai already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/create')
         .set('Authorization', `Bearer ${token}`)
@@ -573,7 +573,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if email already exists', async () => {
-      await testService.createUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/users/create')
         .set('Authorization', `Bearer ${token}`)
@@ -597,8 +597,8 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createUser();
+      await userTestService.deleteUser();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -690,11 +690,11 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
-      await testService.createUser();
-      await testService.createSupervisor();
-      await testService.createLCU();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createUser();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -705,7 +705,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user not found', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id - user.id}`)
         .set('Authorization', `Bearer ${token}`);
@@ -717,7 +717,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin get super admin', async () => {
-      const user = await testService.getSuperAdmin();
+      const user = await userTestService.getSuperAdmin();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
@@ -733,7 +733,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin get supervisor', async () => {
-      const user = await testService.getSupervisor();
+      const user = await userTestService.getSupervisor();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -749,7 +749,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin get lcu', async () => {
-      const user = await testService.getLCU();
+      const user = await userTestService.getLCU();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -766,7 +766,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin get user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -787,11 +787,11 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
-      await testService.createUser();
-      await testService.createSupervisor();
-      await testService.createLCU();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createUser();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -802,7 +802,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user is not found', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id - user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -817,7 +817,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if request is invalid', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -838,7 +838,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin updates super admin', async () => {
-      const user = await testService.getSuperAdmin();
+      const user = await userTestService.getSuperAdmin();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -862,7 +862,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin updates supervisor', async () => {
-      const user = await testService.getSupervisor();
+      const user = await userTestService.getSupervisor();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -886,7 +886,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin updates lcu', async () => {
-      const user = await testService.getLCU();
+      const user = await userTestService.getLCU();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -912,7 +912,7 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin updates user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -942,11 +942,11 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
-      await testService.createSupervisor();
-      await testService.createLCU();
-      await testService.createUser();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -957,7 +957,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user is not found', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id - user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -972,7 +972,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if request is invalid', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -993,7 +993,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if supervisor updates super admin', async () => {
-      const user = await testService.getSuperAdmin();
+      const user = await userTestService.getSuperAdmin();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1013,7 +1013,7 @@ describe('UserController', () => {
     });
 
     it('should be able to supervisor updates supervisor', async () => {
-      const user = await testService.getSupervisor();
+      const user = await userTestService.getSupervisor();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1037,7 +1037,7 @@ describe('UserController', () => {
     });
 
     it('should be able to supervisor updates lcu', async () => {
-      const user = await testService.getLCU();
+      const user = await userTestService.getLCU();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1063,7 +1063,7 @@ describe('UserController', () => {
     });
 
     it('should be able to supervisor updates user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1093,11 +1093,11 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
-      await testService.createSupervisor();
-      await testService.createLCU();
-      await testService.createUser();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -1108,7 +1108,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user is not found', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id - user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1123,7 +1123,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if request is invalid', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1144,7 +1144,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates super admin', async () => {
-      const user = await testService.getSuperAdmin();
+      const user = await userTestService.getSuperAdmin();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1164,7 +1164,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates supervisor', async () => {
-      const user = await testService.getSupervisor();
+      const user = await userTestService.getSupervisor();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1184,7 +1184,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates lcu', async () => {
-      const user = await testService.getLCU();
+      const user = await userTestService.getLCU();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1204,8 +1204,8 @@ describe('UserController', () => {
     });
 
     it('should be rejected if the lcu updates a user with a service that is different units', async () => {
-      await testService.createUserDinasTC();
-      const user = await testService.getUserDinasTC();
+      await userTestService.createUserDinasTC();
+      const user = await userTestService.getUserDinasTC();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1226,7 +1226,7 @@ describe('UserController', () => {
     });
 
     it('should be able to lcu updates user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1250,7 +1250,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates dinas user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1265,7 +1265,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates role user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1284,11 +1284,11 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
-      await testService.deleteUser();
-      await testService.createSuperAdmin();
-      await testService.createSupervisor();
-      await testService.createLCU();
-      await testService.createUser();
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      await userTestService.createUser();
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -1299,7 +1299,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user updates super admin', async () => {
-      const user = await testService.getSuperAdmin();
+      const user = await userTestService.getSuperAdmin();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1319,7 +1319,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user updates supervisor', async () => {
-      const user = await testService.getSupervisor();
+      const user = await userTestService.getSupervisor();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1339,7 +1339,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if lcu updates lcu', async () => {
-      const user = await testService.getLCU();
+      const user = await userTestService.getLCU();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -1359,7 +1359,7 @@ describe('UserController', () => {
     });
 
     it('should be rejected if user updates user', async () => {
-      const user = await testService.getUser();
+      const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)

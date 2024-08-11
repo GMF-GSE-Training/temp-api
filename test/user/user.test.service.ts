@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../src/common/service/prisma.service";
+import { PrismaService } from "../../src/common/service/prisma.service";
 import * as bcrypt from 'bcrypt';
 import { User } from "@prisma/client";
 
 @Injectable()
-export class TestService {
+export class UserTestService {
     constructor(private prismaService: PrismaService) {
     }
 

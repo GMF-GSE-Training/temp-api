@@ -1,33 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { AppModule } from '../../src/app.module';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { TestService } from './test.service';
-import { TestModule } from './test.module';
+import { UserTestService } from './user.test.service';
+import { UserTestModule } from './user.test.module';
 
 describe('AuthController', () => {
     let app: INestApplication;
     let logger: Logger;
-    let testService: TestService;
+    let userTestService: UserTestService;
 
     beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule, TestModule],
+        imports: [AppModule, UserTestModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
 
     logger = app.get(WINSTON_MODULE_PROVIDER);
-    testService = app.get(TestService);
+    userTestService = app.get(UserTestService);
     });
 
     describe('POST /auth/login', () => {
         beforeEach(async () => {
-            await testService.deleteUser();
-            await testService.createUser();
+            await userTestService.deleteUser();
+            await userTestService.createUser(); 
         });
 
         it('should be rejected if request is invalid', async () => {
@@ -88,8 +88,8 @@ describe('AuthController', () => {
         let token: string;
 
         beforeEach(async () => {
-        await testService.deleteUser();
-        await testService.createUser();
+        await userTestService.deleteUser();
+        await userTestService.createUser();
         const response = await request(app.getHttpServer())
             .post('/auth/login')
             .send({
@@ -131,8 +131,8 @@ describe('AuthController', () => {
         let token: string;
 
         beforeEach(async () => {
-        await testService.deleteUser();
-        await testService.createUser();
+        await userTestService.deleteUser();
+        await userTestService.createUser();
         const response = await request(app.getHttpServer())
             .post('/auth/login')
             .send({
@@ -143,7 +143,7 @@ describe('AuthController', () => {
         });
 
         afterEach(async () => {
-        await testService.deleteUser();
+        await userTestService.deleteUser();
         });
 
         it('should be rejected if request is invalid', async () => {
@@ -318,8 +318,8 @@ describe('AuthController', () => {
         let token: string;
 
         beforeEach(async () => {
-        await testService.deleteUser();
-        await testService.createUser();
+        await userTestService.deleteUser();
+        await userTestService.createUser();
         const response = await request(app.getHttpServer())
             .post('/auth/login')
             .send({
@@ -330,7 +330,7 @@ describe('AuthController', () => {
         });
 
         afterEach(async () => {
-        await testService.deleteUser();
+        await userTestService.deleteUser();
         });
 
         it('should be rejected if token is invalid', async () => {
