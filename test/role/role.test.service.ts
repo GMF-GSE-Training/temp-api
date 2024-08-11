@@ -13,4 +13,20 @@ export class RoleTestService {
             }
         });
     }
+
+    async getRole() {
+        return this.prismaService.role.findFirst({
+            where: {
+                role: 'test',
+            }
+        });
+    }
+
+    async createRole() {
+        await this.prismaService.role.create({
+            data: {
+                role: 'test',
+            }
+        });
+    }
 }

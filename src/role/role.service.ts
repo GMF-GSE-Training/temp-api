@@ -3,7 +3,7 @@ import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
 import { Logger } from 'winston';
-import { CreateRoleRequest, RoleResponse } from "src/model/role.model";
+import { CreateRoleRequest, RoleResponse, UpdateRoleRequest } from "src/model/role.model";
 import { RoleValidation } from "./role.validation";
 import { Role } from "@prisma/client";
 import { identity } from "rxjs";
@@ -51,5 +51,28 @@ export class RoleService {
             id: role.id,
             role: role.role,
         }
+    }
+
+    async update(roleId: number, req: UpdateRoleRequest): Promise<RoleResponse> {
+        const updateRequest: UpdateRoleRequest = this.validationService.validate(RoleValidation.UPDATE, req);
+
+        const role = await this.prismaService.role.findUnique({
+            where: {
+                id: roleId,
+            }
+        });
+
+        if(!role) {
+            throw new HttpException('Role Not found', 404);
+        }
+
+        const result = await this.prismaService.role.update({
+            where: {
+                id: role.id
+            },
+            data: updateRequest,
+        });
+
+        return this.toRoleResponse(result);
     }
 }

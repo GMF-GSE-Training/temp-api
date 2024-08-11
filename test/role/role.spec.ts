@@ -247,4 +247,130 @@ describe('AuthController', () => {
             expect(response.body.data[3].role).toBe('User');
         });
     });
+
+    describe('PATCH /roles', () => {
+        let token: string;
+        let responseLogin: any;
+
+        beforeEach(async () => {
+            await roleTestService.deleteRole();
+            await userTestService.createSuperAdmin();
+            await userTestService.createLCU()
+            await userTestService.createUser();
+            await userTestService.createSupervisor();
+            await roleTestService.createRole();
+        });
+
+        it('should be rejected if request is invalid', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'superadmin@example.com',
+                    password: 'super admin',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: '',
+                });
+
+            logger.info(response.body);
+
+            expect(response.status).toBe(400);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be rejected if lcu update Role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'lcu@example.com',
+                    password: 'lcu',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: 'test updated'
+                });
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(403);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be rejected if user update Role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'test@example.com',
+                    password: 'test',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: 'test updated'
+                });
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(403);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be able to super admin update role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'superadmin@example.com',
+                    password: 'super admin',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: 'test updated'
+                });
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.id).toBeDefined();
+            expect(response.body.data.role).toBe('test updated');
+        });
+
+        it('should be able to supervisor update role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'supervisor@example.com',
+                    password: 'supervisor',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: 'test updated'
+                });
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.id).toBeDefined();
+            expect(response.body.data.role).toBe('test updated');
+        });
+    });
 });
