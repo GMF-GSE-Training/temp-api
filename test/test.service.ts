@@ -8,6 +8,10 @@ export class TestService {
     constructor(private prismaService: PrismaService) {
     }
 
+    async deleteMany() {
+        await this.prismaService.user.deleteMany();
+    }
+
     async deleteUser() {
         await this.prismaService.user.deleteMany({
             where: {
