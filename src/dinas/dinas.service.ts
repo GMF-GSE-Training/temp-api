@@ -43,6 +43,26 @@ export class DinasService{
         return dinas.map((dinas) => this.toDinasResponse(dinas));
     }
 
+    async delete(dinasId: number): Promise<DinasResponse> {
+        const dinas = await this.prismaService.dinas.findUnique({
+            where: {
+                id: dinasId,
+            }
+        });
+
+        if(!dinas) {
+            throw new HttpException('Dins not found', 404);
+        }
+
+        const result = await this.prismaService.dinas.delete({
+            where: {
+                id: dinas.id,
+            }
+        });
+
+        return this.toDinasResponse(result);
+    }
+
     toDinasResponse(dinas: Dinas) {
         return {
             id: dinas.id,

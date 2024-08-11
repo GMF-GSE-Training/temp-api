@@ -13,4 +13,20 @@ export class DinasTestService {
             }
         });
     }
+
+    async createDinas() {
+        await this.prismaService.dinas.create({
+            data: {
+                dinas: 'test',
+            }
+        });
+    }
+
+    async getDinas() {
+        return this.prismaService.dinas.findFirst({
+            where: {
+                dinas: 'test',
+            }
+        });
+    }
 }
