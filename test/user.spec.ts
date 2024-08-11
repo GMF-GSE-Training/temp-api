@@ -714,7 +714,6 @@ describe('UserController', () => {
 
     it('should be able to super admin get super admin', async () => {
       const user = await testService.getSuperAdmin();
-      console.log(user);
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
