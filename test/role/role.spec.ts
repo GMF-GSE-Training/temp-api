@@ -248,7 +248,7 @@ describe('AuthController', () => {
         });
     });
 
-    describe('PATCH /roles', () => {
+    describe('PATCH /roles/:roleId', () => {
         let token: string;
         let responseLogin: any;
 
@@ -259,6 +259,28 @@ describe('AuthController', () => {
             await userTestService.createUser();
             await userTestService.createSupervisor();
             await roleTestService.createRole();
+        });
+
+        it('should be rejected if role is not found', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'superadmin@example.com',
+                    password: 'super admin',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .patch(`/roles/${role.id - role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    role: 'test updated',
+                });
+
+            logger.info(response.body);
+
+            expect(response.status).toBe(404);
+            expect(response.body.errors).toBeDefined();
         });
 
         it('should be rejected if request is invalid', async () => {
@@ -371,6 +393,117 @@ describe('AuthController', () => {
             expect(response.status).toBe(200);
             expect(response.body.data.id).toBeDefined();
             expect(response.body.data.role).toBe('test updated');
+        });
+    });
+
+    describe('DELETE /roles/:roleId', () => {
+        let token: string;
+        let responseLogin: any;
+
+        beforeEach(async () => {
+            await roleTestService.deleteRole();
+            await userTestService.createSuperAdmin();
+            await userTestService.createLCU()
+            await userTestService.createUser();
+            await userTestService.createSupervisor();
+            await roleTestService.createRole();
+        });
+
+        it('should be rejected if role not found', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'supervisor@example.com',
+                    password: 'supervisor',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .delete(`/roles/${role.id - role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(404);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be rejected if lcu delete Role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'lcu@example.com',
+                    password: 'lcu',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .delete(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(403);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be rejected if user delete role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'test@example.com',
+                    password: 'test',
+                });
+
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .delete(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+
+            logger.info(response.body);
+
+            expect(response.status).toBe(403);
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('should be able to super admin delete role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'superadmin@example.com',
+                    password: 'super admin',
+                });
+
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .delete(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(200);
+            expect(response.body.data).toBe(true);
+        });
+
+        it('should be able to supervisor delete role', async () => {
+            const role = await roleTestService.getRole();
+            responseLogin = await request(app.getHttpServer())
+                .post('/auth/login')
+                .send({
+                    identifier: 'supervisor@example.com',
+                    password: 'supervisor',
+                });
+            token = responseLogin.body.data.token;
+            const response = await request(app.getHttpServer())
+                .delete(`/roles/${role.id}`)
+                .set('Authorization', `Bearer ${token}`)
+            
+            logger.info(response.body);
+
+            expect(response.status).toBe(200);
+            expect(response.body.data).toBe(true);
         });
     });
 });

@@ -46,13 +46,6 @@ export class RoleService {
         return roles.map((role) => this.toRoleResponse(role));
     }
 
-    toRoleResponse(role: Role) {
-        return {
-            id: role.id,
-            role: role.role,
-        }
-    }
-
     async update(roleId: number, req: UpdateRoleRequest): Promise<RoleResponse> {
         const updateRequest: UpdateRoleRequest = this.validationService.validate(RoleValidation.UPDATE, req);
 
@@ -74,5 +67,26 @@ export class RoleService {
         });
 
         return this.toRoleResponse(result);
+    }
+
+    async delete(roleId: number): Promise<RoleResponse> {
+        const role = await this.prismaService.role.findUnique({
+            where: {
+                id: roleId,
+            }
+        });
+
+        if(!role) {
+            throw new HttpException('Role Not Found', 404);
+        }
+
+        return this.toRoleResponse(role);
+    }
+
+    toRoleResponse(role: Role) {
+        return {
+            id: role.id,
+            role: role.role,
+        }
     }
 }
