@@ -74,6 +74,8 @@ export class UserService {
             }
         });
 
+        console.log(user)
+
         if(!user) {
             throw new HttpException('User Not Found', 404);
         }
