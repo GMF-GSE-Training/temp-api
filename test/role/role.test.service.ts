@@ -9,7 +9,10 @@ export class RoleTestService {
     async deleteRole() {
         await this.prismaService.role.deleteMany({
             where: {
-                role: 'test',
+                OR: [
+                    { role: 'test' },
+                    { role: 'test updated' }
+                ]
             }
         });
     }

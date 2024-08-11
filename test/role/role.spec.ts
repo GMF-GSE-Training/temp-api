@@ -31,6 +31,7 @@ describe('AuthController', () => {
 
     afterEach(async () => {
         await userTestService.deleteMany();
+        await roleTestService.deleteRole();
     });
 
     describe('POST /roles', () => {

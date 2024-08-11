@@ -17,30 +17,11 @@ export class RoleGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const controller = context.getClass().name;
         if(controller === 'UserController') {
-            const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
-            if(!requiredRoles) {
-                throw new HttpException('Forbidden', 403);
-            }
+            const requiredRoles = this.getRequiredRoles(context);
 
             const request = context.switchToHttp().getRequest();
-            const user = request.user;
 
-            if (!user) {
-                throw new HttpException('Unauthorized', 401);
-            }
-
-            const userWithRole = await this.prismaService.user.findUnique({
-                where: { 
-                    id: user.id, 
-                },
-                include: { 
-                    role: true, 
-                }
-            });
-
-            if (!userWithRole || !userWithRole.role) {
-                throw new HttpException('Forbidden', 403);
-            }
+            const userWithRole = await this.getUserWithRole(request);
 
             const userRole = userWithRole.role.role.toLowerCase();
             const hasRole = requiredRoles.map(role => role.toLowerCase()).includes(userRole);
@@ -75,7 +56,7 @@ export class RoleGuard implements CanActivate {
                         throw new HttpException('Forbidden: Supervisors can only create Supervisor, LCU, or User accounts', 403);
                     }
                 } else if (userRole === 'lcu') {
-                    if (request.body.dinasId !== user.dinasId) {
+                    if (request.body.dinasId !== userWithRole.dinasId) {
                         throw new HttpException('Forbidden: LCU can only create User accounts within the same dinas', 403);
                     }
                 }
@@ -108,27 +89,27 @@ export class RoleGuard implements CanActivate {
                     throw new HttpException('Forbidden: Supervisors cannot update data on Super Admin accounts', 403);
                 }
 
-                    if (requestedRoleId) {
-                        const requestedRole = await this.prismaService.role.findUnique({
-                            where: { 
-                                id: requestedRoleId,
-                            }
-                        });
-            
-                        const requestedRoleName = requestedRole.role.toLowerCase();
-            
-                        if (userRole === 'supervisor') {
-                            if (requestedRoleName === 'super admin' || !['supervisor', 'lcu', 'user'].includes(requestedRoleName)) {
-                                throw new HttpException('Forbidden: Supervisors can only update Supervisor, LCU, or User accounts', 403);
-                            }
-                        } else if (userRole === 'lcu') {
-                            if(requestedRoleName !== 'user') {
-                                throw new HttpException('Forbidden: LCU cannot update to any role other than User', 403);
-                            }
+                if (requestedRoleId) {
+                    const requestedRole = await this.prismaService.role.findUnique({
+                        where: { 
+                            id: requestedRoleId,
+                        }
+                    });
+
+                    const requestedRoleName = requestedRole.role.toLowerCase();
+
+                    if (userRole === 'supervisor') {
+                        if (requestedRoleName === 'super admin' || !['supervisor', 'lcu', 'user'].includes(requestedRoleName)) {
+                            throw new HttpException('Forbidden: Supervisors can only update Supervisor, LCU, or User accounts', 403);
+                        }
+                    } else if (userRole === 'lcu') {
+                        if(requestedRoleName !== 'user') {
+                            throw new HttpException('Forbidden: LCU cannot update to any role other than User', 403);
                         }
                     }
+                }
 
-                if(requestedDinasId && userRole === 'lcu' && requestedDinasId !== user.dinasId) {
+                if(requestedDinasId && userRole === 'lcu' && requestedDinasId !== userWithRole.dinasId) {
                     throw new HttpException('Forbidden: LCU can only update User accounts within the same dinas', 403);
                 }
             }
@@ -159,7 +140,7 @@ export class RoleGuard implements CanActivate {
                         throw new HttpException('Forbidden: Supervisors cannot access Super Admin data', 403);
                     }
                 } else if (userRole === 'lcu') {
-                    if (requestedRoleName !== 'user' || requestedUser.dinasId !== user.dinasId) {
+                    if (requestedRoleName !== 'user' || requestedUser.dinasId !== userWithRole.dinasId) {
                         throw new HttpException('Forbidden: LCU can only access User data within the same dinas', 403);
                     }
                 }
@@ -168,39 +149,54 @@ export class RoleGuard implements CanActivate {
             return true;
 
         } else if(controller === 'RoleController') {
-            const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
-            if(!requiredRoles) {
-                throw new HttpException('Forbidden', 401);
-            }
+            return this.handleController(context);
+        } else if(controller === 'DinasController') {
+            return this.handleController(context);
+        }
+    }
 
-            const request = context.switchToHttp().getRequest();
-            const user = request.user;
+    private async handleController(context: ExecutionContext): Promise<boolean> {
+        const requiredRoles = this.getRequiredRoles(context);
+        const request = context.switchToHttp().getRequest();
+        const user = await this.getUserWithRole(request);
 
-            if (!user) {
-                throw new HttpException('Unauthorized', 401);
-            }
+        this.checkRoleAuthorization(user.role.role, requiredRoles);
 
-            const userWithRole = await this.prismaService.user.findUnique({
-                where: { 
-                    id: user.id, 
-                },
-                include: { 
-                    role: true, 
-                }
-            });
-    
-            if (!userWithRole || !userWithRole.role) {
-                throw new HttpException('Forbidden', 403);
-            }
+        return true;
+    }
 
-            const userRoleLowerCase = userWithRole.role.role.toLowerCase();
-            const requiredRolesLowerCase = requiredRoles.map(role => role.toLowerCase());
+    private getRequiredRoles(context: ExecutionContext): string[] {
+        const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+        if (!requiredRoles) {
+            throw new HttpException('Forbidden', 403);
+        }
+        return requiredRoles;
+    }
 
-            if (!requiredRolesLowerCase.includes(userRoleLowerCase)) {
-                throw new HttpException('Forbidden', 403);
-            }
+    private async getUserWithRole(request: any): Promise<any> {
+        const user = request.user;
 
-            return true;
+        if (!user) {
+            throw new HttpException('Unauthorized', 401);
+        }
+
+        const userWithRole = await this.prismaService.user.findUnique({
+            where: { id: user.id },
+            include: { role: true }
+        });
+
+        if (!userWithRole || !userWithRole.role) {
+            throw new HttpException('Forbidden', 403);
+        }
+
+        return userWithRole;
+    }
+
+    private checkRoleAuthorization(userRole: string, requiredRoles: string[]): void {
+        const hasRole = requiredRoles.map(role => role.toLowerCase()).includes(userRole.toLowerCase());
+
+        if (!hasRole) {
+            throw new HttpException('Forbidden', 403);
         }
     }
 }
