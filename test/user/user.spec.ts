@@ -808,7 +808,7 @@ describe('UserController', () => {
     });
   });
 
-  describe.only('GET /users/:userId, super admin get all users', () => {
+  describe('GET /users/:userId, super admin get all users', () => {
     let token: string;
 
     beforeEach(async () => {
@@ -887,6 +887,99 @@ describe('UserController', () => {
     });
 
     it('should be able to super admin get user', async () => {
+      const user = await userTestService.getUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.no_pegawai).toBe('test');
+      expect(response.body.data.nik).toBe('test');
+      expect(response.body.data.email).toBe('test@example.com');
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.dinas).toBe("TA");
+      expect(response.body.data.roleId).toBe(4);
+    });
+  });
+
+  describe('GET /users/:userId, supervisor get all users', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
+      await userTestService.createSuperAdmin();
+      await userTestService.createUser();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          identifier: 'supervisor@example.com',
+          password: 'supervisor',
+        });
+      token = response.body.data.token;
+    });
+
+    it('should be rejected if user not found', async () => {
+      const user = await userTestService.getUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id - user.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if supervisor get super admin', async () => {
+      const user = await userTestService.getSuperAdmin();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be able to supervisor get supervisor', async () => {
+      const user = await userTestService.getSupervisor();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.no_pegawai).toBe('supervisor');
+      expect(response.body.data.email).toBe('supervisor@example.com');
+      expect(response.body.data.name).toBe('supervisor');
+      expect(response.body.data.roleId).toBe(2);
+    });
+
+    it('should be able to supervisor get lcu', async () => {
+      const user = await userTestService.getLCU();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.no_pegawai).toBe('lcu');
+      expect(response.body.data.email).toBe('lcu@example.com');
+      expect(response.body.data.name).toBe('lcu');
+      expect(response.body.data.dinas).toBe("TA");
+      expect(response.body.data.roleId).toBe(3);
+    });
+
+    it('should be able to supervisor get user', async () => {
       const user = await userTestService.getUser();
       const response = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
