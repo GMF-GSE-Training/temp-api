@@ -19,6 +19,10 @@ export class UserService {
     async register(req: RegisterUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
+        if(req.roleId) {
+            throw new HttpException('Forbidden', 403);
+        }
+
         const defaultRole = await this.prismaService.role.findFirst({
             where: { 
                 role: {
@@ -32,9 +36,7 @@ export class UserService {
             throw new HttpException("Not Found", 404);
         }
 
-        if (!req.roleId) {
-            req.roleId = defaultRole.id;
-        }
+        req.roleId = defaultRole.id;
 
         if(!req.nik) {
             throw new HttpException('Validation Error', 400);
