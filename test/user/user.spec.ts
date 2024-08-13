@@ -1171,7 +1171,7 @@ describe('UserController', () => {
     });
   });
 
-  describe('PATCH /users/:userId, super admin updates all users', () => {
+  describe('PATCH /users/:userId, super admin update all users', () => {
     let token: string;
 
     beforeEach(async () => {
@@ -1321,7 +1321,7 @@ describe('UserController', () => {
     });
   });
 
-  describe('PATCh /users/update, supervisor updates users', () => {
+  describe('PATCh /users/update, supervisor update all users', () => {
     let token: string;
 
     beforeEach(async () => {
@@ -1466,11 +1466,14 @@ describe('UserController', () => {
     });
   });
 
-  describe('PATCH /users/update, lcu updates users', () => {
+  describe('PATCH /users/update, lcu update all users', () => {
     let token: string;
 
     beforeEach(async () => {
       await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
+      await participantTestService.createOtherParticipant();
       await userTestService.createSuperAdmin();
       await userTestService.createSupervisor();
       await userTestService.createLCU();
@@ -1506,7 +1509,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: '',
-          nik: '',
           email: '',
           name: '',
           password: '',
@@ -1527,7 +1529,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test',
           password: 'test',
@@ -1547,7 +1548,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1567,7 +1567,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1588,7 +1587,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1609,7 +1607,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1619,7 +1616,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test updated');
-      expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
       expect(response.body.data.dinas).toBe("TA");
