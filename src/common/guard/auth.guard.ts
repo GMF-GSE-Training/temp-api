@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
                     nik: true,
                     email: true,
                     name: true,
-                    dinasId: true,
+                    dinas: true,
                     roleId: true,
                     token: true,
                 }

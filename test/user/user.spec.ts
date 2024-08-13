@@ -6,15 +6,18 @@ import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { UserTestService } from './user.test.service';
 import { UserTestModule } from './user.test.module';
+import { ParticipantTestService } from '../participant/participant.test.service';
+import { ParticipantTestModule } from '../participant/participant.test.module';
 
 describe('UserController', () => {
   let app: INestApplication;
   let logger: Logger;
   let userTestService: UserTestService;
+  let participantTestService: ParticipantTestService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, UserTestModule],
+      imports: [AppModule, UserTestModule, ParticipantTestModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -22,6 +25,7 @@ describe('UserController', () => {
 
     logger = app.get(WINSTON_MODULE_PROVIDER);
     userTestService = app.get(UserTestService);
+    participantTestService = app.get(ParticipantTestService);
   });
 
   afterEach(async () => {
@@ -31,67 +35,102 @@ describe('UserController', () => {
   describe('POST /users/register', () => {
     beforeEach(async () => {
       await userTestService.deleteUser();
+      await participantTestService.delete();
     });
 
-    it('should be rejected if request is invalid', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/register')
-        .send({
-          no_pegawai: '',
-          nik: '',
-          email: '',
-          name: '',
-          password: '',
-          dinasId: '',
-          roleId: '',
-        });
-
-      logger.info(response.body);
-
-      expect(response.status).toBe(400);
-      expect(response.body.errors).toBeDefined();
+    afterEach(async () => {
+      await userTestService.deleteMany();
     });
 
-    it('should be able to user register user', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/register')
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinasId: 1,
-        });
+    describe('Invalid request', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
+  
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      logger.info(response.body);
+      it('should be rejected if request is invalid', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/register')
+          .send({
+            no_pegawai: '',
+            nik: '',
+            email: '',
+            name: '',
+            password: '',
+            dinas: '',
+            roleId: '',
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+      });
+    })
 
-      expect(response.status).toBe(200);
-      expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
-      expect(response.body.data.email).toBe('test@example.com');
-      expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
-      expect(response.body.data.roleId).toBe(4);
+    describe('success', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
+  
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
+
+      it('should be able to user register user', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/register')
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(200);
+        expect(response.body.data.no_pegawai).toBe('test');
+        expect(response.body.data.nik).toBe('test');
+        expect(response.body.data.email).toBe('test@example.com');
+        expect(response.body.data.name).toBe('test');
+        expect(response.body.data.dinas).toBe("TA");
+        expect(response.body.data.roleId).toBe(4);
+      });
     });
 
-    it('should be rejected if no_pegawai already exists', async () => {
-      await userTestService.createUser();
-      const response = await request(app.getHttpServer())
-        .post('/users/register')
-        .send({
-          no_pegawai: 'test',
-          nik: 'abcd',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinasId: 1,
-        });
+    describe('email already exists', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
+  
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      logger.info(response.body);
-
-      expect(response.status).toBe(400);
-      expect(response.body.errors).toBeDefined();
+      it('should be rejected if no_pegawai already exists', async () => {
+        await userTestService.createUser();
+        const response = await request(app.getHttpServer())
+          .post('/users/register')
+          .send({
+            no_pegawai: 'test',
+            nik: 'abcd',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+      });
     });
   });
 
@@ -120,7 +159,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -182,7 +221,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 3,
         });
 
@@ -190,9 +229,10 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test');
+
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(3);
     });
 
@@ -206,7 +246,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -217,7 +257,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
 
@@ -232,7 +272,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
         });
 
       logger.info(response.body);
@@ -267,7 +307,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -329,7 +369,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 3,
         });
 
@@ -340,7 +380,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(3);
     });
 
@@ -354,7 +394,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -365,7 +405,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
 
@@ -380,7 +420,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
         });
 
       logger.info(response.body);
@@ -400,7 +440,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
         });
 
       logger.info(response.body);
@@ -435,7 +475,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -512,7 +552,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 2,
+          dinas: "TB",
           roleId: 2,
         });
 
@@ -532,7 +572,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -543,7 +583,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
 
@@ -558,7 +598,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
         });
 
       logger.info(response.body);
@@ -578,7 +618,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
         });
 
       logger.info(response.body);
@@ -670,7 +710,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           name: 'test',
           password: 'test',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -756,7 +796,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('lcu');
       expect(response.body.data.email).toBe('lcu@example.com');
       expect(response.body.data.name).toBe('lcu');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(3);
     });
 
@@ -773,7 +813,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
   });
@@ -822,7 +862,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -891,7 +931,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 3,
         });
 
@@ -902,7 +942,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(3);
     });
 
@@ -917,7 +957,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -928,7 +968,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
   });
@@ -977,7 +1017,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -1042,7 +1082,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 3,
         });
 
@@ -1053,7 +1093,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(3);
     });
 
@@ -1068,7 +1108,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 
@@ -1079,7 +1119,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
   });
@@ -1128,7 +1168,7 @@ describe('UserController', () => {
           email: '',
           name: '',
           password: '',
-          dinasId: '',
+          dinas: '',
           roleId: '',
         });
 
@@ -1210,7 +1250,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 2,
+          dinas: "TC",
           roleId: 4,
         });
 
@@ -1240,7 +1280,7 @@ describe('UserController', () => {
       expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
-      expect(response.body.data.dinasId).toBe(1);
+      expect(response.body.data.dinas).toBe("TA");
       expect(response.body.data.roleId).toBe(4);
     });
 
@@ -1250,7 +1290,7 @@ describe('UserController', () => {
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({
-          dinasId: 3,
+          dinas: "TC",
         });
 
       logger.info(response.body);
@@ -1364,7 +1404,7 @@ describe('UserController', () => {
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
-          dinasId: 1,
+          dinas: "TA",
           roleId: 4,
         });
 

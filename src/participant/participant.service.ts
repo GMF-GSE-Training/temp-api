@@ -85,7 +85,7 @@ export class ParticipantService {
             const participant = await this.prismaService.participant.create({
                 data: createRequest
             });
-    
+
             return this.toParticipantResponse(participant);
         } catch (error) {
             this.logger.error(`Error in create method: ${error.message}`);

@@ -6,7 +6,7 @@ export interface RegisterUserRequest {
     email: string;
     name: string;
     password: string;
-    dinasId?: number;
+    dinas?: string;
     roleId: number;
 }
 
@@ -26,7 +26,7 @@ export interface UpdateUserRequest {
     email?: string;
     name?: string;
     password?: string;
-    dinasId?: number;
+    dinas?: string;
     roleId?: number;
 }
 
@@ -36,7 +36,7 @@ export interface UserResponse {
     nik?: string;
     email: string;
     name: string;
-    dinasId?: number;
+    dinas?: string;
     roleId: number;
     token?: string;
 }

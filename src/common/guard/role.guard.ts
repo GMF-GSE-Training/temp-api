@@ -32,7 +32,7 @@ export class RoleGuard implements CanActivate {
 
             const method = request.method;
             const requestedRoleId = request.body.roleId;
-            const requestedDinasId = request.body.dinasId;
+            const requestedDinas = request.body.dinas;
 
             if (method === 'POST') {
                 if (!requestedRoleId) {
@@ -56,7 +56,7 @@ export class RoleGuard implements CanActivate {
                         throw new HttpException('Forbidden: Supervisors can only create Supervisor, LCU, or User accounts', 403);
                     }
                 } else if (userRole === 'lcu') {
-                    if (request.body.dinasId !== userWithRole.dinasId) {
+                    if (request.body.dinas !== userWithRole.dinas) {
                         throw new HttpException('Forbidden: LCU can only create User accounts within the same dinas', 403);
                     }
                 }
@@ -109,7 +109,7 @@ export class RoleGuard implements CanActivate {
                     }
                 }
 
-                if(requestedDinasId && userRole === 'lcu' && requestedDinasId !== userWithRole.dinasId) {
+                if(requestedDinas && userRole === 'lcu' && requestedDinas !== userWithRole.dinas) {
                     throw new HttpException('Forbidden: LCU can only update User accounts within the same dinas', 403);
                 }
             }
@@ -140,7 +140,7 @@ export class RoleGuard implements CanActivate {
                         throw new HttpException('Forbidden: Supervisors cannot access Super Admin data', 403);
                     }
                 } else if (userRole === 'lcu') {
-                    if (requestedRoleName !== 'user' || requestedUser.dinasId !== userWithRole.dinasId) {
+                    if (requestedRoleName !== 'user' || requestedUser.dinas !== userWithRole.dinas) {
                         throw new HttpException('Forbidden: LCU can only access User data within the same dinas', 403);
                     }
                 }

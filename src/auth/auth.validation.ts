@@ -12,7 +12,7 @@ export class AuthValidation {
         email: z.string().min(1).max(50).email().optional(),
         name: z.string().min(1).max(50).optional(),  
         password: z.string().min(1).max(100).optional(),
-        dinasId: z.number().optional().optional(),
+        dinas: z.string().min(1).max(20).optional(),
         roleId: z.number().optional(),
     });
 }

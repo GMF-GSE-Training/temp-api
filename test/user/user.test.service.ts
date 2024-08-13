@@ -34,7 +34,7 @@ export class UserTestService {
                 email: 'test@example.com',
                 name: 'test',
                 password: await bcrypt.hash('test', 10),
-                dinasId: 1,
+                dinas: "TA",
                 roleId: 4,
             }
         });
@@ -73,7 +73,7 @@ export class UserTestService {
                 email: 'lcu@example.com',
                 name: 'lcu',
                 password: await bcrypt.hash('lcu', 10),
-                dinasId: 1,
+                dinas: "TA",
                 roleId: 3,
             }
         });
@@ -131,7 +131,7 @@ export class UserTestService {
                 email: 'tc@example.com',
                 name: 'tc',
                 password: await bcrypt.hash('tc', 10),
-                dinasId: 2,
+                dinas: "TC",
                 roleId: 4,
             }
         });

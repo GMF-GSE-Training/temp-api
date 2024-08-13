@@ -38,7 +38,17 @@ export class UserService {
 
         if(!req.nik) {
             throw new HttpException('Validation Error', 400);
-        } 
+        }
+
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                nik: req.nik,
+            }
+        });
+    
+        if(!participant) {
+            throw new HttpException('NIK tidak ditemukan di tabel participant', 400);
+        }
 
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
@@ -139,7 +149,7 @@ export class UserService {
             nik: user.nik,
             email: user.email,
             name: user.name,
-            dinasId: user.dinasId,
+            dinas: user.dinas,
             roleId: user.roleId,
         }
     }

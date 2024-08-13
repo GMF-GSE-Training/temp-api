@@ -52,6 +52,10 @@ describe('AuthController', () => {
         });
 
         it('should allow super admin to create participant', async () => {
+            afterEach(async () => {
+                await participantTestService.create();
+            });
+
             const response = await request(app.getHttpServer())
                 .post('/participants')
                 .set('Authorization', `Bearer ${token}`)
@@ -81,5 +85,7 @@ describe('AuthController', () => {
             expect(response.status).toBe(200);
             expect(response.body.data).toHaveProperty('id'); // Checking if the response contains the created participant's ID
         });
+
+        
     });
 });

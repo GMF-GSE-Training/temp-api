@@ -69,7 +69,7 @@ export class AuthService {
             nik: user.nik,
             email: user.email,
             name: user.name,
-            dinasId: user.dinasId,
+            dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
         };
@@ -94,7 +94,7 @@ export class AuthService {
             nik: user.nik,
             email: user.email,
             name: user.name,
-            dinasId: user.dinasId,
+            dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
         };
@@ -128,7 +128,7 @@ export class AuthService {
             nik: result.nik,
             email: result.email,
             name: result.name,
-            dinasId: result.dinasId,
+            dinas: result.dinas,
             roleId: result.roleId,
             token: result.token,
         }
@@ -152,7 +152,7 @@ export class AuthService {
             nik: result.nik,
             email: result.email,
             name: result.name,
-            dinasId: result.dinasId,
+            dinas: result.dinas,
             roleId: result.roleId,
         };
     }

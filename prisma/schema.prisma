@@ -21,10 +21,10 @@ model User {
   name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
   token      String? @db.VarChar(255)
-  dinasId    Int?
+  dinas      String? @db.VarChar(50)
   roleId     Int
 
-  dinas       Dinas?       @relation(fields: [dinasId], references: [id])
+  // dinas       Dinas?       @relation(fields: [dinasId], references: [id])
   role        Role         @relation(fields: [roleId], references: [id])
   participant Participant? @relation(fields: [nik], references: [nik])
 
@@ -35,7 +35,7 @@ model Dinas {
   id    Int    @id @default(autoincrement())
   dinas String @db.VarChar(50)
 
-  users User[]
+  // users User[]
 
   @@map("dinas")
 }
@@ -52,7 +52,7 @@ model Role {
 model Participant {
   id                     Int      @id @default(autoincrement())
   no_pegawai             String   @db.VarChar(20)
-  nama                   String?   @db.VarChar(50)
+  nama                   String?  @db.VarChar(50)
   nik                    String   @unique @db.VarChar(50)
   dinas                  String   @db.VarChar(50)
   bidang                 String   @db.VarChar(50)
@@ -70,10 +70,12 @@ model Participant {
   exp_surat_sehat        DateTime @db.Date
   surat_bebas_narkoba    String   @db.VarChar(255)
   exp_bebas_narkoba      DateTime @db.Date
+  gmf_non_gmf            String   @db.VarChar(20)
   link_qr_code           String?  @db.VarChar(255)
   qr_code                String?  @db.VarChar(255)
 
   user User?
 
   @@map("participants")
+  @@unique([nik, dinas])
 }
