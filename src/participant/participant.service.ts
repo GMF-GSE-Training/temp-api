@@ -1,0 +1,123 @@
+import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { PrismaService } from "../common/service/prisma.service";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
+import { Logger } from 'winston';
+import { CreateParticipantRequest, ParticipantResponse } from "../model/participant.model";
+import * as QRCode from 'qrcode';
+import { unlink, rename, writeFile } from 'fs/promises';
+import { join, extname, basename } from 'path';
+import { mkdir } from 'fs/promises';
+
+@Injectable()
+export class ParticipantService {
+    constructor(
+        private prismaService: PrismaService,
+        @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
+    ) {}
+
+    async create(req: CreateParticipantRequest, files: Record<string, Express.Multer.File[]>): Promise<ParticipantResponse> {
+        const uploadedFilePaths: string[] = [];
+    
+        try {
+            const filePaths: {
+                sim_a?: string;
+                sim_b?: string;
+                ktp?: string;
+                foto?: string;
+                surat_sehat_buta_warna?: string;
+                surat_bebas_narkoba?: string;
+                qr_code?: string;
+            } = {};
+
+            const folders = {
+                sim_a: join('./uploads/participants', 'sim-a'),
+                sim_b: join('./uploads/participants', 'sim-b'),
+                ktp: join('./uploads/participants', 'ktp'),
+                foto: join('./uploads/participants', 'foto'),
+                surat_sehat_buta_warna: join('./uploads/participants', 'surat_sehat_buta_warna'),
+                surat_bebas_narkoba: join('./uploads/participants', 'surat_bebas_narkoba'),
+                qr_code: join('./uploads/participants', 'qr-code'),
+            };
+
+            for (const folder of Object.values(folders)) {
+                await mkdir(folder, { recursive: true });
+                this.logger.info(`Folder checked/created: ${folder}`);
+            }
+
+            for (const [key, fileArray] of Object.entries(files)) {
+                const file = fileArray[0];
+                const fileExtension = extname(file.originalname).toLowerCase();
+    
+                const folderPath = folders[key as keyof typeof folders];
+    
+                const originalNameWithoutExt = basename(file.originalname, fileExtension);
+                const newFilePath = join(folderPath, `${originalNameWithoutExt}_${Date.now()}${fileExtension}`);
+                
+                await rename(file.path, newFilePath);
+    
+                filePaths[key] = newFilePath;
+                uploadedFilePaths.push(newFilePath);
+                this.logger.info(`File moved: ${newFilePath}`);
+            }
+    
+            const qrCodePath = await this.generateQRCode(req.link_qr_code, folders.qr_code);
+            if (!qrCodePath) {
+                throw new Error("QR code path is null or undefined");
+            }
+            filePaths.qr_code = qrCodePath;
+            uploadedFilePaths.push(qrCodePath);
+            this.logger.info(`QR code generated and saved at: ${qrCodePath}`);
+    
+            const createRequest: CreateParticipantRequest = {
+                ...req,
+                sim_a: filePaths.sim_a,
+                sim_b: filePaths.sim_b,
+                ktp: filePaths.ktp,
+                foto: filePaths.foto,
+                surat_sehat_buta_warna: filePaths.surat_sehat_buta_warna,
+                surat_bebas_narkoba: filePaths.surat_bebas_narkoba,
+                qr_code: filePaths.qr_code,
+                tanggal_lahir: new Date(req.tanggal_lahir),
+                exp_surat_sehat: new Date(req.exp_surat_sehat),
+                exp_bebas_narkoba: new Date(req.exp_bebas_narkoba),
+            };
+    
+            const participant = await this.prismaService.participant.create({
+                data: createRequest
+            });
+    
+            return this.toParticipantResponse(participant);
+        } catch (error) {
+            this.logger.error(`Error in create method: ${error.message}`);
+            for (const filePath of uploadedFilePaths) {
+                await unlink(filePath).catch(err => this.logger.warn(`Failed to delete file: ${filePath}`));
+            }
+            throw error;
+        }
+    }
+
+    async generateQRCode(link: string, folderPath: string): Promise<string> {
+        if (!link) {
+            this.logger.warn('QR code generation skipped: link is null or empty');
+            return null;
+        }
+        try {
+            const qrCodeBuffer = await QRCode.toBuffer(link, { type: 'png', width: 300, errorCorrectionLevel: 'H' });
+    
+            const filePath = join(folderPath, `qr_code_${Date.now()}.png`);
+            await writeFile(filePath, qrCodeBuffer);
+            this.logger.info(`QR code saved at: ${filePath}`);
+    
+            return filePath;
+        } catch (error) {
+            this.logger.error(`Failed to generate QR code: ${error.message}`);
+            throw new HttpException('Failed to generate QR code', 500);
+        }
+    }
+
+    toParticipantResponse(data: ParticipantResponse): ParticipantResponse {
+        return {
+            ...data,
+        };
+    }
+}

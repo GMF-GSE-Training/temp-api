@@ -17,15 +17,16 @@ model User {
   id         Int     @id @default(autoincrement())
   no_pegawai String? @db.VarChar(20)
   email      String  @db.VarChar(50)
-  nik        String? @db.VarChar(50)
+  nik        String? @unique @db.VarChar(50)
   name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
   token      String? @db.VarChar(255)
   dinasId    Int?
   roleId     Int
 
-  dinas Dinas? @relation(fields: [dinasId], references: [id])
-  role  Role   @relation(fields: [roleId], references: [id])
+  dinas       Dinas?       @relation(fields: [dinasId], references: [id])
+  role        Role         @relation(fields: [roleId], references: [id])
+  participant Participant? @relation(fields: [nik], references: [nik])
 
   @@map("users")
 }
@@ -46,4 +47,33 @@ model Role {
   users User[]
 
   @@map("roles")
+}
+
+model Participant {
+  id                     Int      @id @default(autoincrement())
+  no_pegawai             String   @db.VarChar(20)
+  nama                   String?   @db.VarChar(50)
+  nik                    String   @unique @db.VarChar(50)
+  dinas                  String   @db.VarChar(50)
+  bidang                 String   @db.VarChar(50)
+  perusahaan             String   @db.VarChar(50)
+  email                  String   @db.VarChar(50)
+  no_telp                String   @db.VarChar(50)
+  negara                 String   @db.VarChar(50)
+  tempat_lahir           String   @db.VarChar(50)
+  tanggal_lahir          DateTime @db.Date
+  sim_a                  String   @db.VarChar(255)
+  sim_b                  String   @db.VarChar(255)
+  ktp                    String   @db.VarChar(255)
+  foto                   String   @db.VarChar(255)
+  surat_sehat_buta_warna String   @db.VarChar(255)
+  exp_surat_sehat        DateTime @db.Date
+  surat_bebas_narkoba    String   @db.VarChar(255)
+  exp_bebas_narkoba      DateTime @db.Date
+  link_qr_code           String?  @db.VarChar(255)
+  qr_code                String?  @db.VarChar(255)
+
+  user User?
+
+  @@map("participants")
 }

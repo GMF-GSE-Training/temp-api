@@ -4,6 +4,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { DinasModule } from './dinas/dinas.module';
+import { ParticipantModule } from './participant/participant.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { DinasModule } from './dinas/dinas.module';
     AuthModule,
     RoleModule,
     DinasModule,
+    ParticipantModule,
   ],
   controllers: [],
   providers: [],
