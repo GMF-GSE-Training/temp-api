@@ -24,7 +24,7 @@ export class UserController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async createUser(@Body() req: RegisterUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.register(req);
+        const result = await this.userService.createUser(req);
         return{
             data: result,
         }

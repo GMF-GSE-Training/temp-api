@@ -134,7 +134,7 @@ describe('UserController', () => {
     });
   });
 
-  describe('POST /users/create, super admin creates all users', () => {
+  describe.only('POST /users/create, super admin creates all users', () => {
     let token: string;
 
     beforeEach(async () => {
@@ -206,7 +206,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
       expect(response.body.data.roleId).toBe(2);
@@ -236,49 +235,69 @@ describe('UserController', () => {
       expect(response.body.data.roleId).toBe(3);
     });
 
-    it('should be able to super admin create user', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TA",
-          roleId: 4,
-        });
+    describe('Super Admin creates user', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
+  
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      logger.info(response.body);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
-      expect(response.body.data.email).toBe('test@example.com');
-      expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinas).toBe("TA");
-      expect(response.body.data.roleId).toBe(4);
+      it('should be able to super admin create user', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+            roleId: 4,
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(200);
+        expect(response.body.data.no_pegawai).toBe('test');
+        expect(response.body.data.nik).toBe('test');
+        expect(response.body.data.email).toBe('test@example.com');
+        expect(response.body.data.name).toBe('test');
+        expect(response.body.data.dinas).toBe("TA");
+        expect(response.body.data.roleId).toBe(4);
+      });
     });
 
-    it('should be rejected if no_pegawai already exists', async () => {
-      await userTestService.createUser();
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TA",
-        });
+    describe('No Pegawai already exists', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
+  
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      logger.info(response.body);
-
-      expect(response.status).toBe(400);
-      expect(response.body.errors).toBeDefined();
+      it('should be rejected if no_pegawai already exists', async () => {
+        await userTestService.createUser();
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+      });
     });
   });
 

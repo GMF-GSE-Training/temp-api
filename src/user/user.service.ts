@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { CreateUserRequest, RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
@@ -66,10 +66,46 @@ export class UserService {
         return this.toUserResponse(user);
     }
 
-    async createUser(req: RegisterUserRequest): Promise<UserResponse> {
+    async createUser(req: CreateUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
-        const createRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
+        const roleUser = await this.prismaService.role.findFirst({
+            where: { 
+                role: {
+                    equals: "user",
+                    mode: "insensitive"
+                }
+            }
+        });
+
+        const roleLCU = await this.prismaService.role.findFirst({
+            where: {
+                role: {
+                    equals: "lcu",
+                    mode: "insensitive",
+                }
+            }
+        });
+
+        if(req.roleId === roleUser.id) {
+            const participant = await this.prismaService.participant.findUnique({
+                where: {
+                    nik: req.nik,
+                }
+            });
+    
+            if(!participant) {
+                throw new HttpException('NIK tidak ditemukan di data participant', 400);
+            }
+        }
+        
+        if(req.roleId === roleUser.id || req.roleId === roleLCU.id) {
+            if(!req.dinas) {
+                throw new HttpException('Validation Errro', 400);
+            }
+        }
+
+        const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
         await this.checkUserExists(createRequest.no_pegawai, createRequest.email);
 
@@ -78,7 +114,6 @@ export class UserService {
         const user = await this.prismaService.user.create({
             data: createRequest,
         });
-
         
         return this.toUserResponse(user);
     }

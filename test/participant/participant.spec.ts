@@ -41,6 +41,7 @@ describe('AuthController', () => {
         let token: string;
 
         beforeEach(async () => {
+            await participantTestService.delete();
             await userTestService.createSuperAdmin();
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
@@ -51,11 +52,11 @@ describe('AuthController', () => {
             token = response.body.data.token;
         });
 
-        it('should allow super admin to create participant', async () => {
-            afterEach(async () => {
-                await participantTestService.create();
-            });
+        afterEach(async () => {
+            await participantTestService.delete();
+        });
 
+        it('should allow super admin to create participant', async () => {
             const response = await request(app.getHttpServer())
                 .post('/participants')
                 .set('Authorization', `Bearer ${token}`)
@@ -78,12 +79,13 @@ describe('AuthController', () => {
                 .field('exp_surat_sehat', '2025-01-01')
                 .attach('surat_bebas_narkoba', surat_bebas_narkoba)
                 .field('exp_bebas_narkoba', '2025-01-01')
-                .field('qr_code', 'sample-qr-code');
+                .field('gmf_non_gmf', 'Tech Corp')
+                .field('link_qr_code', 'www.google.com');
 
             logger.info(response.body);
 
             expect(response.status).toBe(200);
-            expect(response.body.data).toHaveProperty('id'); // Checking if the response contains the created participant's ID
+            expect(response.body.data).toHaveProperty('id');
         });
 
         
