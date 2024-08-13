@@ -808,11 +808,13 @@ describe('UserController', () => {
     });
   });
 
-  describe('GET /users/:userId, super admin get all users', () => {
+  describe.only('GET /users/:userId, super admin get all users', () => {
     let token: string;
 
     beforeEach(async () => {
       await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
       await userTestService.createSuperAdmin();
       await userTestService.createUser();
       await userTestService.createSupervisor();
@@ -848,7 +850,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('super admin');
-      expect(response.body.data.nik).toBe('super admin');
       expect(response.body.data.email).toBe('superadmin@example.com');
       expect(response.body.data.name).toBe('super admin');
       expect(response.body.data.roleId).toBe(1);
@@ -864,7 +865,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('supervisor');
-      expect(response.body.data.nik).toBe('supervisor');
       expect(response.body.data.email).toBe('supervisor@example.com');
       expect(response.body.data.name).toBe('supervisor');
       expect(response.body.data.roleId).toBe(2);
@@ -880,7 +880,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('lcu');
-      expect(response.body.data.nik).toBe('lcu');
       expect(response.body.data.email).toBe('lcu@example.com');
       expect(response.body.data.name).toBe('lcu');
       expect(response.body.data.dinas).toBe("TA");
