@@ -103,6 +103,26 @@ export class AuthService {
     async updateMe(user: User, req: UpdateUserRequest): Promise<UserResponse> {
         this.logger.debug(`AuthService.update(${user}, ${JSON.stringify(req)})`);
 
+        if(req.roleId) {
+            const userCurrent = await this.prismaService.user.findUnique({
+                where: {
+                    id: user.id,
+                },
+                include: {
+                    role: true,
+                }
+            });
+    
+            if(!userCurrent) {
+                throw new HttpException('User not found', 404);
+            }
+    
+            const restrictedRoles = ['user', 'lcu', 'supervisor'];
+            if (restrictedRoles.includes(userCurrent.role.role.toLowerCase())) {
+                throw new HttpException('Forbidden: You are not allowed to update your role', 403);
+            }
+        }
+
         const updateRequest: UpdateUserRequest = this.validationService.validate(AuthValidation.UPDATE, req);
 
         for (const key of Object.keys(updateRequest)) {
