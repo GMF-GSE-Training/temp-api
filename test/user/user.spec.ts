@@ -713,6 +713,7 @@ describe('UserController', () => {
     let token: string;
 
     beforeEach(async () => {
+      await participantTestService.create();
       await userTestService.deleteUser();
       await userTestService.createUser();
       const response = await request(app.getHttpServer())
@@ -722,6 +723,11 @@ describe('UserController', () => {
           password: 'test',
         });
       token = response.body.data.token;
+    });
+
+    afterEach(async () => {
+      await participantTestService.delete();
+      await userTestService.deleteMany();
     });
 
     it('should be rejected if user creates super admin', async () => {
