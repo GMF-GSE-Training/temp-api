@@ -103,6 +103,10 @@ export class UserService {
             if(!req.dinas) {
                 throw new HttpException('Validation Errro', 400);
             }
+        } else {
+            if(req.nik) {
+                throw new HttpException('Validation Error: Role ini tidak perlu nik', 400);
+            }
         }
 
         const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.REGISTER, req);

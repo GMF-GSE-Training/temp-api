@@ -301,7 +301,7 @@ describe('UserController', () => {
     });
   });
 
-  describe.only('POST /users/create, supervisor creates users', () => {
+  describe('POST /users/create, supervisor creates users', () => {
     let token: string;
 
     beforeEach(async () => {
@@ -535,7 +535,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -554,7 +553,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -573,7 +571,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -586,89 +583,129 @@ describe('UserController', () => {
       expect(response.body.errors).toBeDefined();
     });
 
-    it('should be rejected if the lcu creates a user with a service that is different units', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TB",
-          roleId: 2,
-        });
+    describe('rejected LCU creates user', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
 
-      logger.info(response.body);
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      expect(response.status).toBe(403);
-      expect(response.body.errors).toBeDefined();
+      it('should be rejected if the lcu creates a user with a service that is different units', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TB",
+            roleId: 2,
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(403);
+        expect(response.body.errors).toBeDefined();
+      });
     });
 
-    it('should be able to lcu create user', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TA",
-          roleId: 4,
-        });
+    describe('LCU creates user', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
 
-      logger.info(response.body);
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      expect(response.status).toBe(200);
-      expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
-      expect(response.body.data.email).toBe('test@example.com');
-      expect(response.body.data.name).toBe('test');
-      expect(response.body.data.dinas).toBe("TA");
-      expect(response.body.data.roleId).toBe(4);
+      it('should be able to lcu create user', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+            roleId: 4,
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(200);
+        expect(response.body.data.no_pegawai).toBe('test');
+        expect(response.body.data.nik).toBe('test');
+        expect(response.body.data.email).toBe('test@example.com');
+        expect(response.body.data.name).toBe('test');
+        expect(response.body.data.dinas).toBe("TA");
+        expect(response.body.data.roleId).toBe(4);
+      });
     });
 
-    it('should be rejected if no_pegawai already exists', async () => {
-      await userTestService.createUser();
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TA",
-        });
+    describe('No Pegawai already exists', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
 
-      logger.info(response.body);
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      expect(response.status).toBe(400);
-      expect(response.body.errors).toBeDefined();
+      it('should be rejected if no_pegawai already exists', async () => {
+        await userTestService.createUser();
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+      });
     });
 
-    it('should be rejected if email already exists', async () => {
-      await userTestService.createUser();
-      const response = await request(app.getHttpServer())
-        .post('/users/create')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          no_pegawai: 'test',
-          nik: 'test',
-          email: 'test@example.com',
-          name: 'test',
-          password: 'test',
-          dinas: "TA",
-        });
+    describe('Email already exists', () => {
+      beforeEach(async () => {
+        await participantTestService.create();
+      });
 
-      logger.info(response.body);
+      afterEach(async () => {
+        await participantTestService.delete();
+      });
 
-      expect(response.status).toBe(400);
-      expect(response.body.errors).toBeDefined();
+      it('should be rejected if email already exists', async () => {
+        await userTestService.createUser();
+        const response = await request(app.getHttpServer())
+          .post('/users/create')
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            no_pegawai: 'test',
+            nik: 'test',
+            email: 'test@example.com',
+            name: 'test',
+            password: 'test',
+            dinas: "TA",
+          });
+  
+        logger.info(response.body);
+  
+        expect(response.status).toBe(400);
+        expect(response.body.errors).toBeDefined();
+      });
     });
   });
 
