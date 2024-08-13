@@ -56,7 +56,6 @@ export class UserTestService {
         await this.prismaService.user.create({
             data: {
                 no_pegawai: 'supervisor',
-                nik: 'supervisor',
                 email: 'supervisor@example.com',
                 name: 'supervisor',
                 password: await bcrypt.hash('supervisor', 10),
@@ -69,7 +68,6 @@ export class UserTestService {
         await this.prismaService.user.create({
             data: {
                 no_pegawai: 'lcu',
-                nik: 'lcu',
                 email: 'lcu@example.com',
                 name: 'lcu',
                 password: await bcrypt.hash('lcu', 10),
