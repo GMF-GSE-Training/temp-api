@@ -1097,6 +1097,80 @@ describe('UserController', () => {
     });
   });
 
+  describe('GET /users/:userId, user get all users', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
+      await userTestService.createSuperAdmin();
+      await userTestService.createUser();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          identifier: 'test@example.com',
+          password: 'test',
+        });
+      token = response.body.data.token;
+    });
+
+    afterEach(async () => {
+      await userTestService.deleteMany();
+      await participantTestService.delete();
+    });
+
+    it('should be rejected if user get super admin', async () => {
+      const user = await userTestService.getSuperAdmin();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if user get supervisor', async () => {
+      const user = await userTestService.getSupervisor();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if user get lcu', async () => {
+      const user = await userTestService.getLCU();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if user get user', async () => {
+      const user = await userTestService.getUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+  });
+
   describe('PATCH /users/:userId, super admin updates all users', () => {
     let token: string;
 
