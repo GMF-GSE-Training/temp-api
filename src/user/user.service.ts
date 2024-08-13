@@ -101,7 +101,7 @@ export class UserService {
         
         if(req.roleId === roleUser.id || req.roleId === roleLCU.id) {
             if(!req.dinas) {
-                throw new HttpException('Validation Errro', 400);
+                throw new HttpException('Validation Error', 400);
             }
         } else {
             if(req.nik) {
@@ -138,6 +138,32 @@ export class UserService {
 
     async updateUser(req: UpdateUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
+
+        const roleUser = await this.prismaService.role.findFirst({
+            where: { 
+                role: {
+                    equals: "user",
+                    mode: "insensitive"
+                }
+            }
+        });
+
+        const roleLCU = await this.prismaService.role.findFirst({
+            where: {
+                role: {
+                    equals: "lcu",
+                    mode: "insensitive",
+                }
+            }
+        });
+
+        if(req.roleId) {
+            if(req.roleId === roleUser.id || req.roleId === roleLCU.id) {
+                if(!req.dinas) {
+                    throw new HttpException('Validation Error', 400);
+                }
+            }
+        }
 
         const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
 

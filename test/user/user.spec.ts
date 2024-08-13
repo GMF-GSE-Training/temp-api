@@ -1176,6 +1176,8 @@ describe('UserController', () => {
 
     beforeEach(async () => {
       await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
       await userTestService.createSuperAdmin();
       await userTestService.createUser();
       await userTestService.createSupervisor();
@@ -1232,7 +1234,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1243,7 +1244,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test updated');
-      expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
       expect(response.body.data.roleId).toBe(1);
@@ -1256,7 +1256,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1267,7 +1266,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test updated');
-      expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
       expect(response.body.data.roleId).toBe(2);
@@ -1280,7 +1278,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1292,7 +1289,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test updated');
-      expect(response.body.data.nik).toBe('test updated');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
       expect(response.body.data.dinas).toBe("TA");
@@ -1306,7 +1302,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1318,7 +1313,7 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test updated');
-      expect(response.body.data.nik).toBe('test updated');
+      expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('testupdated@example.com');
       expect(response.body.data.name).toBe('test updated');
       expect(response.body.data.dinas).toBe("TA");

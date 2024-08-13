@@ -21,12 +21,11 @@ model User {
   name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
   token      String? @db.VarChar(255)
-  dinas      String? @db.VarChar(50)
   roleId     Int
+  dinas      String? @db.VarChar(50)
 
-  // dinas       Dinas?       @relation(fields: [dinasId], references: [id])
   role        Role         @relation(fields: [roleId], references: [id])
-  participant Participant? @relation(fields: [nik], references: [nik])
+  participant Participant? @relation(fields: [nik], references: [nik], onUpdate: Cascade, onDelete: SetNull)
 
   @@map("users")
 }
@@ -70,12 +69,11 @@ model Participant {
   exp_surat_sehat        DateTime @db.Date
   surat_bebas_narkoba    String   @db.VarChar(255)
   exp_bebas_narkoba      DateTime @db.Date
-  gmf_non_gmf            String   @db.VarChar(20)
   link_qr_code           String?  @db.VarChar(255)
   qr_code                String?  @db.VarChar(255)
+  gmf_non_gmf            String   @db.VarChar(20)
 
   user User?
 
   @@map("participants")
-  @@unique([nik, dinas])
 }
