@@ -997,6 +997,106 @@ describe('UserController', () => {
     });
   });
 
+  describe('GET /users/:userId, lcu get all users', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      await userTestService.deleteUser();
+      await participantTestService.delete();
+      await participantTestService.create();
+      await participantTestService.createOtherParticipant();
+      await userTestService.createSuperAdmin();
+      await userTestService.createUser();
+      await userTestService.createOtherUser();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          identifier: 'lcu@example.com',
+          password: 'lcu',
+        });
+      token = response.body.data.token;
+    });
+
+    it('should be rejected if user not found', async () => {
+      const user = await userTestService.getUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id - user.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if lcu get super admin', async () => {
+      const user = await userTestService.getSuperAdmin();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if lcu get supervisor', async () => {
+      const user = await userTestService.getSupervisor();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if lcu get lcu', async () => {
+      const user = await userTestService.getLCU();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be rejected if the lcu get a user with a different unit', async () => {
+      const user = await userTestService.getOtherUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should be able to lcu get user', async () => {
+      const user = await userTestService.getUser();
+      const response = await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.no_pegawai).toBe('test');
+      expect(response.body.data.nik).toBe('test');
+      expect(response.body.data.email).toBe('test@example.com');
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.dinas).toBe("TA");
+      expect(response.body.data.roleId).toBe(4);
+    });
+  });
+
   describe('PATCH /users/:userId, super admin updates all users', () => {
     let token: string;
 
@@ -1418,8 +1518,8 @@ describe('UserController', () => {
     });
 
     it('should be rejected if the lcu updates a user with a service that is different units', async () => {
-      await userTestService.createUserDinasTC();
-      const user = await userTestService.getUserDinasTC();
+      await userTestService.createOtherUser();
+      const user = await userTestService.getOtherUser();
       const response = await request(app.getHttpServer())
         .patch(`/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)

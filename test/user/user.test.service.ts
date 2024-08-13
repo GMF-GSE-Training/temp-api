@@ -20,7 +20,7 @@ export class UserTestService {
                     { email: 'supervisor@example.com' },
                     { email: 'lcu@example.com' },
                     { email: 'test@example.com' },
-                    { email: 'tc@example.com' },
+                    { email: 'test2@example.com' },
                 ]
             }
         });
@@ -121,26 +121,26 @@ export class UserTestService {
         });
     }
 
-    async createUserDinasTC(){
+    async createOtherUser(){
         await this.prismaService.user.create({
             data: {
-                no_pegawai: 'tc',
-                nik: 'tc',
-                email: 'tc@example.com',
-                name: 'tc',
-                password: await bcrypt.hash('tc', 10),
+                no_pegawai: 'test2',
+                nik: 'test2',
+                email: 'test2@example.com',
+                name: 'test2',
+                password: await bcrypt.hash('test2', 10),
                 dinas: "TC",
                 roleId: 4,
             }
         });
     }
 
-    async getUserDinasTC(): Promise<User> {
+    async getOtherUser(): Promise<User> {
         return this.prismaService.user.findFirst({
             where: {
                 OR: [
-                    { no_pegawai: 'tc' },
-                    { email: 'tc@example.com' },
+                    { no_pegawai: 'test2' },
+                    { email: 'test2@example.com' },
                 ]
             }
         });
