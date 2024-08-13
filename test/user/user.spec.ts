@@ -1678,7 +1678,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1698,7 +1697,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1718,7 +1716,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
@@ -1738,7 +1735,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test updated',
-          nik: 'test updated',
           email: 'testupdated@example.com',
           name: 'test updated',
           password: 'test updated',
