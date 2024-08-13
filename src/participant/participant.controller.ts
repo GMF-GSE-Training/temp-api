@@ -5,13 +5,14 @@ import { WebResponse } from "../model/web.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { extname } from 'path';
+import { RoleGuard } from "src/common/guard/role.guard";
+import { Roles } from "src/common/decorator/role.decorator";
 
 @Controller('/participants')
 export class ParticipantController {
     constructor(private participantService: ParticipantService) {}
 
     @Post()
-    @HttpCode(200)
     @UseGuards(AuthGuard)
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'sim_a', maxCount: 1 },

@@ -36,6 +36,10 @@ export class UserService {
             req.roleId = defaultRole.id;
         }
 
+        if(!req.nik) {
+            throw new HttpException('Validation Error', 400);
+        } 
+
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
         await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);

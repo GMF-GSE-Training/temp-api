@@ -136,7 +136,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -147,7 +146,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
       expect(response.body.data.roleId).toBe(1);
@@ -159,7 +157,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -182,7 +179,6 @@ describe('UserController', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           no_pegawai: 'test',
-          nik: 'test',
           email: 'test@example.com',
           name: 'test',
           password: 'test',
@@ -194,7 +190,6 @@ describe('UserController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.no_pegawai).toBe('test');
-      expect(response.body.data.nik).toBe('test');
       expect(response.body.data.email).toBe('test@example.com');
       expect(response.body.data.name).toBe('test');
       expect(response.body.data.dinasId).toBe(1);
