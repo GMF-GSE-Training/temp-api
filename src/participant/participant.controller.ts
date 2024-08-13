@@ -13,7 +13,9 @@ export class ParticipantController {
     constructor(private participantService: ParticipantService) {}
 
     @Post()
-    @UseGuards(AuthGuard)
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'sim_a', maxCount: 1 },
         { name: 'sim_b', maxCount: 1 },
