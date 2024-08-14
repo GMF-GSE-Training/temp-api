@@ -2,7 +2,7 @@ import { User } from '@prisma/client';
 
 export interface RegisterUserRequest {
     no_pegawai?: string;
-    nik?: string;
+    nik: string;
     email: string;
     name: string;
     password: string;

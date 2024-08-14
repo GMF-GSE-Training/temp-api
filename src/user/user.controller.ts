@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { WebResponse } from "src/model/web.model";
-import { RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { UpdateUserRequest, UserResponse } from "../model/user.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
@@ -12,7 +12,7 @@ export class UserController {
 
     @Post('/register')
     @HttpCode(200)
-    async register(@Body() req: RegisterUserRequest): Promise<WebResponse<UserResponse>> {
+    async register(@Body() req: any): Promise<WebResponse<UserResponse>> {
         const result = await this.userService.register(req);
         return{
             data: result,
@@ -23,7 +23,7 @@ export class UserController {
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async createUser(@Body() req: RegisterUserRequest): Promise<WebResponse<UserResponse>> {
+    async createUser(@Body() req: any): Promise<WebResponse<UserResponse>> {
         const result = await this.userService.createUser(req);
         return{
             data: result,
