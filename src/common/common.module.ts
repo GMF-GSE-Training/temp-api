@@ -5,7 +5,7 @@ import * as winston from 'winston';
 import { PrismaService } from './service/prisma.service';
 import { ValidationService } from './service/validation.service';
 import { APP_FILTER } from '@nestjs/core';
-import { ErrorFilter } from './filter/error.filter';
+import { ErrorFilter } from './error/error.filter';
 
 @Global()
 @Module({
