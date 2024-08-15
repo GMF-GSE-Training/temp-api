@@ -15,17 +15,30 @@ Request Body :
 }
 ```
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-    "status": "success",
+    "code": "200",
+    "status": "OK",
     "data": {
         "id": 1,
         "role": "super admin"
     }
 }
 ```
+
+Response Body (fail) :
+
+```json
+{
+    "code": "400",
+    "status": "BAD_REQUEST",
+    "errors": "",
+}
+```
+
+
 
 ## Get All role
 
@@ -34,11 +47,12 @@ Endpoint : GET api/roles
 Headers : 
 - Authorization : token
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-    "status": "success",
+    "code": "200",
+    "status": "OK",
     "data": [
         {
             "id": 1,
@@ -60,6 +74,16 @@ Response Body :
 }
 ```
 
+Response Body (fail) :
+
+```json
+{
+    "code": "404",
+    "status": "NOT_FOUND",
+    "errors": "",
+}
+```
+
 ## Get Role By Id
 
 Endpoint : GET api/roles/:roleId
@@ -67,15 +91,26 @@ Endpoint : GET api/roles/:roleId
 Headers : 
 - Authorization : token
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-    "status": "success",
+    "code": "200",
+    "status": "OK",
     "data": {
         "id": 1,
         "role": "super admin"
     }
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+    "code": "404",
+    "status": "NOT_FOUND",
+    "errors": "",
 }
 ```
 
@@ -98,11 +133,22 @@ Response Body :
 
 ```json
 {
-    "status": "success",
+    "code": "200",
+    "status": "OK",
     "data": {
         "id": 1,
         "role": "LCU"
     }
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+    "code": "400",
+    "status": "BAD_REQUEST",
+    "errors": "",
 }
 ```
 
@@ -117,7 +163,18 @@ Response Body :
 
 ```json
 {
-    "status": "success",
+    "code": "200",
+    "status": "OK",
     "data": true
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+    "code": "400",
+    "status": "BAD_REQUEST",
+    "errors": "",
 }
 ```

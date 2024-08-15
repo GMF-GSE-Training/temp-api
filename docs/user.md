@@ -9,57 +9,45 @@ Request Body :
 ```json
 {
   "no_pegawai": "123456, optional",
-  "nik": "1234567890, optional",
+  "nik": "1234567890",
   "email": "johndoe@example.com",
   "name": "Jogn Doe",
   "password": "rahasia",
-  "confirm_passord": "rahasia",
   "dinas": "TU"
 }
 ```
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-  "status": "success",
+  "code": "200",
+  "status": "OK",
   "data": {
     "id": 1,
+    "no_peg": "12345",
     "email": "johndoe@example.com",
     "name": "Jogn Doe",
     "dinas": "TU",
-    "role": "user",
-    "no_peg": "12345"
   }
 }
 ```
 
-## Login User
-
-Endpoint : POST /api/users/login
-
-Request Body :
+Response Body (fail) :
 
 ```json
 {
-  "identifier": "johndoe@example.com, 12345",
-  "password": "rahasia"
-}
-```
-
-Response Body :
-
-```json
-{
-  "status": "success",
-  "data": {
-    "id": 1,
-    "email": "johndoe@example.com",
-    "name": "Jogn Doe",
-    "dinas": "TU",  
-    "role": "super admin",
-    "no_peg": "12345",
-    "token": "session_id_generated"
+  "code": "400",
+  "status": "BAD_REQUEST",
+  "errors": {
+    "id": [
+      "",
+      "",
+    ],
+    "name": [
+      "",
+      "",
+    ],
   }
 }
 ```
@@ -81,94 +69,130 @@ Request Body :
   "email": "johndoe@example.com",
   "name": "John Doe",
   "password": "rahasia",
-  "dinas": "TU",
-  "role": "super admin"
+  "dinas": "TU, optional",
+  "roleId": 1
 }
 ```
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-  "status": "success",
+  "code": "200",
+  "status": "OK",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
     "name": "Jogn Doe",
     "dinas": "TU",
-    "role": "super admin",
+    "roleId": 1,
     "no_peg": "12345",
     "token": "session_id_generated"
   }
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+  "code": "500",
+  "status": "SERVER_ERROR",
+  "errors": "",
 }
 ```
 
 ## Get User
 
-Endpoint : GET /api/users/me
+Endpoint : GET /api/users/:userId
 
 Headers :
 
 - Authorization : token
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-  "status": "success",
+  "code": "200",
+  "status": "OK",
   "data": {
     "id": 1,
+    "no_pegawai": "12345",
     "email": "johndoe@example.com",
     "name": "Jogn Doe",
     "dinas": "TU",
-    "role": "super admin",
+    "roleId": 4,
     "no_peg": "12345",
-    "token": "session_id_generated"
   }
 }
 ```
 
-## Get All Users
+Response Body (fail) :
 
-Endpoint : GET /api/users
+```json
+{
+  "code": "401",
+  "status": "UNAUTHORIZED",
+  "errors": "",
+}
+```
+
+## List User
+
+Endpoint : GET /api/users/list
 
 Headers :
 
 - Authorization : token
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-  "status": "success",
+  "code": "200",
+  "status": "OK",
   "data": [
     {
       "id": 1,
+      "no_pegawai": "12345",
       "email": "johndoe@example.com",
       "name": "Jogn Doe",
       "dinas": "TU",
-      "role": "super admin",
-      "no_peg": "12345",
-      "token": "session_id_generated"
+      "role": 2,
     },
     {
       "id": 2,
+      "no_pegawai": "12345",
       "email": "johndoe@example.com",
       "name": "Jogn Doe",
       "dinas": "TU",
-      "role": "super admin",
-      "no_peg": "12345",
-      "token": "session_id_generated"
+      "role": 3,
     }
-  ]
+  ],
+  "page": {
+    "current_page": 1,
+    "total_page": 10,
+    "size": 100,
+  }
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+  "code": "403",
+  "status": "FORBIDDEND",
+  "errors": "",
 }
 ```
 
 ## Update User
 
-Endpoint : PATCH /api/users/me
+Endpoint : PATCH /api/users/:userId
 
-Headers :
+Headers : 
 
 - Authorization : token
 
@@ -176,20 +200,21 @@ Request Body :
 
 ```json
 {
+  "no_peg": "12345, optional",
   "email": "johndoe@example.com, optional",
   "name": "John Doe, optional",
   "password": "rahasia, optional",
   "dinas": "TU, optional",
   "role": "super admin, optional",
-  "no_peg": "12345, optional"
 }
 ```
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
-  "statuc": "success",
+  "code": "200",
+  "status": "OK",
   "data": {
     "id": 1,
     "email": "johndoe@example.com",
@@ -197,79 +222,114 @@ Response Body :
     "dinas": "TU",
     "role": "super admin",
     "no_peg": "12345",
-    "token": "session_id_generated"
   }
 }
 ```
 
-## Update User By Id
-
-Endpoint : PATCH /api/users/:userId
-
-Headers :
-
-- Authorization : token
-
-Request Body :
-
-```json
-{ 
-  "email": "johndoe@example.com, optional",
-  "name": "John Doe, optional",
-  "password": "rahasia, optional",
-  "dinas": "TU, optional",
-  "role": "super admin, optional",
-  "no_peg": "12345, optional"
-}
-```
-
-Response Body :
+Response Body (fail) :
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "id": 1,
-    "email": "johndoe@example.com",
-    "name": "Jogn Doe",
-    "dinas": "TU",
-    "role": "super admin",
-    "no_peg": "12345",
-    "token": "session_id_generated"
+  "code": "404",
+  "status": "NOT_FOUND",
+  "errors": {
+    "id": [
+      "",
+    ],
+    "name": [
+      "",
+    ],
   }
 }
 ```
 
 ## Delete User
 
-Endpoint : DELETE /api/users
+Endpoint : DELETE /api/users/:userId
 
 Headers :
 
 - Authorization : token
 
-Response Body :
+Response Body (success) :
 
 ```json
 {
+  "code": "200",
   "status": "success",
   "data": true
 }
 ```
 
-## Logout User
+Response Body (fail) :
 
-Endpoint : DELETE /api/users/me
+```json
+{
+  "code": "500",
+  "status": "SERVER_ERROR",
+  "errors": "",
+}
+```
+
+## Search User
+
+Endpoint : GET api/users
 
 Headers :
 
 - Authorization : token
 
-Response Body :
+Query Parameter :
+- No Pegawai: string, user no_pegawai, optional
+- email : string, user email, optional
+- name : string, user name, optional
+- phone : string, user no_telp, optional
+- dinas: string, user dinas, optional,
+- role: string, user role, optional,
+- page : number, default 1
+- size : number, default 10
+
+Request Header :
+- X-API-TOKEN : token
+
+Response Body (Success) :
 
 ```json
 {
-  "status": "success",
-  "data": true
+  "code": "200",
+  "status": "OK",
+  "data": [
+    {
+      "id": 1,
+      "no_pegawai": "12345",
+      "email": "johndoe@example.com",
+      "name": "Jogn Doe",
+      "dinas": "TU",
+      "role": 2,
+    },
+    {
+      "id": 2,
+      "no_pegawai": "12345",
+      "email": "johndoe@example.com",
+      "name": "Jogn Doe",
+      "dinas": "TU",
+      "role": 3,
+    }
+  ],
+  "page": {
+    "current_page": 1,
+    "total_page": 10,
+    "size": 100,
+  }
+}
+```
+
+Response Body (Failed) :
+
+```json
+{
+  "code": "500",
+  "status": "SERVER_ERROR",
+  "errors": "",
 }
 ```

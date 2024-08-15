@@ -1,8 +1,8 @@
-# Participant API Spec
+# COT API Spec
 
-## Create Participant
+## Create COT
 
-Endpoint : POST /api/participants
+Endpoint : POST /api/cot
 
 Headers :
 - Authorization : token
@@ -11,25 +11,8 @@ Request Body :
 
 ```json
 {
-    "no_pegawai": "12345",
-    "name": "John Doe",
-    "dinas": "TU",
-    "bidang": "TLC-4",
-    "perusahaan": "GMF",
-    "email": "johndoe@gmail.com",
-    "no_telp": "08123456789",
-    "Kewarganegaraan": "Indonesia",
-    "tempat_lahir": "Jakarta",
-    "tanggal_lahir": "2024/01/01",
-    "sim_a": "sim_a.jpg",
-    "sim_b": "sim_b.jpd",
-    "ktp": "ktp.jpg",
-    "foto": "foto.jpg",
-    "surat_sehat_buta_warna": "surat_sehat.jpg",
-    "exp_surat_sehat": "2024/01/01",
-    "surat_bebas_narkoba": "bebas_narkoba.jpg",
-    "exp_bebas_narkoba": "2024/01/01",
-    "gmf_nongmf": "GMF"
+    "kode_rating": 
+
 }
 ```
 
