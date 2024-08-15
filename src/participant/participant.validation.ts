@@ -2,11 +2,11 @@ import { z, ZodType } from "zod";
 
 export class ParticipantValidation {
     static readonly CREATE: ZodType = z.object({
-        no_pegawai: z.string().min(1).max(20),
+        no_pegawai: z.string().min(1).max(20).optional(),
         nama: z.string().min(1).max(50),
         nik: z.string().min(1).min(1).max(50),
-        dinas: z.string().min(1).max(50),
-        bidang: z.string().min(1).max(50),
+        dinas: z.string().min(1).max(50).optional(),
+        bidang: z.string().min(1).max(50).optional(),
         perusahaan: z.string().min(1).max(50),
         email: z.string().email().min(1).max(50),
         no_telp: z.string().min(1).max(50),

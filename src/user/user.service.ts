@@ -17,10 +17,8 @@ export class UserService {
     ) {}
 
     async register(req: RegisterUserRequest): Promise<UserResponse> {
-        this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
-
         if(req.roleId) {
-            throw new HttpException('Forbidden', 403);
+            throw new HttpException('Anda tidak berhak menentukan role', 403);
         }
 
         const defaultRole = await this.prismaService.role.findFirst({
@@ -33,13 +31,13 @@ export class UserService {
         });
 
         if (!defaultRole) {
-            throw new HttpException("Not Found", 404);
+            throw new HttpException("Role tidak ditemukan", 404);
         }
 
         req.roleId = defaultRole.id;
 
         if(!req.nik) {
-            throw new HttpException('Validation Error', 400);
+            throw new HttpException('Nik tidak boleh kosong', 400);
         }
 
         const participant = await this.prismaService.participant.findUnique({
@@ -49,7 +47,7 @@ export class UserService {
         });
     
         if(!participant) {
-            throw new HttpException('NIK tidak ditemukan di tabel participant', 400);
+            throw new HttpException('NIK tidak ada di data participant', 400);
         }
 
         const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
@@ -67,8 +65,6 @@ export class UserService {
     }
 
     async createUser(req: CreateUserRequest): Promise<UserResponse> {
-        this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
-
         const roleUser = await this.prismaService.role.findFirst({
             where: { 
                 role: {
@@ -95,21 +91,25 @@ export class UserService {
             });
     
             if(!participant) {
-                throw new HttpException('NIK tidak ditemukan di data participant', 400);
+                throw new HttpException('NIK tidak ada di data peserta', 400);
             }
         }
         
-        if(req.roleId === roleUser.id || req.roleId === roleLCU.id) {
+        if(req.roleId === roleLCU.id) {
             if(!req.dinas) {
-                throw new HttpException('Validation Error', 400);
+                throw new HttpException('Dinas tidak boleh kosong', 400);
             }
         } else {
             if(req.nik) {
-                throw new HttpException('Validation Error: Role ini tidak perlu nik', 400);
+                throw new HttpException('Role super admin atau supervisor tidak perlu nik', 400);
+            }
+            
+            if(req.roleId !== roleUser.id && req.roleId !== roleLCU.id && req.dinas) {
+                throw new HttpException('Role super admin atau supervisor tidak perlu dinas', 400);
             }
         }
 
-        const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
+        const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
 
         await this.checkUserExists(createRequest.no_pegawai, createRequest.email);
 
@@ -130,7 +130,7 @@ export class UserService {
         });
 
         if(!user) {
-            throw new HttpException('User Not Found', 404);
+            throw new HttpException('User tidak ditemukan', 404);
         }
 
         return this.toUserResponse(user);
@@ -160,7 +160,7 @@ export class UserService {
         if(req.roleId) {
             if(req.roleId === roleUser.id || req.roleId === roleLCU.id) {
                 if(!req.dinas) {
-                    throw new HttpException('Validation Error', 400);
+                    throw new HttpException('', 400);
                 }
             }
         }

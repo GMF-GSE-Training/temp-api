@@ -256,7 +256,7 @@ Response Body (success) :
 ```json
 {
   "code": "200",
-  "status": "success",
+  "status": "OK",
   "data": true
 }
 ```

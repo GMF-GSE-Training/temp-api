@@ -62,7 +62,7 @@ export class ParticipantService {
     
             const qrCodePath = await this.generateQRCode(req.link_qr_code, folders.qr_code);
             if (!qrCodePath) {
-                throw new Error("QR code path is null or undefined");
+                throw new HttpException("Alamat atau path QR Code tidak ditemukan", 404);
             }
             filePaths.qr_code = qrCodePath;
             uploadedFilePaths.push(qrCodePath);

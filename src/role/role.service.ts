@@ -6,7 +6,6 @@ import { Logger } from 'winston';
 import { CreateRoleRequest, RoleResponse, UpdateRoleRequest } from "src/model/role.model";
 import { RoleValidation } from "./role.validation";
 import { Role } from "@prisma/client";
-import { identity } from "rxjs";
 
 @Injectable()
 export class RoleService {
@@ -26,7 +25,7 @@ export class RoleService {
         });
 
         if(checkRoleIsExists != 0) {
-            throw new HttpException('Role is already exists', 400);
+            throw new HttpException('Role sudah ada', 400);
         }
 
         const role = await this.prismaService.role.create({
@@ -40,7 +39,7 @@ export class RoleService {
         const roles = await this.prismaService.role.findMany();
 
         if(!roles) {
-            throw new HttpException('Role Not Found', 404);
+            throw new HttpException('Role tidak ditemukan', 404);
         }
 
         return roles.map((role) => this.toRoleResponse(role));
@@ -56,7 +55,7 @@ export class RoleService {
         });
 
         if(!role) {
-            throw new HttpException('Role Not found', 404);
+            throw new HttpException('Role tidak ditemukan', 404);
         }
 
         const result = await this.prismaService.role.update({
@@ -77,7 +76,7 @@ export class RoleService {
         });
 
         if(!role) {
-            throw new HttpException('Role Not Found', 404);
+            throw new HttpException('Role tidak ditemukan', 404);
         }
 
         return this.toRoleResponse(role);
