@@ -28,7 +28,7 @@ export class UserController {
     @HttpCode(200)
     async createUser(@Body() req: any): Promise<WebResponse<UserResponse>> {
         try {
-            const result = await this.userService.createUser(req);
+            const result = await this.userService.create(req);
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
@@ -40,9 +40,9 @@ export class UserController {
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<UserResponse>> {
+    async getUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<UserResponse>> {
         try {
-            const result = await this.userService.getUserById(userId);
+            const result = await this.userService.get(userId);
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
@@ -57,7 +57,7 @@ export class UserController {
     async updateUser(@Param('userId', ParseIntPipe) userId: number, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
         try {
             req.id = userId;
-            const result = await this.userService.updateUser(req);
+            const result = await this.userService.update(req);
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;

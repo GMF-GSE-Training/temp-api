@@ -24,7 +24,7 @@ export class ParticipantController {
         { name: 'surat_sehat_buta_warna', maxCount: 1 },
         { name: 'surat_bebas_narkoba', maxCount: 1 }
     ]))
-    async create(@Request() req: any, @UploadedFiles() files: Record<string, Express.Multer.File[]>): Promise<WebResponse<ParticipantResponse>> {
+    async createParticipant(@Request() req: any, @UploadedFiles() files: Record<string, Express.Multer.File[]>): Promise<WebResponse<ParticipantResponse>> {
         try {
             const allowedExtensions = ['.png', '.jpg', '.jpeg'];
             for (const [key, fileArray] of Object.entries(files)) {

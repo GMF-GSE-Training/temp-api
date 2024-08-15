@@ -14,7 +14,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async create(@Body() req: CreateRoleRequest): Promise<WebResponse<RoleResponse>> {
+    async createRole(@Body() req: CreateRoleRequest): Promise<WebResponse<RoleResponse>> {
         try {
             const result = await this.roleService.create(req);
             return buildResponse(HttpStatus.OK, result);
@@ -28,7 +28,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async getAll(): Promise<WebResponse<RoleResponse[]>> {
+    async getAllRoles(): Promise<WebResponse<RoleResponse[]>> {
         try {
             const result = await this.roleService.getAll();
             return buildResponse(HttpStatus.OK, result);
@@ -42,7 +42,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async update(@Param('roleId', ParseIntPipe) roleId: number, @Body() req: UpdateRoleRequest): Promise<WebResponse<RoleResponse>> {
+    async updateRole(@Param('roleId', ParseIntPipe) roleId: number, @Body() req: UpdateRoleRequest): Promise<WebResponse<RoleResponse>> {
         try {
             const result = await this.roleService.update(roleId, req);
             return buildResponse(HttpStatus.OK, result);
@@ -56,7 +56,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async delete(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<boolean>> {
+    async deleteRole(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<boolean>> {
         try {
             await this.roleService.delete(roleId);
             return buildResponse(HttpStatus.OK, true);

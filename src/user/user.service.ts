@@ -64,7 +64,7 @@ export class UserService {
         return this.toUserResponse(user);
     }
 
-    async createUser(req: CreateUserRequest): Promise<UserResponse> {
+    async create(req: CreateUserRequest): Promise<UserResponse> {
         const roleUser = await this.prismaService.role.findFirst({
             where: { 
                 role: {
@@ -122,7 +122,7 @@ export class UserService {
         return this.toUserResponse(user);
     }
 
-    async getUserById(userId: number): Promise<UserResponse> {
+    async get(userId: number): Promise<UserResponse> {
         const user = await this.prismaService.user.findUnique({
             where: {
                 id: userId,
@@ -136,7 +136,7 @@ export class UserService {
         return this.toUserResponse(user);
     }
 
-    async updateUser(req: UpdateUserRequest): Promise<UserResponse> {
+    async update(req: UpdateUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
         const roleUser = await this.prismaService.role.findFirst({
