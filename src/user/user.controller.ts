@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { ListUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
@@ -18,7 +18,7 @@ export class UserController {
             return buildResponse(HttpStatus.OK, result);
         } catch (error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -32,7 +32,7 @@ export class UserController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -46,7 +46,7 @@ export class UserController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -61,7 +61,7 @@ export class UserController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -83,7 +83,7 @@ export class UserController {
             return buildResponse(HttpStatus.OK, result.data, null, result.paging);
         } catch (error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 }

@@ -41,7 +41,7 @@ export class ParticipantController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(`${error.message}`, statusCode);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 }

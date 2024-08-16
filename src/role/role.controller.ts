@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { RoleService } from "./role.service";
 import { Roles } from "../common/decorator/role.decorator";
 import { AuthGuard } from "../common/guard/auth.guard";
@@ -48,7 +48,7 @@ export class RoleController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -62,7 +62,7 @@ export class RoleController {
             return buildResponse(HttpStatus.OK, true);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 }
