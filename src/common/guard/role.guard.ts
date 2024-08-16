@@ -24,7 +24,7 @@ export class RoleGuard implements CanActivate {
 
             const userWithRole = await this.getUserWithRole(request);
 
-            const userRole = userWithRole.role.role.toLowerCase();
+            const userRole = userWithRole.toLowerCase();
             const hasRole = requiredRoles.map(role => role.toLowerCase()).includes(userRole);
 
             if (!hasRole) {
@@ -163,14 +163,15 @@ export class RoleGuard implements CanActivate {
 
     private async handleListUsers(request: any): Promise<boolean> {
         const userWithRole = await this.getUserWithRole(request);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userRole = userWithRole.toLowerCase();
     
         if (userRole === 'supervisor') {
             const users = await this.prismaService.user.findMany({
                 where: {
                     role: {
                         role: {
-                            in: ['supervisor', 'lcu', 'user']
+                            in: ['supervisor', 'lcu', 'user'],
+                            mode: 'insensitive',
                         }
                     }
                 },
@@ -178,27 +179,27 @@ export class RoleGuard implements CanActivate {
                     role: true
                 }
             });
-            request.users = users;
+            request.user = this.filterSensitiveData(users);
         } else if (userRole === 'lcu') {
             const users = await this.prismaService.user.findMany({
                 where: {
                     role: {
-                        role: 'user'
+                        role: {
+                            equals: 'user',
+                            mode: 'insensitive'
+                        }
                     },
                     dinas: userWithRole.dinas
                 },
-                include: {
-                    role: true
-                }
             });
-            request.users = users;
+            request.user = this.filterSensitiveData(users);
         } else if (userRole === 'super admin') {
             const users = await this.prismaService.user.findMany({
                 include: {
                     role: true
                 }
             });
-            request.users = users;
+            request.user = this.filterSensitiveData(users);
         }
         
         return true;
@@ -209,7 +210,7 @@ export class RoleGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user = await this.getUserWithRole(request);
 
-        this.checkRoleAuthorization(user.role.role, requiredRoles);
+        this.checkRoleAuthorization(user, requiredRoles);
 
         return true;
     }
@@ -238,7 +239,7 @@ export class RoleGuard implements CanActivate {
             throw new HttpException('Forbidden', 403);
         }
 
-        return userWithRole;
+        return userWithRole.role.role;
     }
 
     private checkRoleAuthorization(userRole: string, requiredRoles: string[]): void {
@@ -247,5 +248,12 @@ export class RoleGuard implements CanActivate {
         if (!hasRole) {
             throw new HttpException('Forbidden', 403);
         }
+    }
+
+    private filterSensitiveData(users: any[]): any[] {
+        return users.map(user => {
+            const { password, token, ...safeUser } = user;
+            return safeUser;
+        });
     }
 }

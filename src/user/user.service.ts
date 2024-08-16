@@ -190,31 +190,29 @@ export class UserService {
         return this.toUserResponse(result);
     }
 
-    async list(req: ListUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
+    async list(req: ListUserRequest, usersFromGuard):Promise<{ data: UserResponse[], paging: Paging }> {
         const listRequest: ListUserRequest = this.validationService.validate(UserValidation.LIST, req);
 
-        const totalUsers = await this.prismaService.user.count();
+        // Lakukan paginasi pada pengguna yang sudah difilter oleh guard
+        const totalUsers = usersFromGuard.length;
         const totalPage = Math.ceil(totalUsers / listRequest.size);
-        const users = await this.prismaService.user.findMany({
-            skip: (listRequest.page - 1) * listRequest.size,
-            take: listRequest.size,
-            include: {
-                role: true,
-            }
-        });
+        const paginatedUsers = usersFromGuard.slice(
+            (listRequest.page - 1) * listRequest.size,
+            listRequest.page * listRequest.size
+        );
 
-        if(users.length === 0) {
+        if (paginatedUsers.length === 0) {
             throw new HttpException("Data users tidak ditemukan", 404);
         }
 
         return {
-            data: users.map(this.toUserResponse),
+            data: paginatedUsers.map(this.toUserResponse),
             paging: {
                 current_page: listRequest.page,
                 total_page: totalPage,
                 size: listRequest.size,
-            }
-        }
+            },
+        };
     }
 
     async checkUserExists(no_pegawai: string, email: string) {

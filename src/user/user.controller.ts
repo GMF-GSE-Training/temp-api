@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { ListUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
@@ -65,21 +65,21 @@ export class UserController {
         }
     }
 
-    @Get('/list/get')
+    @Get('/list/q')
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async listUsers(
+        @Req() request: any,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
-        console.log(page, size)
         try {
             const query: ListUserRequest = { 
                 page: page || 1,
                 size: size || 10,
             };
-            const result = await this.userService.list(query);
+            const result = await this.userService.list(query, request.user);
             return buildResponse(HttpStatus.OK, result.data, null, result.paging);
         } catch (error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
