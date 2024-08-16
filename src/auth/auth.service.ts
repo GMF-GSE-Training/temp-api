@@ -19,8 +19,6 @@ export class AuthService {
     ) {}
     
     async login(req: LoginUserRequest): Promise<UserResponse> {
-        this.logger.debug(`AuthService.login(${JSON.stringify(req)})`);
-
         const loginRequest: LoginUserRequest = this.validationService.validate(AuthValidation.LOGIN, req);
 
         let user: User;
@@ -76,8 +74,6 @@ export class AuthService {
     }
 
     async me(user: User): Promise<UserResponse> {
-        this.logger.debug(`AuthService.login(${JSON.stringify(user)})`);
-
         await this.prismaService.user.findUnique({
             where: { 
                 id: user.id
@@ -101,8 +97,6 @@ export class AuthService {
     }
 
     async updateMe(user: User, req: UpdateUserRequest): Promise<UserResponse> {
-        this.logger.debug(`AuthService.update(${user}, ${JSON.stringify(req)})`);
-
         if(req.roleId) {
             const userCurrent = await this.prismaService.user.findUnique({
                 where: {
@@ -155,8 +149,6 @@ export class AuthService {
     }
 
     async logout(user: User): Promise<UserResponse> {
-        this.logger.debug(`AuthService.login(${JSON.stringify(user)})`);
-
         const result = await this.prismaService.user.update({
             where: {
                 id: user.id,

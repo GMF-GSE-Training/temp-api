@@ -8,6 +8,7 @@ import { UserTestService } from './user.test.service';
 import { UserTestModule } from './user.test.module';
 import { ParticipantTestService } from '../participant/participant.test.service';
 import { ParticipantTestModule } from '../participant/participant.test.module';
+import { query } from 'express';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -1748,4 +1749,37 @@ describe('UserController', () => {
       expect(response.body.errors).toBeDefined();
     });
   });
+
+  describe.only('GET users/list', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      await userTestService.deleteUser();
+      await userTestService.createSuperAdmin();
+      await userTestService.createSupervisor();
+      await userTestService.createLCU();
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          identifier: 'superadmin@example.com',
+          password: 'super admin',
+        });
+      token = response.body.data.token;
+    });
+
+    it('should be able to get list usrs', async () => {
+        const response = await request(app.getHttpServer())
+            .get('/users/list')
+            .query({
+                page: 1,
+                size: 2,
+            })
+            .set('Authorization', `Bearer ${token}`)
+
+        logger.info(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.length).toBe(4);
+    });
+});
 });

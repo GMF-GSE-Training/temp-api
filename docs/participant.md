@@ -136,7 +136,7 @@ Response Body :
             "qr_code": "uploads/participants/qr_code.png"
         }
     ],
-    "page": {
+    "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
@@ -339,7 +339,7 @@ Query Parameter :
 - dinas: string, participant dinas, optional,
 - bidang: string, participant bidang, optional,
 - perusahaan: string, participant perusahaan, optional,
-- page : number, default 1
+- paging : number, default 1
 - size : number, default 10
 
 Headers :
@@ -370,7 +370,7 @@ Response Body (Success) :
       "role": 3,
     }
   ],
-  "page": {
+  "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,

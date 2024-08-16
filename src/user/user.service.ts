@@ -2,11 +2,12 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { CreateUserRequest, RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { CreateUserRequest, ListUserRequest, RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
 import { User } from "@prisma/client";
+import { Paging, WebResponse } from "src/model/web.model";
 
 @Injectable()
 export class UserService {
@@ -84,6 +85,10 @@ export class UserService {
         });
 
         if(req.roleId === roleUser.id) {
+            if(!req.nik) {
+                throw new HttpException('Nik tidak boleh kosong', 400);
+            }
+
             const participant = await this.prismaService.participant.findUnique({
                 where: {
                     nik: req.nik,
@@ -93,9 +98,7 @@ export class UserService {
             if(!participant) {
                 throw new HttpException('NIK tidak ada di data peserta', 400);
             }
-        }
-        
-        if(req.roleId === roleLCU.id) {
+        } else if(req.roleId === roleLCU.id) {
             if(!req.dinas) {
                 throw new HttpException('Dinas tidak boleh kosong', 400);
             }
@@ -185,6 +188,33 @@ export class UserService {
         });
         
         return this.toUserResponse(result);
+    }
+
+    async list(req: ListUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
+        const listRequest: ListUserRequest = this.validationService.validate(UserValidation.LIST, req);
+
+        const totalUsers = await this.prismaService.user.count();
+        const totalPage = Math.ceil(totalUsers / listRequest.size);
+        const users = await this.prismaService.user.findMany({
+            skip: (listRequest.page - 1) * listRequest.size,
+            take: listRequest.size,
+            include: {
+                role: true,
+            }
+        });
+
+        if(users.length === 0) {
+            throw new HttpException("Data users tidak ditemukan", 404);
+        }
+
+        return {
+            data: users.map(this.toUserResponse),
+            paging: {
+                current_page: listRequest.page,
+                total_page: totalPage,
+                size: listRequest.size,
+            }
+        }
     }
 
     async checkUserExists(no_pegawai: string, email: string) {

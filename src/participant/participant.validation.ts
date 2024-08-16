@@ -23,5 +23,6 @@ export class ParticipantValidation {
         exp_bebas_narkoba: z.date(),
         link_qr_code: z.string().min(1).max(255).optional(),
         qr_code: z.string().min(1).max(255),
+        gmf_non_gmf: z.string().min(1).max(20),
     });
 }

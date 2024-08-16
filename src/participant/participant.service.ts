@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { ConflictException, HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from 'winston';
@@ -7,12 +7,16 @@ import * as QRCode from 'qrcode';
 import { unlink, rename, writeFile } from 'fs/promises';
 import { join, extname, basename } from 'path';
 import { mkdir } from 'fs/promises';
+import { ValidationService } from "../common/service/validation.service";
+import { ParticipantValidation } from "./participant.validation";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class ParticipantService {
     constructor(
         private prismaService: PrismaService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
+        private validationService: ValidationService,
     ) {}
 
     async create(req: CreateParticipantRequest, files: Record<string, Express.Multer.File[]>): Promise<ParticipantResponse> {
@@ -81,9 +85,11 @@ export class ParticipantService {
                 exp_surat_sehat: new Date(req.exp_surat_sehat),
                 exp_bebas_narkoba: new Date(req.exp_bebas_narkoba),
             };
+
+            const validateRequest = this.validationService.validate(ParticipantValidation.CREATE, createRequest);
     
             const participant = await this.prismaService.participant.create({
-                data: createRequest
+                data: validateRequest,
             });
 
             return this.toParticipantResponse(participant);
@@ -92,6 +98,12 @@ export class ParticipantService {
             for (const filePath of uploadedFilePaths) {
                 await unlink(filePath).catch(err => this.logger.warn(`Failed to delete file: ${filePath}`));
             }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2002') {
+                    throw new ConflictException('NIK sudah ada');
+                }
+            }
+
             throw error;
         }
     }

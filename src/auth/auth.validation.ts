@@ -13,6 +13,6 @@ export class AuthValidation {
         name: z.string().min(1).max(50).optional(),  
         password: z.string().min(1).max(100).optional(),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.number().optional(),
+        roleId: z.number().positive().optional(),
     });
 }

@@ -39,6 +39,11 @@ export interface UpdateUserRequest {
     roleId?: number;
 }
 
+export interface ListUserRequest {
+    page?: number,
+    size?: number,
+}
+
 export interface UserResponse {
     id: number;
     no_pegawai?: string;

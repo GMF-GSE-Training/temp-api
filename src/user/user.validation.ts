@@ -18,7 +18,7 @@ export class UserValidation {
         name: z.string().min(1).max(50),    
         password: z.string().min(1).max(100),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.number()
+        roleId: z.number().positive(),
     });
 
     static readonly UPDATE: ZodType = z.object({
@@ -28,6 +28,11 @@ export class UserValidation {
         name: z.string().min(1).max(50).optional(),    
         password: z.string().min(1).max(100).optional(),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.number().optional(),
+        roleId: z.number().positive().optional(),
+    });
+
+    static readonly LIST: ZodType = z.object({
+        page: z.number().positive().optional(),
+        size: z.number().positive().optional(),
     });
 }

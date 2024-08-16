@@ -146,6 +146,10 @@ Headers :
 
 - Authorization : token
 
+Query Parameter :
+- paging : number, default 1
+- size : number, default 10
+
 Response Body (success) :
 
 ```json
@@ -170,7 +174,7 @@ Response Body (success) :
       "role": 3,
     }
   ],
-  "page": {
+  "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
@@ -286,7 +290,7 @@ Query Parameter :
 - phone : string, user no_telp, optional
 - dinas: string, user dinas, optional,
 - role: string, user role, optional,
-- page : number, default 1
+- paging : number, default 1
 - size : number, default 10
 
 Request Header :
@@ -316,7 +320,7 @@ Response Body (Success) :
       "role": 3,
     }
   ],
-  "page": {
+  "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,

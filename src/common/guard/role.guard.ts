@@ -16,10 +16,11 @@ export class RoleGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const controller = context.getClass().name;
+        const request = context.switchToHttp().getRequest();
+        const method = request.method;
+        const url = request.url;
         if(controller === 'UserController') {
             const requiredRoles = this.getRequiredRoles(context);
-
-            const request = context.switchToHttp().getRequest();
 
             const userWithRole = await this.getUserWithRole(request);
 
@@ -30,7 +31,6 @@ export class RoleGuard implements CanActivate {
                 throw new HttpException('Forbidden', 403);
             }
 
-            const method = request.method;
             const requestedRoleId = request.body.roleId;
             const requestedDinas = request.body.dinas;
 
@@ -114,7 +114,7 @@ export class RoleGuard implements CanActivate {
                 }
             }
 
-            if (method === 'GET') {
+            if (method === 'GET' && url.match(/\/\d+$/)) {
                 const requestedUserId = request.params.userId;
                 if (!requestedUserId) {
                     throw new HttpException('User ID is required for GET requests', 400);
@@ -144,7 +144,11 @@ export class RoleGuard implements CanActivate {
                         throw new HttpException('Forbidden: LCU can only access User data within the same dinas', 403);
                     }
                 }
-            }   
+            }
+
+            if (method === 'GET' && url.includes('/list')) {
+                return this.handleListUsers(request);
+            }
 
             return true;
 
@@ -155,6 +159,49 @@ export class RoleGuard implements CanActivate {
         } else if(controller === 'ParticipantController') {
             return this.handleController(context);
         }
+    }
+
+    private async handleListUsers(request: any): Promise<boolean> {
+        const userWithRole = await this.getUserWithRole(request);
+        const userRole = userWithRole.role.role.toLowerCase();
+    
+        if (userRole === 'supervisor') {
+            const users = await this.prismaService.user.findMany({
+                where: {
+                    role: {
+                        role: {
+                            in: ['supervisor', 'lcu', 'user']
+                        }
+                    }
+                },
+                include: {
+                    role: true
+                }
+            });
+            request.users = users;
+        } else if (userRole === 'lcu') {
+            const users = await this.prismaService.user.findMany({
+                where: {
+                    role: {
+                        role: 'user'
+                    },
+                    dinas: userWithRole.dinas
+                },
+                include: {
+                    role: true
+                }
+            });
+            request.users = users;
+        } else if (userRole === 'super admin') {
+            const users = await this.prismaService.user.findMany({
+                include: {
+                    role: true
+                }
+            });
+            request.users = users;
+        }
+        
+        return true;
     }
 
     private async handleController(context: ExecutionContext): Promise<boolean> {
