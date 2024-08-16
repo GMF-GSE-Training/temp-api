@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { CurrentUserRequest, LoginUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -16,7 +16,7 @@ export class AuthController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -30,7 +30,7 @@ export class AuthController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -43,7 +43,7 @@ export class AuthController {
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 
@@ -56,7 +56,7 @@ export class AuthController {
             return buildResponse(HttpStatus.OK, true);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
     }
 }
