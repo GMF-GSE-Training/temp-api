@@ -51,27 +51,36 @@ export class ParticipantService {
             for (const [key, fileArray] of Object.entries(files)) {
                 const file = fileArray[0];
                 const fileExtension = extname(file.originalname).toLowerCase();
-    
+
+                // Replace spaces with underscores in the filename
+                const originalNameWithoutExt = basename(file.originalname, fileExtension)
+                    .replace(/\s+/g, '_')
+                    .toLowerCase();
                 const folderPath = folders[key as keyof typeof folders];
-    
-                const originalNameWithoutExt = basename(file.originalname, fileExtension);
                 const newFilePath = join(folderPath, `${originalNameWithoutExt}_${Date.now()}${fileExtension}`);
                 
                 await rename(file.path, newFilePath);
     
-                filePaths[key] = newFilePath;
+                // Build URL and replace backslashes with forward slashes
+                const relativePath = newFilePath.replace(/^.*[\\\/]/, ''); // Get the filename with extension
+                const fileUrl = `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/uploads/participants/${key}/${relativePath}`;
+                filePaths[key] = fileUrl;
                 uploadedFilePaths.push(newFilePath);
-                this.logger.info(`File moved: ${newFilePath}`);
+                this.logger.info(`File moved and URL built: ${fileUrl}`);
             }
     
             const qrCodePath = await this.generateQRCode(req.link_qr_code, folders.qr_code);
             if (!qrCodePath) {
                 throw new HttpException("Alamat atau path QR Code tidak ditemukan", 404);
             }
-            filePaths.qr_code = qrCodePath;
+
+            // Build QR code URL and replace backslashes with forward slashes
+            const qrCodeRelativePath = qrCodePath.replace(/^.*[\\\/]/, '');
+            const qrCodeUrl = `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/uploads/participants/qr-code/${qrCodeRelativePath}`;
+            filePaths.qr_code = qrCodeUrl;
             uploadedFilePaths.push(qrCodePath);
-            this.logger.info(`QR code generated and saved at: ${qrCodePath}`);
-    
+            this.logger.info(`QR code generated and URL built: ${qrCodeUrl}`);
+
             const createRequest: CreateParticipantRequest = {
                 ...req,
                 sim_a: filePaths.sim_a,
