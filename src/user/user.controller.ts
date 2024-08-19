@@ -14,13 +14,8 @@ export class UserController {
     @Post('/register')
     @HttpCode(200)
     async register(@Body() req: any): Promise<WebResponse<UserResponse>> {
-        try {
-            const result = await this.userService.register(req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch (error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.userService.register(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Post('/create')
@@ -28,13 +23,8 @@ export class UserController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async createUser(@Body() req: any): Promise<WebResponse<UserResponse>> {
-        try {
-            const result = await this.userService.create(req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.userService.create(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/:userId')
@@ -42,13 +32,8 @@ export class UserController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async getUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<UserResponse>> {
-        try {
-            const result = await this.userService.get(userId);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.userService.get(userId);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Patch('/:userId')
@@ -56,14 +41,9 @@ export class UserController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async updateUser(@Param('userId', ParseIntPipe) userId: number, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        try {
-            req.id = userId;
-            const result = await this.userService.update(req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        req.id = userId;
+        const result = await this.userService.update(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/list/result')
@@ -75,17 +55,12 @@ export class UserController {
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
-        try {
-            const query: ListUserRequest = { 
-                page: page || 1,
-                size: size || 10,
-            };
-            const result = await this.userService.list(query, request.user);
-            return buildResponse(HttpStatus.OK, result.data, null, result.paging);
-        } catch (error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const query: ListUserRequest = { 
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.userService.list(query, request.user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 
     @Get('/search/result')
@@ -98,22 +73,17 @@ export class UserController {
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
-        try {
-            if(!q) {
-                throw new HttpException('Search query tidak boleh kosong', 400);
-            }
-
-            const query: SearchUserRequest = {
-                searchQuery: q,
-                page: page || 1,
-                size: size || 10,
-            };
-            const result = await this.userService.search(query, request.user);
-            return buildResponse(HttpStatus.OK, result.data, null, result.paging);
-        } catch (error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
+        if(!q) {
+            throw new HttpException('Search query tidak boleh kosong', 400);
         }
+
+        const query: SearchUserRequest = {
+            searchQuery: q,
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.userService.search(query, request.user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 
     @Delete('/:userId')
@@ -121,12 +91,7 @@ export class UserController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<boolean>> {
-        try {
-            await this.userService.delete(userId);
-            return buildResponse(HttpStatus.OK, true);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        await this.userService.delete(userId);
+        return buildResponse(HttpStatus.OK, true);
     }
 }

@@ -11,52 +11,32 @@ export class AuthController {
     @Post('/login')
     @HttpCode(200)
     async login(@Body() req: LoginUserRequest): Promise<WebResponse<UserResponse>> {
-        try {
-            const result = await this.authService.login(req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.authService.login(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @UseGuards(AuthGuard)
     @Get('/current')
     @HttpCode(200)
     async me(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
-        try {
-            const user = req.user;
-            const result = await this.authService.me(user);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const user = req.user;
+        const result = await this.authService.me(user);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @UseGuards(AuthGuard)
     @Patch('/current')
     @HttpCode(200)
     async updateMe(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        try {
-            const result = await this.authService.updateMe(userCurrent.user, req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.authService.updateMe(userCurrent.user, req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
     async logout(@Req() req: CurrentUserRequest): Promise<WebResponse<boolean>> {
-        try {
-            await this.authService.logout(req.user);
-            return buildResponse(HttpStatus.OK, true);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        await this.authService.logout(req.user);
+        return buildResponse(HttpStatus.OK, true);
     }
 }

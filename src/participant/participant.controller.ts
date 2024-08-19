@@ -25,24 +25,19 @@ export class ParticipantController {
         { name: 'surat_bebas_narkoba', maxCount: 1 }
     ]))
     async createParticipant(@Request() req: any, @UploadedFiles() files: Record<string, Express.Multer.File[]>): Promise<WebResponse<ParticipantResponse>> {
-        try {
-            const allowedExtensions = ['.png', '.jpg', '.jpeg'];
-            for (const [key, fileArray] of Object.entries(files)) {
-                const file = fileArray[0];
-                const fileExtension = extname(file.originalname).toLowerCase();
+        const allowedExtensions = ['.png', '.jpg', '.jpeg'];
+        for (const [key, fileArray] of Object.entries(files)) {
+            const file = fileArray[0];
+            const fileExtension = extname(file.originalname).toLowerCase();
     
-                if (!allowedExtensions.includes(fileExtension)) {
-                    throw new HttpException(`Invalid file format for ${key}. Only PNG, JPG, and JPEG are allowed.`, 400);
-                }
+            if (!allowedExtensions.includes(fileExtension)) {
+                throw new HttpException(`Invalid file format for ${key}. Only PNG, JPG, and JPEG are allowed.`, 400);
             }
-    
-            const result = await this.participantService.create(req.body, files);
-    
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }
+    
+        const result = await this.participantService.create(req.body, files);
+    
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/:participantId')
@@ -50,12 +45,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     async getParticipant(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<ParticipantResponse>> {
-        try {
-            const result = await this.participantService.get(participantId);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.participantService.get(participantId);
+        return buildResponse(HttpStatus.OK, result);
     }
 }

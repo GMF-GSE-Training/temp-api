@@ -37,21 +37,17 @@ export class UserService {
 
         req.roleId = defaultRole.id;
 
-        if(!req.nik) {
-            throw new HttpException('Nik tidak boleh kosong', 400);
-        }
+        const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
         const participant = await this.prismaService.participant.findUnique({
             where: {
                 nik: req.nik,
             }
         });
-    
+
         if(!participant) {
             throw new HttpException('NIK tidak ada di data participant', 400);
         }
-
-        const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
 
         await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
 

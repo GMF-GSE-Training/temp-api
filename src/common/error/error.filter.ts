@@ -1,31 +1,54 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
-import { buildResponse } from "../../model/web.model";
 import { ZodError } from "zod";
 
 @Catch()
 export class ErrorFilter implements ExceptionFilter {
     catch(exception: any, host: ArgumentsHost) {
-        
-        const response = host.switchToHttp().getResponse();
-        let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse();
+        let statusCode: number = HttpStatus.INTERNAL_SERVER_ERROR;
         let errorResponse: any;
 
-        if (exception instanceof HttpException) {
-            statusCode = exception.getStatus();
-            errorResponse = exception.getResponse();
-        } else if (exception instanceof ZodError) {
+        if (exception instanceof ZodError) {
             statusCode = HttpStatus.BAD_REQUEST;
+            const errors = this.formatZodErrors(exception.errors);
             errorResponse = {
-                errors: 'Validation error',
+                code: statusCode.toString(),
+                status: HttpStatus[statusCode],
+                errors: errors,
             };
-        } else {    
+        } else if (exception instanceof HttpException) {
+            statusCode = exception.getStatus();
             errorResponse = {
-                errors: exception.message,
+                code: statusCode.toString(),
+                status: HttpStatus[statusCode],
+                errors: exception.getResponse(),
+            };
+        } else {
+            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            errorResponse = {
+                code: statusCode.toString(),
+                status: HttpStatus[statusCode],
+                errors: {
+                    message: exception.message,
+                },
             };
         }
 
-        const responseBody = buildResponse(statusCode, null, errorResponse);
+        response.status(statusCode).json(errorResponse);
+    }
 
-        response.status(statusCode).json(responseBody);
+    private formatZodErrors(zodErrors: any[]): Record<string, string[]> {
+        const formattedErrors: Record<string, string[]> = {};
+
+        zodErrors.forEach((error) => {
+            const fieldName = error.path.join('.');
+            if (!formattedErrors[fieldName]) {
+                formattedErrors[fieldName] = [];
+            }
+            formattedErrors[fieldName].push(error.message);
+        });
+
+        return formattedErrors;
     }
 }

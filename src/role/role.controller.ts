@@ -15,13 +15,8 @@ export class RoleController {
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     async createRole(@Body() req: CreateRoleRequest): Promise<WebResponse<RoleResponse>> {
-        try {
-            const result = await this.roleService.create(req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
-        }
+        const result = await this.roleService.create(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get()
@@ -29,13 +24,8 @@ export class RoleController {
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     async getAllRoles(): Promise<WebResponse<RoleResponse[]>> {
-        try {
-            const result = await this.roleService.getAll();
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            return buildResponse(statusCode, null, error.response);
-        }
+        const result = await this.roleService.getAll();
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Patch('/:roleId')
@@ -43,13 +33,8 @@ export class RoleController {
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     async updateRole(@Param('roleId', ParseIntPipe) roleId: number, @Body() req: UpdateRoleRequest): Promise<WebResponse<RoleResponse>> {
-        try {
-            const result = await this.roleService.update(roleId, req);
-            return buildResponse(HttpStatus.OK, result);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        const result = await this.roleService.update(roleId, req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Delete('/:roleId')
@@ -57,12 +42,7 @@ export class RoleController {
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     async deleteRole(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<boolean>> {
-        try {
-            await this.roleService.delete(roleId);
-            return buildResponse(HttpStatus.OK, true);
-        } catch(error) {
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            throw new HttpException(error.response || 'Internal Server Error', statusCode);
-        }
+        await this.roleService.delete(roleId);
+        return buildResponse(HttpStatus.OK, true);
     }
 }
