@@ -253,6 +253,26 @@ export class UserService {
         };
     }
 
+    async delete(userId: number): Promise<UserResponse> {
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            }
+        });
+
+        if(!user) {
+            throw new HttpException('User tidak ditemukan', 404);
+        }
+
+        const result = await this.prismaService.user.delete({
+            where: {
+                id: userId,
+            }
+        });
+
+        return this.toUserResponse(result);
+    }
+
     async checkUserExists(no_pegawai: string, email: string) {
         const totalUserwithSameNoPegawai = await this.prismaService.user.count({
             where: {

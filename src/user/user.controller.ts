@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { ListUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
@@ -102,7 +102,7 @@ export class UserController {
             if(!q) {
                 throw new HttpException('Search query tidak boleh kosong', 400);
             }
-            
+
             const query: SearchUserRequest = {
                 searchQuery: q,
                 page: page || 1,
@@ -111,6 +111,20 @@ export class UserController {
             const result = await this.userService.search(query, request.user);
             return buildResponse(HttpStatus.OK, result.data, null, result.paging);
         } catch (error) {
+            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
+        }
+    }
+
+    @Delete('/:userId')
+    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<boolean>> {
+        try {
+            await this.userService.delete(userId);
+            return buildResponse(HttpStatus.OK, true);
+        } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
             throw new HttpException(error.response || 'Internal Server Error', statusCode);
         }

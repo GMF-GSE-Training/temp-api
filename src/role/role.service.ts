@@ -79,7 +79,13 @@ export class RoleService {
             throw new HttpException('Role tidak ditemukan', 404);
         }
 
-        return this.toRoleResponse(role);
+        const result = await this.prismaService.role.delete({
+            where: {
+                id: roleId,
+            }
+        });
+
+        return this.toRoleResponse(result);
     }
 
     toRoleResponse(role: Role) {

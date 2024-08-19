@@ -114,7 +114,7 @@ export class RoleGuard implements CanActivate {
                 }
             }
 
-            if (method === 'GET' && url.match(/\/\d+$/)) {
+            if (method === 'GET' && url.match(/\/\d+$/) || method === 'DELETE' && url.match(/\/\d+$/)) {
                 const requestedUserId = request.params.userId;
                 if (!requestedUserId) {
                     throw new HttpException('User ID is required for GET requests', 400);
