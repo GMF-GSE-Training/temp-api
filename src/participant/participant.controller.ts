@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpException, HttpStatus, Post, Request, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Post, Request, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { ParticipantResponse } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -38,6 +38,20 @@ export class ParticipantController {
     
             const result = await this.participantService.create(req.body, files);
     
+            return buildResponse(HttpStatus.OK, result);
+        } catch(error) {
+            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+            throw new HttpException(error.response || 'Internal Server Error', statusCode);
+        }
+    }
+
+    @Get('/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getParticipant(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<ParticipantResponse>> {
+        try {
+            const result = await this.participantService.get(participantId);
             return buildResponse(HttpStatus.OK, result);
         } catch(error) {
             const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
