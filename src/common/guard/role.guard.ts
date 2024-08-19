@@ -146,7 +146,7 @@ export class RoleGuard implements CanActivate {
                 }
             }
 
-            if (method === 'GET' && url.includes('/list')) {
+            if (method === 'GET' && url.includes('/list') || method === 'GET' && url.includes('search')) {
                 return this.handleListUsers(request);
             }
 

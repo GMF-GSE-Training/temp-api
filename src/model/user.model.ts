@@ -44,6 +44,12 @@ export interface ListUserRequest {
     size?: number,
 }
 
+export interface SearchUserRequest {
+    searchQuery: string;
+    page: number;
+    size: number;
+}
+
 export interface UserResponse {
     id: number;
     no_pegawai?: string;

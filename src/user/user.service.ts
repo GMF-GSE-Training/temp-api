@@ -2,12 +2,12 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { CreateUserRequest, ListUserRequest, RegisterUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { CreateUserRequest, ListUserRequest, RegisterUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
 import { User } from "@prisma/client";
-import { Paging, WebResponse } from "src/model/web.model";
+import { Paging } from "src/model/web.model";
 
 @Injectable()
 export class UserService {
@@ -211,6 +211,44 @@ export class UserService {
                 current_page: listRequest.page,
                 total_page: totalPage,
                 size: listRequest.size,
+            },
+        };
+    }
+
+    async search(req: SearchUserRequest, usersFromGuard): Promise<{ data: UserResponse[], paging: Paging }> {
+        const searchRequest: SearchUserRequest = this.validationService.validate(UserValidation.SEARCH, req);
+    
+        // Filter users berdasarkan searchQuery jika tersedia
+        let filteredUsers = usersFromGuard;
+        if (searchRequest.searchQuery) {
+            const query = searchRequest.searchQuery.toLowerCase();
+            filteredUsers = usersFromGuard.filter(user => 
+                user.no_pegawai?.includes(query) ||
+                user.email?.toLowerCase().includes(query) ||
+                user.name?.toLowerCase().includes(query) ||
+                user.dinas?.toLowerCase().includes(query) ||
+                user.role?.role.toLowerCase().includes(query)
+            );
+        }
+    
+        // Lakukan paginasi pada pengguna yang sudah difilter oleh guard
+        const totalUsers = filteredUsers.length;
+        const totalPage = Math.ceil(totalUsers / searchRequest.size);
+        const paginatedUsers = filteredUsers.slice(
+            (searchRequest.page - 1) * searchRequest.size,
+            searchRequest.page * searchRequest.size
+        );
+    
+        if (paginatedUsers.length === 0) {
+            throw new HttpException("Data users tidak ditemukan", 404);
+        }
+    
+        return {
+            data: paginatedUsers.map(this.toUserResponse),
+            paging: {
+                current_page: searchRequest.page,
+                total_page: totalPage,
+                size: searchRequest.size,
             },
         };
     }
