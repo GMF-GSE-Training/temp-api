@@ -30,7 +30,7 @@ export interface ParticipantResponse {
     nik: string;
     dinas: string;
     bidang: string;
-    perusahaan: string;
+    perusahaan?: string;
     email: string;
     no_telp: string;
     negara: string;

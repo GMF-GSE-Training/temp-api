@@ -46,7 +46,7 @@ model Participant {
   nik                    String   @unique @db.VarChar(50)
   dinas                  String   @db.VarChar(50)
   bidang                 String   @db.VarChar(50)
-  perusahaan             String   @db.VarChar(50)
+  perusahaan             String?   @db.VarChar(50)
   email                  String   @db.VarChar(50)
   no_telp                String   @db.VarChar(50)
   negara                 String   @db.VarChar(50)
