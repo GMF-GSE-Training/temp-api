@@ -6,7 +6,6 @@ import { PrismaService } from './service/prisma.service';
 import { ValidationService } from './service/validation.service';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
-import { StaticFileMiddleware } from './middleware/static_file.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../config/constants';
 
@@ -41,9 +40,5 @@ import { jwtConstants } from '../config/constants';
     ]
 })
 export class CommonModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer
-            .apply(StaticFileMiddleware)
-            .forRoutes('/uploads/*');
-    }
+
 }

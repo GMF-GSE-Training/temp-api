@@ -16,7 +16,6 @@ import { extname } from 'path';
             signOptions: { expiresIn: '1h' },
         }),
         MulterModule.register({
-            dest: './uploads/participants',
             fileFilter: (_req, file, callback) => {
                 const allowedExtensions = ['.png', '.jpg', '.jpeg'];
                 const fileExtension = extname(file.originalname).toLowerCase();
