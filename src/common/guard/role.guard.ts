@@ -158,6 +158,8 @@ export class RoleGuard implements CanActivate {
             return this.handleController(context);
         } else if(controller === 'ParticipantController') {
             return this.handleController(context);
+        } else if(controller === 'StaticController') {
+            return this.handleController(context);
         }
     }
 

@@ -6,6 +6,9 @@ import { PrismaService } from './service/prisma.service';
 import { ValidationService } from './service/validation.service';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
+import { StaticFileMiddleware } from './middleware/static_file.middleware';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from '../config/constants';
 
 @Global()
 @Module({
@@ -18,7 +21,11 @@ import { ErrorFilter } from './error/error.filter';
         }),
         ConfigModule.forRoot({
             isGlobal: true,
-        })
+        }),
+        JwtModule.register({
+            secret: jwtConstants.secret,
+            signOptions: { expiresIn: '1h' },
+        }),
     ],
     providers: [
         PrismaService,
@@ -33,4 +40,10 @@ import { ErrorFilter } from './error/error.filter';
         ValidationService,
     ]
 })
-export class CommonModule {}
+export class CommonModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(StaticFileMiddleware)
+            .forRoutes('/uploads/*');
+    }
+}
