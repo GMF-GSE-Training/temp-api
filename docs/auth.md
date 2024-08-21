@@ -70,6 +70,10 @@ Response Body (success) :
     "dinas": "TU",
     "roleId": 4,
     "no_peg": "12345",
+    "role": {
+      "id": 2,
+      "role": "super admin",
+    }
   }
 }
 ```

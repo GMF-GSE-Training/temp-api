@@ -291,7 +291,7 @@ export class UserService {
         }
     }
 
-    toUserResponse(user: User) {
+    toUserResponse(user: UserResponse) {
         return {
             id: user.id,
             no_pegawai: user.no_pegawai,

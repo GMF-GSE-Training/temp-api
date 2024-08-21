@@ -19,6 +19,15 @@ export class RoleController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Get('/:roleId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getRole(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<RoleResponse>> {
+        const result = await this.roleService.get(roleId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
     @Get()
     @HttpCode(200)
     @Roles('super admin', 'supervisor')

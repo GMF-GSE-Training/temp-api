@@ -2,7 +2,9 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { LoginUserRequest, UpdateUserRequest, UserResponse } from "src/model/user.model";
+import { UpdateUserRequest, UserResponse } from "../model/user.model";
+import { AuthResponse } from "../model/auth.model";
+import { LoginUserRequest } from "../model/auth.model";
 import { Logger } from "winston";
 import { AuthValidation } from "./auth.validation";
 import { User } from "@prisma/client";
@@ -73,27 +75,21 @@ export class AuthService {
         };
     }
 
-    async me(user: User): Promise<UserResponse> {
-        await this.prismaService.user.findUnique({
+    async me(user: User): Promise<AuthResponse> {
+        const result = await this.prismaService.user.findUnique({
             where: { 
                 id: user.id
             },
+            include: {
+                role: true,
+            }
         });
 
-        if (!user) {
+        if (!result) {
             throw new HttpException('User not found', 404);
         }
 
-        return {
-            id: user.id,
-            no_pegawai: user.no_pegawai,
-            nik: user.nik,
-            email: user.email,
-            name: user.name,
-            dinas: user.dinas,
-            roleId: user.roleId,
-            token: user.token,
-        };
+        return this.toAuthResponse(result);
     }
 
     async updateMe(user: User, req: UpdateUserRequest): Promise<UserResponse> {
@@ -166,6 +162,23 @@ export class AuthService {
             name: result.name,
             dinas: result.dinas,
             roleId: result.roleId,
+        };
+    }
+
+    toAuthResponse(user: AuthResponse) {
+        return {
+            id: user.id,
+            no_pegawai: user.no_pegawai,
+            nik: user.nik,
+            email: user.email,
+            name: user.name,
+            dinas: user.dinas,
+            roleId: user.roleId,
+            token: user.token,
+            role: {
+                id: user.role.id,
+                role: user.role.role,
+            }
         };
     }
 }

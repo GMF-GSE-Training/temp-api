@@ -35,6 +35,20 @@ export class RoleService {
         return this.toRoleResponse(role);
     }
 
+    async get(roleId: number): Promise<RoleResponse> {
+        const role = await this.prismaService.role.findUnique({
+            where: {
+                id: roleId,
+            }
+        });
+
+        if(!role) {
+            throw new HttpException('Role tidak ditemukan', 404);
+        }
+
+        return role;
+    }
+
     async getAll(): Promise<RoleResponse[]> {
         const roles = await this.prismaService.role.findMany();
 

@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
-import { CurrentUserRequest, LoginUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { UpdateUserRequest, UserResponse } from "../model/user.model";
+import { CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 
@@ -19,8 +20,7 @@ export class AuthController {
     @Get('/current')
     @HttpCode(200)
     async me(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
-        const user = req.user;
-        const result = await this.authService.me(user);
+        const result = await this.authService.me(req.user);
         return buildResponse(HttpStatus.OK, result);
     }
 

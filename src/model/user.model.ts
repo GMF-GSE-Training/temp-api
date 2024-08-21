@@ -1,5 +1,3 @@
-import { User } from '@prisma/client';
-
 export interface RegisterUserRequest {
     no_pegawai?: string;
     nik: string;
@@ -18,15 +16,6 @@ export interface CreateUserRequest {
     password: string;
     dinas?: string;
     roleId: number;
-}
-
-export interface LoginUserRequest {
-    identifier: string;
-    password: string;
-}
-
-export interface CurrentUserRequest {
-    user: User;
 }
 
 export interface UpdateUserRequest {
