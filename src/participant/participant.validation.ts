@@ -7,7 +7,7 @@ export class ParticipantValidation {
         nik: z.string().min(1).min(1).max(50),
         dinas: z.string().min(1).max(50).optional(),
         bidang: z.string().min(1).max(50).optional(),
-        perusahaan: z.string().min(1).max(50),
+        perusahaan: z.string().min(1).max(50).optional(),
         email: z.string().email().min(1).max(50),
         no_telp: z.string().min(1).max(50),
         negara: z.string().min(1).max(50),
