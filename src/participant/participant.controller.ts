@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -6,6 +6,7 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
+import { Response } from "express";
 
 @Controller('/participants')
 export class ParticipantController {
@@ -51,5 +52,14 @@ export class ParticipantController {
         const participant = await this.participantService.createParticipant(participantData);
         console.log(participant)
         return buildResponse(HttpStatus.OK, participant);
+    }
+
+    @Get('sim-a/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getSimA(@Param('participantId', ParseIntPipe) participantId: number): Promise<StreamableFile> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a');
+        return new StreamableFile(fileBuffer);
     }
 }

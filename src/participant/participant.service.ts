@@ -7,6 +7,7 @@ import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
 
+
 @Injectable()
 export class ParticipantService {
     constructor(
@@ -84,9 +85,15 @@ export class ParticipantService {
         };
     }
 
-    toParticipantResponse(data: ParticipantResponse): ParticipantResponse {
-        return {
-            ...data,
-        };
+    async streamFile(participantId: number, fileType: string): Promise<Buffer> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: { id: participantId },
+        });
+
+        if (!participant || !participant[fileType]) {
+            throw new HttpException('File tidak ditemukan', 404);
+        }
+
+        return participant[fileType];
     }
 }

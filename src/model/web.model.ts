@@ -1,11 +1,12 @@
-import { HttpStatus } from "@nestjs/common";
+import { HttpStatus, StreamableFile } from "@nestjs/common";
 
 export class WebResponse<T> {
     code: string;
     status: string;
     data?: T;
     errors?: string;
-    paging?: Paging; 
+    paging?: Paging;
+    fileStream?: StreamableFile;
 }
 
 export interface Paging  {
@@ -19,6 +20,7 @@ export function buildResponse<T>(
     data?: T, 
     errors?: any,
     paging?: Paging,
+    fileStream?: StreamableFile,
 ): WebResponse<T> {
     const statusMessage = HttpStatus[statusCode] || 'UNKNOWN_STATUS';
     return {
@@ -27,5 +29,6 @@ export function buildResponse<T>(
         ...(data && { data }), // Hanya tambahkan data jika ada
         ...(errors && { errors }), // Hanya tambahkan errors jika ada
         ...(paging && { paging }), // Tambahkan paging jika ada
+        ...(fileStream && { fileStream }), // Tambahkan fileStream jika ada
     };
 }
