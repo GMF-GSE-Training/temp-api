@@ -32,7 +32,7 @@ export class ParticipantService {
         }
 
         const qrCodeBase64 = await QRCode.toDataURL(data.link_qr_code);
-        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');   
+        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
         data.qr_code = qrCodeBuffer;
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 
@@ -68,8 +68,8 @@ export class ParticipantService {
 
     async streamFile(participantId: number, fileType: string): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
-            where: { 
-                id: participantId 
+            where: {
+                id: participantId
             },
         });
 
@@ -116,6 +116,40 @@ export class ParticipantService {
         }
 
         return this.toParticipantResponse(participant);
+    }
+
+    async deleteParticipant(participantId: number): Promise<ParticipantResponse> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                id: participantId,
+            }
+        });
+
+        if(!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        const user = await this.prismaService.user.findUnique({
+            where: {
+                nik: participant.nik,
+            }
+        });
+
+        if(user) {
+            await this.prismaService.user.delete({
+                where: {
+                    nik: participant.nik,
+                }
+            });
+        }
+
+        const result = await this.prismaService.participant.delete({
+            where: {
+                id: participantId,
+            }
+        });
+
+        return result;
     }
 
     toParticipantResponse(participant: ParticipantResponse): ParticipantResponse {

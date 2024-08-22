@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -152,5 +152,14 @@ export class ParticipantController {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba');
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Delete('/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async delete(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<boolean>> {
+        await this.participantService.deleteParticipant(participantId);
+        return buildResponse(HttpStatus.OK, true);
     }
 }
