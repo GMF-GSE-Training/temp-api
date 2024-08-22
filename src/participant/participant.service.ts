@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from 'winston';
-import { CreateParticipantRequest, ParticipantResponse } from "../model/participant.model";
+import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
@@ -28,7 +28,7 @@ export class ParticipantService {
         });
 
         if(nikIsAlreadyExists) {
-            throw new HttpException('NIK tidak ada di data peserta', 400);
+            throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
         const qrCodeBase64 = await QRCode.toDataURL(data.link_qr_code);
@@ -63,8 +63,47 @@ export class ParticipantService {
             },
         });
 
-        console.log(participant);
+        return this.toParticipantResponse(participant);
+    }
 
+    async streamFile(participantId: number, fileType: string): Promise<Buffer> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: { 
+                id: participantId 
+            },
+        });
+
+        if (!participant || !participant[fileType]) {
+            throw new HttpException('File tidak ditemukan', 404);
+        }
+
+        return participant[fileType];
+    }
+
+    async updateParticipant(participantId: number, data: UpdateParticipantRequest): Promise<ParticipantResponse> {
+        const nikIsAlreadyExists = await this.prismaService.participant.count({
+            where: {
+                nik: data.nik,
+            }
+        });
+
+        if(nikIsAlreadyExists > 1) {
+            throw new HttpException('NIK sudah ada di data peserta', 400);
+        }
+
+        const validatedData = this.validationService.validate(ParticipantValidation.UPDATE, data);
+
+        const participant = await this.prismaService.participant.update({
+            where: {
+                id: participantId,
+            },
+            data: validatedData,
+        });
+
+        return this.toParticipantResponse(participant);
+    }
+
+    toParticipantResponse(participant: ParticipantResponse): ParticipantResponse {
         return {
             id: participant.id,
             no_pegawai: participant.no_pegawai,
@@ -80,22 +119,8 @@ export class ParticipantService {
             tanggal_lahir: participant.tanggal_lahir,
             exp_surat_sehat: participant.exp_surat_sehat,
             exp_bebas_narkoba: participant.exp_bebas_narkoba,
-            link_qr_code: participant.link_qr_code || '', // Default ke string kosong jika null
+            link_qr_code: participant.link_qr_code || '',
             gmf_non_gmf: participant.gmf_non_gmf,
         };
-    }
-
-    async streamFile(participantId: number, fileType: string): Promise<Buffer> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: { 
-                id: participantId 
-            },
-        });
-
-        if (!participant || !participant[fileType]) {
-            throw new HttpException('File tidak ditemukan', 404);
-        }
-
-        return participant[fileType];
     }
 }

@@ -49,7 +49,6 @@ export class ParticipantController {
         };
         
         const participant = await this.participantService.createParticipant(participantData);
-        console.log(participant)
         return buildResponse(HttpStatus.OK, participant);
     }
 
