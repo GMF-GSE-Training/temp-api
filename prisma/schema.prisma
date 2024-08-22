@@ -46,7 +46,7 @@ model Participant {
   nik                    String   @unique @db.VarChar(50)
   dinas                  String   @db.VarChar(50)
   bidang                 String   @db.VarChar(50)
-  perusahaan             String?   @db.VarChar(50)
+  perusahaan             String?  @db.VarChar(50)
   email                  String   @db.VarChar(50)
   no_telp                String   @db.VarChar(50)
   negara                 String   @db.VarChar(50)
@@ -67,4 +67,32 @@ model Participant {
   user User?
 
   @@map("participants")
+}
+
+model Capability {
+  id                        Int                  @id @default(autoincrement())
+  kode_rating               String               @db.VarChar(20)
+  kode_training             String               @db.VarChar(50)
+  nama_training             String               @db.VarChar(50)
+  durasi_materi_rating_exam Int
+  durasi_materi_reguler     Int
+  total_durasi_training     Int
+  curriculumSyllabus        CurriculumSyllabus[]
+
+  @@map("capability")
+}
+
+model CurriculumSyllabus {
+  id                 Int        @id @default(autoincrement())
+  capabilityId       Int
+  reg_gse            String     @db.VarChar(255)
+  durasi_teori_reg   Int
+  durasi_praktek_reg Int
+  kompetensi         String     @db.VarChar(255)
+  durasi_teori_kom   Int
+  durasi_praktek_kom Int
+  total_durasi       Int
+  capability         Capability @relation(fields: [capabilityId], references: [id])
+
+  @@map("curriculumSyllabus")
 }
