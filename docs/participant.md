@@ -50,17 +50,17 @@ Response Body (success) :
         "Kewarganegaraan": "Indonesia",
         "tempat_lahir": "Jakarta",
         "tanggal_lahir": "2024/01/01",
-        "sim_a": "uploads/participants/sim_a.png",
-        "sim_b": "uploads/participants/sim_b.png",
-        "ktp": "uploads/participants/ktp",
-        "foto": "uploads/participants/foto",
-        "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+        "sim_a": "base64",
+        "sim_b": "base64",
+        "ktp": "base64",
+        "foto": "base64",
+        "surat_sehat_buta_warna": "base64",
         "exp_surat_sehat": "2024/01/01",
-        "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+        "surat_bebas_narkoba": "base64",
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "uploads/participants/qr_code.png"
+        "qr_code": "base64"
     }
 }
 ```
@@ -100,17 +100,17 @@ Response Body :
             "Kewarganegaraan": "Indonesia",
             "tempat_lahir": "Jakarta",
             "tanggal_lahir": "2024/01/01",
-            "sim_a": "uploads/participants/sim_a.png",
-            "sim_b": "uploads/participants/sim_b.png",
-            "ktp": "uploads/participants/ktp",
-            "foto": "uploads/participants/foto",
-            "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+            "sim_a": "base64",
+            "sim_b": "base64",
+            "ktp": "base64",
+            "foto": "base64",
+            "surat_sehat_buta_warna": "base64",
             "exp_surat_sehat": "2024/01/01",
-            "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+            "surat_bebas_narkoba": "base64",
             "exp_bebas_narkoba": "2024/01/01",
             "gmf_nongmf": "GMF",
             "link_qr_code": "https://example.com",
-            "qr_code": "uploads/participants/qr_code.png"
+            "qr_code": "base64"
         },
         {
             "no_pegawai": "12345",
@@ -123,17 +123,17 @@ Response Body :
             "Kewarganegaraan": "Indonesia",
             "tempat_lahir": "Jakarta",
             "tanggal_lahir": "2024/01/01",
-            "sim_a": "uploads/participants/sim_a.png",
-            "sim_b": "uploads/participants/sim_b.png",
-            "ktp": "uploads/participants/ktp",
-            "foto": "uploads/participants/foto",
-            "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+            "sim_a": "base64",
+            "sim_b": "base64",
+            "ktp": "base64",
+            "foto": "base64",
+            "surat_sehat_buta_warna": "base64",
             "exp_surat_sehat": "2024/01/01",
-            "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+            "surat_bebas_narkoba": "base64",
             "exp_bebas_narkoba": "2024/01/01",
             "gmf_nongmf": "GMF",
             "link_qr_code": "https://example.com",
-            "qr_code": "uploads/participants/qr_code.png"
+            "qr_code": "base64"
         }
     ],
     "paging": {
@@ -178,17 +178,17 @@ Response Body :
         "Kewarganegaraan": "Indonesia",
         "tempat_lahir": "Jakarta",
         "tanggal_lahir": "2024/01/01",
-        "sim_a": "uploads/participants/sim_a.png",
-        "sim_b": "uploads/participants/sim_b.png",
-        "ktp": "uploads/participants/ktp",
-        "foto": "uploads/participants/foto",
-        "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+        "sim_a": "base64",
+        "sim_b": "base64",
+        "ktp": "base64",
+        "foto": "base64",
+        "surat_sehat_buta_warna": "base64",
         "exp_surat_sehat": "2024/01/01",
-        "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+        "surat_bebas_narkoba": "base64",
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "uploads/participants/qr_code.png"
+        "qr_code": "base64"
     }
 }
 ```
@@ -253,17 +253,17 @@ Response Body (success) :
         "Kewarganegaraan": "Indonesia",
         "tempat_lahir": "Jakarta",
         "tanggal_lahir": "2024/01/01",
-        "sim_a": "uploads/participants/sim_a.png",
-        "sim_b": "uploads/participants/sim_b.png",
-        "ktp": "uploads/participants/ktp",
-        "foto": "uploads/participants/foto",
-        "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+        "sim_a": "base64",
+        "sim_b": "base64",
+        "ktp": "base64",
+        "foto": "base64",
+        "surat_sehat_buta_warna": "base64",
         "exp_surat_sehat": "2024/01/01",
-        "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+        "surat_bebas_narkoba": "base64",
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "uploads/participants/qr_code.png"
+        "qr_code": "base64"
     }
 }
 ```
@@ -302,17 +302,17 @@ Response Body :
         "Kewarganegaraan": "Indonesia",
         "tempat_lahir": "Jakarta",
         "tanggal_lahir": "2024/01/01",
-        "sim_a": "uploads/participants/sim_a.png",
-        "sim_b": "uploads/participants/sim_b.png",
-        "ktp": "uploads/participants/ktp",
-        "foto": "uploads/participants/foto",
-        "surat_sehat_buta_warna": "uploads/participants/surat_sehat.png",
+        "sim_a": "base64",
+        "sim_b": "base64",
+        "ktp": "base64",
+        "foto": "base64",
+        "surat_sehat_buta_warna": "base64",
         "exp_surat_sehat": "2024/01/01",
-        "surat_bebas_narkoba": "uploads/participants/bebas_narkoba.jpg",
+        "surat_bebas_narkoba": "base64",
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "uploads/participants/qr_code.png"
+        "qr_code": "base64"
     }
 }
 ```
