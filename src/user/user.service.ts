@@ -49,6 +49,24 @@ export class UserService {
             throw new HttpException('NIK tidak ada di data participant', 400);
         }
 
+        if(registerRequest.no_pegawai) {
+            if(registerRequest.no_pegawai !== participant.no_pegawai) {
+                throw new HttpException('No Pegawai tidak ada di data peserta', 404);
+            }
+        }
+
+        if(registerRequest.email) {
+            if(registerRequest.email !== participant.email) {
+                throw new HttpException('No Pegawai tidak ada di data peserta', 404);
+            }
+        }
+
+        if(registerRequest.dinas) {
+            if(registerRequest.dinas !== participant.dinas) {
+                throw new HttpException('No Pegawai tidak ada di data peserta', 404);
+            }
+        }
+
         await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
 
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
