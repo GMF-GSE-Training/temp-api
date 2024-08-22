@@ -80,18 +80,22 @@ export class ParticipantService {
         return participant[fileType];
     }
 
-    async updateParticipant(participantId: number, data: UpdateParticipantRequest): Promise<ParticipantResponse> {
-        const nikIsAlreadyExists = await this.prismaService.participant.count({
-            where: {
-                nik: data.nik,
-            }
-        });
+    async updateParticipant(participantId: number, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
+        if(req.nik) {
+            const nikIsAlreadyExists = await this.prismaService.participant.count({
+                where: {
+                    nik: req.nik,
+                }
+            });
 
-        if(nikIsAlreadyExists > 1) {
-            throw new HttpException('NIK sudah ada di data peserta', 400);
+            if(nikIsAlreadyExists > 1) {
+                throw new HttpException('NIK sudah ada di data peserta', 400);
+            }
         }
 
-        const validatedData = this.validationService.validate(ParticipantValidation.UPDATE, data);
+        const validatedData = this.validationService.validate(ParticipantValidation.UPDATE, req);
+
+        console.log(validatedData)
 
         const participant = await this.prismaService.participant.update({
             where: {
@@ -99,6 +103,17 @@ export class ParticipantService {
             },
             data: validatedData,
         });
+
+        if(req.nik) {
+            await this.prismaService.user.update({
+                where: {
+                    nik: req.nik,
+                },
+                data: {
+                    nik: req.nik
+                }
+            });
+        }
 
         return this.toParticipantResponse(participant);
     }
