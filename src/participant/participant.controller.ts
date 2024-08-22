@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -6,7 +6,6 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
-import { Response } from "express";
 
 @Controller('/participants')
 export class ParticipantController {
@@ -58,8 +57,59 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimA(@Param('participantId', ParseIntPipe) participantId: number): Promise<StreamableFile> {
+    async getSimA(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a');
-        return new StreamableFile(fileBuffer);
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('sim-b/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getSimB(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b');
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('foto/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getFoto(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'foto');
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('ktp/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getKTP(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'ktp');
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('surat-sehat-buta-warna/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getSuratSehat(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna');
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('surat-bebas-narkoba/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getSuratKetBebasNarkoba(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba');
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
     }
 }

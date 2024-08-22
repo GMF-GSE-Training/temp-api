@@ -87,7 +87,9 @@ export class ParticipantService {
 
     async streamFile(participantId: number, fileType: string): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
-            where: { id: participantId },
+            where: { 
+                id: participantId 
+            },
         });
 
         if (!participant || !participant[fileType]) {
