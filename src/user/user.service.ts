@@ -6,7 +6,6 @@ import { CreateUserRequest, ListUserRequest, RegisterUserRequest, SearchUserRequ
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
-import { User } from "@prisma/client";
 import { Paging } from "src/model/web.model";
 
 @Injectable()

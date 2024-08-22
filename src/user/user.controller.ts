@@ -5,7 +5,6 @@ import { ListUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } f
 import { AuthGuard } from "../common/guard/auth.guard";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
-import { error } from "console";
 
 @Controller("/users")
 export class UserController {
