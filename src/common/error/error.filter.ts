@@ -14,21 +14,21 @@ export class ErrorFilter implements ExceptionFilter {
             statusCode = HttpStatus.BAD_REQUEST;
             const errors = this.formatZodErrors(exception.errors);
             errorResponse = {
-                code: statusCode.toString(),
+                code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: errors,
             };
         } else if (exception instanceof HttpException) {
             statusCode = exception.getStatus();
             errorResponse = {
-                code: statusCode.toString(),
+                code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: exception.message,
             };
         } else if(exception instanceof MulterError) {
             statusCode = HttpStatus.BAD_REQUEST;
             errorResponse = {
-                code: statusCode.toString(),
+                code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: {
                     field: exception.field,
@@ -39,7 +39,7 @@ export class ErrorFilter implements ExceptionFilter {
             console.log(exception)
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResponse = {
-                code: statusCode.toString(),
+                code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: {
                     message: exception.message,

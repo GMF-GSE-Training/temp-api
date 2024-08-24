@@ -1,7 +1,7 @@
 import { HttpStatus, StreamableFile } from "@nestjs/common";
 
 export class WebResponse<T> {
-    code: string;
+    code: number;
     status: string;
     data?: T;
     errors?: string;
@@ -24,7 +24,7 @@ export function buildResponse<T>(
 ): WebResponse<T> {
     const statusMessage = HttpStatus[statusCode] || 'UNKNOWN_STATUS';
     return {
-        code: statusCode.toString(),
+        code: statusCode,
         status: statusMessage,
         ...(data && { data }), // Hanya tambahkan data jika ada
         ...(errors && { errors }), // Hanya tambahkan errors jika ada
