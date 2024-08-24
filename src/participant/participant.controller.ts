@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -34,19 +34,24 @@ export class ParticipantController {
             surat_bebas_narkoba?: Express.Multer.File[],
         }
     ): Promise<WebResponse<ParticipantResponse>> {
+        let participantData: CreateParticipantRequest;
 
-        const participantData = {
-            ...createParticipantDto,
-            tanggal_lahir: new Date(createParticipantDto.tanggal_lahir),
-            exp_surat_sehat: new Date(createParticipantDto.exp_surat_sehat),
-            exp_bebas_narkoba: new Date(createParticipantDto.exp_bebas_narkoba),
-            sim_a: files.sim_a ? files.sim_a[0].buffer : null,
-            sim_b: files.sim_b ? files.sim_b[0].buffer : null,
-            ktp: files.ktp ? files.ktp[0].buffer : null,
-            foto: files.foto ? files.foto[0].buffer : null,
-            surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
-            surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
-        };
+        try {
+            participantData = {
+                ...createParticipantDto,
+                tanggal_lahir: new Date(createParticipantDto.tanggal_lahir),
+                exp_surat_sehat: new Date(createParticipantDto.exp_surat_sehat),
+                exp_bebas_narkoba: new Date(createParticipantDto.exp_bebas_narkoba),
+                sim_a: files.sim_a ? files.sim_a[0].buffer : null,
+                sim_b: files.sim_b ? files.sim_b[0].buffer : null,
+                ktp: files.ktp ? files.ktp[0].buffer : null,
+                foto: files.foto ? files.foto[0].buffer : null,
+                surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
+                surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
+            };
+        } catch(error) {
+            throw new HttpException('Semua file/image tidak boleh kosong', 400);
+        }
         
         const participant = await this.participantService.createParticipant(participantData);
         return buildResponse(HttpStatus.OK, participant);
