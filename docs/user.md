@@ -1,57 +1,5 @@
 # User API Spec
 
-## Register User
-
-Endpoint : POST /users/register
-
-Request Body :
-
-```json
-{
-  "no_pegawai": "123456, optional",
-  "nik": "1234567890",
-  "email": "johndoe@example.com",
-  "name": "Jogn Doe",
-  "password": "rahasia",
-  "dinas": "TU"
-}
-```
-
-Response Body (success) :
-
-```json
-{
-  "code": "200",
-  "status": "OK",
-  "data": {
-    "id": 1,
-    "no_peg": "12345",
-    "email": "johndoe@example.com",
-    "name": "Jogn Doe",
-    "dinas": "TU",
-  }
-}
-```
-
-Response Body (fail) :
-
-```json
-{
-  "code": "400",
-  "status": "BAD_REQUEST",
-  "errors": {
-    "id": [
-      "",
-      "",
-    ],
-    "name": [
-      "",
-      "",
-    ],
-  }
-}
-```
-
 ## Create User
 
 Endpoint : POST /users/create
@@ -87,7 +35,12 @@ Response Body (success) :
     "dinas": "TU",
     "roleId": 1,
     "no_peg": "12345",
-    "token": "session_id_generated"
+    "token": "session_id_generated",
+    "links": {
+      "self": "/users/1",
+      "update": "/users/1",
+      "delete": "/users/1",
+    }
   }
 }
 ```
@@ -124,6 +77,11 @@ Response Body (success) :
     "dinas": "TU",
     "roleId": 4,
     "no_peg": "12345",
+    "links": {
+      "self": "/users/1",
+      "update": "/users/1",
+      "delete": "/users/1",
+    }
   }
 }
 ```
@@ -161,25 +119,42 @@ Response Body (success) :
       "id": 1,
       "no_pegawai": "12345",
       "email": "johndoe@example.com",
-      "name": "Jogn Doe",
+      "name": "John Doe",
       "dinas": "TU",
       "role": 2,
+      "links": {
+        "self": "/users/1",
+        "update": "/users/1",
+        "delete": "/users/1"
+      }
     },
     {
       "id": 2,
-      "no_pegawai": "12345",
-      "email": "johndoe@example.com",
-      "name": "Jogn Doe",
-      "dinas": "TU",
+      "no_pegawai": "54321",
+      "email": "janedoe@example.com",
+      "name": "Jane Doe",
+      "dinas": "HR",
       "role": 3,
+      "links": {
+        "self": "/users/2",
+        "update": "/users/2",
+        "delete": "/users/2"
+      }
     }
   ],
   "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
+    "links": {
+      "next": "/users/list/result?page=2&size=10",
+      "prev": null,
+      "first": "/users/list/result?page=1&size=10",
+      "last": "/users/list/result?page=10&size=10"
+    }
   }
 }
+
 ```
 
 Response Body (fail) :
@@ -226,6 +201,11 @@ Response Body (success) :
     "dinas": "TU",
     "role": "super admin",
     "no_peg": "12345",
+    "links": {
+        "self": "/users/2",
+        "update": "/users/2",
+        "delete": "/users/2"
+    }
   }
 }
 ```
@@ -307,23 +287,39 @@ Response Body (Success) :
       "id": 1,
       "no_pegawai": "12345",
       "email": "johndoe@example.com",
-      "name": "Jogn Doe",
+      "name": "John Doe",
       "dinas": "TU",
       "role": 2,
+      "links": {
+        "self": "/users/1",
+        "update": "/users/1",
+        "delete": "/users/1"
+      }
     },
     {
       "id": 2,
-      "no_pegawai": "12345",
-      "email": "johndoe@example.com",
-      "name": "Jogn Doe",
-      "dinas": "TU",
+      "no_pegawai": "54321",
+      "email": "janedoe@example.com",
+      "name": "Jane Doe",
+      "dinas": "HR",
       "role": 3,
+      "links": {
+        "self": "/users/2",
+        "update": "/users/2",
+        "delete": "/users/2"
+      }
     }
   ],
   "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
+    "links": {
+      "next": "/users/search/result?paging=2&size=10",
+      "prev": null,
+      "first": "/users/search/result?paging=1&size=10",
+      "last": "/users/search/result?paging=10&size=10"
+    }
   }
 }
 ```
