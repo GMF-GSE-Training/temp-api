@@ -2,7 +2,7 @@
 
 ## Create Participant
 
-Endpoint : POST /api/participants
+Endpoint : POST /participants
 
 Headers :
 - Authorization : token
@@ -60,7 +60,12 @@ Response Body (success) :
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "base64"
+        "qr_code": "base64",
+        "link": {
+            "self": "/participants/1",
+            "update": "/participants/1",
+            "delete": "/participants/1",
+        }
     }
 }
 ```
@@ -75,9 +80,9 @@ Response Body (fail) :
 }
 ```
 
-## Get All Participant
+## List Participants
 
-Endpoint : POST /api/participants
+Endpoint : POST /participants
 
 Headers :
 - Authorization : token
@@ -110,7 +115,12 @@ Response Body :
             "exp_bebas_narkoba": "2024/01/01",
             "gmf_nongmf": "GMF",
             "link_qr_code": "https://example.com",
-            "qr_code": "base64"
+            "qr_code": "base64",
+            "link": {
+                "self": "/participants/1",
+                "update": "/participants/1",
+                "delete": "/participants/1",
+            }
         },
         {
             "no_pegawai": "12345",
@@ -133,13 +143,24 @@ Response Body :
             "exp_bebas_narkoba": "2024/01/01",
             "gmf_nongmf": "GMF",
             "link_qr_code": "https://example.com",
-            "qr_code": "base64"
+            "qr_code": "base64",
+            "link": {
+                "self": "/participants/1",
+                "update": "/participants/1",
+                "delete": "/participants/1",
+            }
         }
     ],
     "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
+    "links": {
+      "next": "/participants/list/result?page=2&size=10",
+      "prev": null,
+      "first": "/participants/list/result?page=1&size=10",
+      "last": "/participants/list/result?page=10&size=10"
+    }
   }
 }
 ```
@@ -154,9 +175,9 @@ Response Body (fail) :
 }
 ```
 
-## Get Participant By Id
+## Get Participant
 
-Endpoint : POST /api/participants/:participantId
+Endpoint : POST /participants/:participantId
 
 Headers :
 - Authorization : token
@@ -188,7 +209,12 @@ Response Body :
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "base64"
+        "qr_code": "base64",
+        "link": {
+            "self": "/participants/1",
+            "update": "/participants/1",
+            "delete": "/participants/1",
+        }
     }
 }
 ```
@@ -205,7 +231,7 @@ Response Body (fail) :
 
 ## Update Participant
 
-Endpoint : POST /api/participants/:participantId
+Endpoint : POST /participants/:participantId
 
 Headers :
 - Authorization : token
@@ -232,7 +258,7 @@ Request Body :
     "exp_surat_sehat": "2024/01/01, optional",
     "surat_bebas_narkoba": "bebas_narkoba.jpg, optional",
     "exp_bebas_narkoba": "2024/01/01, optional",
-    "gmf_nongmf": "GMF, optional"
+    "gmf_nongmf": "GMF, optional",
 }
 ```
 
@@ -263,7 +289,12 @@ Response Body (success) :
         "exp_bebas_narkoba": "2024/01/01",
         "gmf_nongmf": "GMF",
         "link_qr_code": "https://example.com",
-        "qr_code": "base64"
+        "qr_code": "base64",
+        "link": {
+            "self": "/participants/1",
+            "update": "/participants/1",
+            "delete": "/participants/1",
+        }
     }
 }
 ```
@@ -280,7 +311,7 @@ Response Body (fail) :
 
 ## Delete Participant
 
-Endpoint : POST /api/participants/:participantId
+Endpoint : POST /participants/:participantId
 
 Headers :
 - Authorization : token
@@ -329,7 +360,7 @@ Response Body (fail) :
 
 ## Search Participant
 
-Endpoint : GET api/users
+Endpoint : GET /participants/search/result
 
 Query Parameter :
 - no_pegawai: string, optional
@@ -350,30 +381,76 @@ Response Body (Success) :
 
 ```json
 {
-  "code": "200",
-  "status": "OK",
-  "data": [
-    {
-      "id": 1,
-      "no_pegawai": "12345",
-      "email": "johndoe@example.com",
-      "name": "Jogn Doe",
-      "dinas": "TU",
-      "role": 2,
-    },
-    {
-      "id": 2,
-      "no_pegawai": "12345",
-      "email": "johndoe@example.com",
-      "name": "Jogn Doe",
-      "dinas": "TU",
-      "role": 3,
-    }
-  ],
-  "paging": {
+    "code": "200",
+    "status": "OK",
+    "data": [
+        {
+            "no_pegawai": "12345",
+            "name": "John Doe",
+            "dinas": "TU",
+            "bidang": "TLC-4",
+            "perusahaan": "GMF",
+            "email": "johndoe@gmail.com",
+            "no_telp": "08123456789",
+            "Kewarganegaraan": "Indonesia",
+            "tempat_lahir": "Jakarta",
+            "tanggal_lahir": "2024/01/01",
+            "sim_a": "base64",
+            "sim_b": "base64",
+            "ktp": "base64",
+            "foto": "base64",
+            "surat_sehat_buta_warna": "base64",
+            "exp_surat_sehat": "2024/01/01",
+            "surat_bebas_narkoba": "base64",
+            "exp_bebas_narkoba": "2024/01/01",
+            "gmf_nongmf": "GMF",
+            "link_qr_code": "https://example.com",
+            "qr_code": "base64",
+            "link": {
+                "self": "/participants/1",
+                "update": "/participants/1",
+                "delete": "/participants/1",
+            }
+        },
+        {
+            "no_pegawai": "12345",
+            "name": "John Doe",
+            "dinas": "TU",
+            "bidang": "TLC-4",
+            "perusahaan": "GMF",
+            "email": "johndoe@gmail.com",
+            "no_telp": "08123456789",
+            "Kewarganegaraan": "Indonesia",
+            "tempat_lahir": "Jakarta",
+            "tanggal_lahir": "2024/01/01",
+            "sim_a": "base64",
+            "sim_b": "base64",
+            "ktp": "base64",
+            "foto": "base64",
+            "surat_sehat_buta_warna": "base64",
+            "exp_surat_sehat": "2024/01/01",
+            "surat_bebas_narkoba": "base64",
+            "exp_bebas_narkoba": "2024/01/01",
+            "gmf_nongmf": "GMF",
+            "link_qr_code": "https://example.com",
+            "qr_code": "base64",
+            "link": {
+                "self": "/participants/1",
+                "update": "/participants/1",
+                "delete": "/participants/1",
+            }
+        }
+    ],
+    "paging": {
     "current_page": 1,
     "total_page": 10,
     "size": 100,
+    "links": {
+      "next": "/participants/list/result?page=2&size=10",
+      "prev": null,
+      "first": "/participants/list/result?page=1&size=10",
+      "last": "/participants/list/result?page=10&size=10"
+    }
   }
 }
 ```
