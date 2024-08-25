@@ -1,8 +1,65 @@
 ## Auth API Spec
 
+## Register User
+
+Endpoint : POST /auth/register
+
+Request Body :
+
+```json
+{
+  "no_pegawai": "123456, optional",
+  "nik": "1234567890",
+  "email": "johndoe@example.com",
+  "name": "Jogn Doe",
+  "password": "rahasia",
+  "dinas": "TU"
+}
+```
+
+Response Body (success) :
+
+```json
+{
+  "code": "200",
+  "status": "OK",
+  "data": {
+    "id": 1,
+    "no_peg": "12345",
+    "email": "johndoe@example.com",
+    "name": "Jogn Doe",
+    "dinas": "TU",
+    "link": {
+      "self": "/auth/current",
+      "update": "/auth/current",
+      "logout": "/auth/current",
+    }
+  }
+}
+```
+
+Response Body (fail) :
+
+```json
+{
+  "code": "400",
+  "status": "BAD_REQUEST",
+  "errors": {
+    "id": [
+      "",
+      "",
+    ],
+    "name": [
+      "",
+      "",
+    ],
+  }
+}
+```
+
 ## Login User
 
-Endpoint : POST /api/users/login
+Endpoint : POST /auth/login
 
 Request Body :
 
@@ -26,7 +83,12 @@ Response Body (success) :
     "dinas": "TU",  
     "role": "super admin",
     "no_peg": "12345",
-    "token": "session_id_generated"
+    "token": "session_id_generated",
+    "link": {
+      "self": "/auth/current",
+      "update": "/auth/current",
+      "logout": "/auth/current",
+    }
   }
 }
 ```
@@ -50,7 +112,7 @@ Response Body (fail) :
 
 ## Get User Current
 
-Endpoint : GET /api/users/me
+Endpoint : GET /auth/me
 
 Headers :
 
@@ -73,6 +135,11 @@ Response Body (success) :
     "role": {
       "id": 2,
       "role": "super admin",
+    },
+    "link": {
+      "self": "/auth/current",
+      "update": "/auth/current",
+      "logout": "/auth/current",
     }
   }
 }
@@ -90,7 +157,7 @@ Response Body (fail) :
 
 ## Update User Current
 
-Endpoint : PATCH /api/users/me
+Endpoint : PATCH /auth/me
 
 Headers : 
 
@@ -122,6 +189,11 @@ Response Body (success) :
     "dinas": "TU",
     "role": "super admin",
     "no_peg": "12345",
+    "link": {
+      "self": "/auth/current",
+      "update": "/auth/current",
+      "logout": "/auth/current",
+    }
   }
 }
 ```
@@ -145,7 +217,7 @@ Response Body (fail) :
 
 ## Logout User
 
-Endpoint : DELETE /api/users/me
+Endpoint : DELETE /auth/me
 
 Headers :
 
