@@ -2,7 +2,7 @@
 
 ## Register User
 
-Endpoint : POST /api/users
+Endpoint : POST /users/register
 
 Request Body :
 
@@ -54,7 +54,7 @@ Response Body (fail) :
 
 ## Create User
 
-Endpoint : POST /api/users
+Endpoint : POST /users/create
 
 Headers :
 
@@ -104,7 +104,7 @@ Response Body (fail) :
 
 ## Get User
 
-Endpoint : GET /api/users/:userId
+Endpoint : GET /users/:userId
 
 Headers :
 
@@ -140,7 +140,7 @@ Response Body (fail) :
 
 ## List User
 
-Endpoint : GET /api/users/list
+Endpoint : GET /users/list/result
 
 Headers :
 
@@ -194,7 +194,7 @@ Response Body (fail) :
 
 ## Update User
 
-Endpoint : PATCH /api/users/:userId
+Endpoint : PATCH /users/:userId
 
 Headers : 
 
@@ -249,7 +249,7 @@ Response Body (fail) :
 
 ## Delete User
 
-Endpoint : DELETE /api/users/:userId
+Endpoint : DELETE /users/:userId
 
 Headers :
 
@@ -277,7 +277,7 @@ Response Body (fail) :
 
 ## Search User
 
-Endpoint : GET api/users
+Endpoint : GET api/users/search/result
 
 Headers :
 
