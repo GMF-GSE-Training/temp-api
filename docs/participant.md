@@ -158,8 +158,6 @@ Response Body :
     "links": {
       "next": "/participants/list/result?page=2&size=10",
       "prev": null,
-      "first": "/participants/list/result?page=1&size=10",
-      "last": "/participants/list/result?page=10&size=10"
     }
   }
 }
@@ -448,8 +446,6 @@ Response Body (Success) :
     "links": {
       "next": "/participants/list/result?page=2&size=10",
       "prev": null,
-      "first": "/participants/list/result?page=1&size=10",
-      "last": "/participants/list/result?page=10&size=10"
     }
   }
 }

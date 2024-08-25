@@ -149,8 +149,6 @@ Response Body (success) :
     "links": {
       "next": "/users/list/result?page=2&size=10",
       "prev": null,
-      "first": "/users/list/result?page=1&size=10",
-      "last": "/users/list/result?page=10&size=10"
     }
   }
 }
@@ -317,8 +315,6 @@ Response Body (Success) :
     "links": {
       "next": "/users/search/result?paging=2&size=10",
       "prev": null,
-      "first": "/users/search/result?paging=1&size=10",
-      "last": "/users/search/result?paging=10&size=10"
     }
   }
 }
