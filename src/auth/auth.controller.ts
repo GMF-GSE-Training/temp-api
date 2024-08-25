@@ -8,6 +8,13 @@ import { AuthService } from "./auth.service";
 @Controller('/auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
+
+    @Post('/register')
+    @HttpCode(200)
+    async register(@Body() req: any): Promise<WebResponse<UserResponse>> {
+        const result = await this.authService.register(req);
+        return buildResponse(HttpStatus.OK, result);
+    }
     
     @Post('/login')
     @HttpCode(200)

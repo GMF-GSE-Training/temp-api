@@ -1,13 +1,3 @@
-export interface RegisterUserRequest {
-    no_pegawai?: string;
-    nik: string;
-    email: string;
-    name: string;
-    password: string;
-    dinas?: string;
-    roleId: number;
-}
-
 export interface CreateUserRequest {
     no_pegawai?: string;
     nik?: string;

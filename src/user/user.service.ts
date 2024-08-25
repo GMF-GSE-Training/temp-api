@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { CreateUserRequest, ListUserRequest, RegisterUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { CreateUserRequest, ListUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
@@ -15,61 +15,6 @@ export class UserService {
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private prismaService: PrismaService,
     ) {}
-
-    async register(req: RegisterUserRequest): Promise<UserResponse> {
-        if(req.roleId) {
-            throw new HttpException('Anda tidak berhak menentukan role', 403);
-        }
-
-        const defaultRole = await this.prismaService.role.findFirst({
-            where: { 
-                role: {
-                    equals: "user",
-                    mode: "insensitive"
-                }
-            }
-        });
-
-        if (!defaultRole) {
-            throw new HttpException("Role tidak ditemukan", 404);
-        }
-
-        req.roleId = defaultRole.id;
-
-        const registerRequest: RegisterUserRequest = this.validationService.validate(UserValidation.REGISTER, req);
-
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                nik: req.nik,
-            }
-        });
-
-        if(!participant) {
-            throw new HttpException('NIK tidak ada di data participant', 400);
-        }
-
-        if (registerRequest.email !== participant.email) {
-            throw new HttpException('Email tidak sesuai dengan data participant', 400);
-        }
-
-        if (registerRequest.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
-            throw new HttpException('No Pegawai tidak sesuai dengan data participant', 400);
-        }
-
-        if (registerRequest.dinas && registerRequest.dinas !== participant.dinas) {
-            throw new HttpException('Dinas tidak sesuai dengan data participant', 400);
-        }
-
-        await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
-
-        registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
-
-        const user = await this.prismaService.user.create({
-            data: registerRequest,
-        });
-        
-        return this.toUserResponse(user);
-    }
 
     async create(req: CreateUserRequest): Promise<UserResponse> {
         const roleUser = await this.prismaService.role.findFirst({

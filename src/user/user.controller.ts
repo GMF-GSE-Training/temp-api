@@ -10,13 +10,6 @@ import { Roles } from "../common/decorator/role.decorator";
 export class UserController {
     constructor(private userService: UserService) {}
 
-    @Post('/register')
-    @HttpCode(200)
-    async register(@Body() req: any): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.register(req);
-        return buildResponse(HttpStatus.OK, result);
-    }
-
     @Post('/create')
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
