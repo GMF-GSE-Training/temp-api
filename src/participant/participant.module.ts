@@ -24,6 +24,9 @@ import { extname } from 'path';
                     return callback(new HttpException(`Invalid file format for ${file.fieldname}. Only PNG, JPG, and JPEG are allowed.`, 400), false);
                 }
                 callback(null, true);
+            },
+            limits: {
+                fileSize: 2 * 1024 * 1024,
             }
         }),
     ],
