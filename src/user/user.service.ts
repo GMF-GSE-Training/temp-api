@@ -48,7 +48,7 @@ export class UserService {
             throw new HttpException('NIK tidak ada di data participant', 400);
         }
 
-        if (registerRequest.email && registerRequest.email !== participant.email) {
+        if (registerRequest.email !== participant.email) {
             throw new HttpException('Email tidak sesuai dengan data participant', 400);
         }
 
