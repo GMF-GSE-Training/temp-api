@@ -80,6 +80,20 @@ export class ParticipantService {
         return participant[fileType];
     }
 
+    async getParticipant(participantId: number): Promise<ParticipantResponse> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                id: participantId,
+            }
+        });
+
+        if(!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        return this.toParticipantResponse(participant);
+    }
+
     async updateParticipant(participantId: number, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
 

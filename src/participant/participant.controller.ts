@@ -159,6 +159,15 @@ export class ParticipantController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Get('/:participantId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async get(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<ParticipantResponse>> {
+        const result = await this.participantService.getParticipant(participantId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
     @Delete('/:participantId')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
