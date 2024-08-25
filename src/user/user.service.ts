@@ -70,10 +70,19 @@ export class UserService {
         createRequest.password = await bcrypt.hash(createRequest.password, 10);
 
         const user = await this.prismaService.user.create({
-            data: createRequest,
+                data: createRequest,
         });
+
+        const result: UserResponse = {
+            ...user,
+            links: {
+                self: `/users/${user.id}`,
+                update: `/users/${user.id}`,
+                delete: `/users/${user.id}`,
+            },
+        }
         
-        return this.toUserResponse(user);
+        return this.toUserResponse(result);
     }
 
     async get(userId: number): Promise<UserResponse> {
@@ -87,7 +96,16 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        return this.toUserResponse(user);
+        const result: UserResponse = {
+            ...user,
+            links: {
+                self: `/users/${user.id}`,
+                update: `/users/${user.id}`,
+                delete: `/users/${user.id}`,
+            },
+        }
+        
+        return this.toUserResponse(result);
     }
 
     async update(req: UpdateUserRequest): Promise<UserResponse> {
@@ -131,12 +149,21 @@ export class UserService {
             }
         }
 
-        const result = await this.prismaService.user.update({
+        const user = await this.prismaService.user.update({
             where: {
                 id: req.id,
             },
             data: updateRequest,
         });
+        
+        const result: UserResponse = {
+            ...user,
+            links: {
+                self: `/users/${user.id}`,
+                update: `/users/${user.id}`,
+                delete: `/users/${user.id}`,
+            },
+        }
         
         return this.toUserResponse(result);
     }
@@ -157,11 +184,22 @@ export class UserService {
         }
 
         return {
-            data: paginatedUsers.map(this.toUserResponse),
+            data: paginatedUsers.map(user => ({
+                ...this.toUserResponse(user),
+                links: {
+                    self: `/users/${user.id}`,
+                    update: `/users/${user.id}`,
+                    delete: `/users/${user.id}`,
+                }
+            })),
             paging: {
                 current_page: listRequest.page,
                 total_page: totalPage,
                 size: listRequest.size,
+                links: {
+                    next: totalPage > listRequest.page ? `/users/list/result?page=${listRequest.page + 1}&size=${listRequest.size}` : null,
+                    prev: listRequest.page > 1 ? `/users/list/result?page=${listRequest.page - 1}&size=${listRequest.size}` : null,
+                }
             },
         };
     }
@@ -195,11 +233,22 @@ export class UserService {
         }
     
         return {
-            data: paginatedUsers.map(this.toUserResponse),
+            data: paginatedUsers.map(user => ({
+                ...this.toUserResponse(user),
+                links: {
+                    self: `/users/${user.id}`,
+                    update: `/users/${user.id}`,
+                    delete: `/users/${user.id}`,
+                }
+            })),
             paging: {
                 current_page: searchRequest.page,
                 total_page: totalPage,
                 size: searchRequest.size,
+                links: {
+                    next: totalPage > searchRequest.page ? `/users/search/result?paging=${searchRequest.page + 1}&size=${searchRequest.size}` : null,
+                    prev: searchRequest.page > 1 ? `/users/search/result?paging=${searchRequest.page - 1}&size=${searchRequest.size}` : null,
+                }
             },
         };
     }
@@ -215,11 +264,26 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const result = await this.prismaService.user.delete({
+        const deleteUser = await this.prismaService.user.delete({
             where: {
                 id: userId,
             }
         });
+
+        const result: UserResponse = {
+            id: deleteUser.id,
+            no_pegawai: deleteUser.no_pegawai,
+            nik: deleteUser.nik,
+            email: deleteUser.email,
+            name: deleteUser.name,
+            dinas: deleteUser.dinas,
+            roleId: deleteUser.roleId,
+            links: {
+                self: `/users/${deleteUser.id}`,
+                update: `/users/${deleteUser.id}`,
+                delete: `/users/${deleteUser.id}`,
+            },
+        }
 
         return this.toUserResponse(result);
     }
@@ -257,6 +321,11 @@ export class UserService {
             name: user.name,
             dinas: user.dinas,
             roleId: user.roleId,
+            links: {
+                self: `/users/${user.id}`,
+                update: `/users/${user.id}`,
+                delete: `/users/${user.id}`,
+            },
         }
     }
 }

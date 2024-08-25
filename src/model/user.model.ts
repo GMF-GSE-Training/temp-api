@@ -38,4 +38,9 @@ export interface UserResponse {
     dinas?: string;
     roleId: number;
     token?: string;
+    links: {
+        self: string;
+        update: string;
+        delete: string;
+    }
 }

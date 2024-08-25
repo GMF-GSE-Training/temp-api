@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
-import { UpdateUserRequest, UserResponse } from "../model/user.model";
-import { CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
+import { UpdateUserRequest } from "../model/user.model";
+import { AuthResponse, CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 
@@ -11,14 +11,14 @@ export class AuthController {
 
     @Post('/register')
     @HttpCode(200)
-    async register(@Body() req: any): Promise<WebResponse<UserResponse>> {
+    async register(@Body() req: any): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.register(req);
         return buildResponse(HttpStatus.OK, result);
     }
-    
+
     @Post('/login')
     @HttpCode(200)
-    async login(@Body() req: LoginUserRequest): Promise<WebResponse<UserResponse>> {
+    async login(@Body() req: LoginUserRequest): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.login(req);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -26,7 +26,7 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @Get('/current')
     @HttpCode(200)
-    async me(@Req() req: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+    async me(@Req() req: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.me(req.user);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -34,8 +34,8 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @Patch('/current')
     @HttpCode(200)
-    async updateMe(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.authService.updateMe(userCurrent.user, req);
+    async updateMe(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<AuthResponse>> {
+        const result = await this.authService.updateCurrent(userCurrent.user, req);
         return buildResponse(HttpStatus.OK, result);
     }
 

@@ -28,8 +28,8 @@ export interface AuthResponse {
     dinas?: string;
     roleId: number;
     token?: string;
-    role: {
-        id: number;
-        role: string;
-    };
+    role?: {
+        id: number,
+        role: string,
+    }
 }

@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { UpdateUserRequest, UserResponse } from "../model/user.model";
+import { UpdateUserRequest } from "../model/user.model";
 import { AuthResponse, RegisterUserRequest } from "../model/auth.model";
 import { LoginUserRequest } from "../model/auth.model";
 import { Logger } from "winston";
@@ -20,7 +20,7 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-    async register(req: RegisterUserRequest): Promise<UserResponse> {
+    async register(req: RegisterUserRequest): Promise<AuthResponse> {
         if(req.roleId) {
             throw new HttpException('Anda tidak berhak menentukan role', 403);
         }
@@ -72,18 +72,10 @@ export class AuthService {
             data: registerRequest,
         });
         
-        return {
-            id: user.id,
-            no_pegawai: user.no_pegawai,
-            nik: user.nik,
-            email: user.email,
-            name: user.name,
-            dinas: user.dinas,
-            roleId: user.roleId,
-        }
+        return this.toAuthResponse(user);
     }
     
-    async login(req: LoginUserRequest): Promise<UserResponse> {
+    async login(req: LoginUserRequest): Promise<AuthResponse> {
         const loginRequest: LoginUserRequest = this.validationService.validate(AuthValidation.LOGIN, req);
 
         let user: User;
@@ -126,36 +118,35 @@ export class AuthService {
             throw new HttpException('Failed to generate token', 500);
         }
 
-        return {
-            id: user.id,
-            no_pegawai: user.no_pegawai,
-            nik: user.nik,
-            email: user.email,
-            name: user.name,
-            dinas: user.dinas,
-            roleId: user.roleId,
-            token: user.token,
-        };
+        return this.toAuthResponse(user);
     }
 
-    async me(user: User): Promise<AuthResponse> {
-        const result = await this.prismaService.user.findUnique({
+    async me(me: User): Promise<AuthResponse> {
+        const user = await this.prismaService.user.findUnique({
             where: { 
-                id: user.id
+                id: me.id
             },
             include: {
                 role: true,
             }
         });
 
-        if (!result) {
+        if (!user) {
             throw new HttpException('User not found', 404);
         }
 
-        return this.toAuthResponse(result);
+        const result = this.toAuthResponse(user);
+
+        return {
+            ...result,
+            role: {
+                id: user.role.id,
+                role: user.role.role,
+            }
+        }
     }
 
-    async updateMe(user: User, req: UpdateUserRequest): Promise<UserResponse> {
+    async updateCurrent(user: User, req: UpdateUserRequest): Promise<AuthResponse> {
         if(req.roleId) {
             const userCurrent = await this.prismaService.user.findUnique({
                 where: {
@@ -195,19 +186,10 @@ export class AuthService {
             data: user,
         });
 
-        return {
-            id: result.id,
-            no_pegawai: result.no_pegawai,
-            nik: result.nik,
-            email: result.email,
-            name: result.name,
-            dinas: result.dinas,
-            roleId: result.roleId,
-            token: result.token,
-        }
+        return this.toAuthResponse(result);
     }
 
-    async logout(user: User): Promise<UserResponse> {
+    async logout(user: User): Promise<AuthResponse> {
         const result = await this.prismaService.user.update({
             where: {
                 id: user.id,
@@ -217,15 +199,7 @@ export class AuthService {
             }
         });
 
-        return {
-            id: result.id,
-            no_pegawai: result.no_pegawai,
-            nik: result.nik,
-            email: result.email,
-            name: result.name,
-            dinas: result.dinas,
-            roleId: result.roleId,
-        };
+        return this.toAuthResponse(result);
     }
 
     async checkUserExists(no_pegawai: string, email: string) {
@@ -262,10 +236,6 @@ export class AuthService {
             dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
-            role: {
-                id: user.role.id,
-                role: user.role.role,
-            }
         };
     }
 }

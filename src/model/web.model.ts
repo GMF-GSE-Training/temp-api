@@ -13,6 +13,10 @@ export interface Paging  {
     total_page: number;
     current_page: number;
     size: number;
+    links: {
+        next?: string;
+        prev?: string;
+    }
 }
 
 export function buildResponse<T>(
