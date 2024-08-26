@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -6,6 +6,7 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
+import { Response } from "express";
 
 @Controller('/participants')
 export class ParticipantController {
@@ -166,6 +167,26 @@ export class ParticipantController {
     async get(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<ParticipantResponse>> {
         const result = await this.participantService.getParticipant(participantId);
         return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:participantId/id-card')
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async downloadIdCard(@Param('participantId', ParseIntPipe) participantId: number, @Res() res: Response): Promise<void> {
+        try {
+            const pdfBuffer = await this.participantService.downloadIdCard(participantId);
+
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'inline; filename="id-card.pdf"',
+                'Content-Length': pdfBuffer.length,
+            });
+
+            res.send(pdfBuffer);
+        } catch (error) {
+            throw new HttpException(error.message, error.status || 500);
+        }
     }
 
     @Delete('/:participantId')

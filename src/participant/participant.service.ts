@@ -6,7 +6,8 @@ import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
-
+import * as puppeteer from 'puppeteer';
+import { IdCardModel } from "../model/id_card.model";
 
 @Injectable()
 export class ParticipantService {
@@ -92,6 +93,28 @@ export class ParticipantService {
         }
 
         return this.toParticipantResponse(participant);
+    }
+
+    async downloadIdCard(participantId: number): Promise<Buffer> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: { id: participantId },
+        });
+
+        if (!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        const idCardModel = new IdCardModel(participant.foto, participant.qr_code, participant.nama, participant.perusahaan, participant.no_pegawai, participant.negara);
+
+        const htmlContent = idCardModel.getHtmlTemplate();
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(await htmlContent, { waitUntil: 'networkidle0' });
+    
+        const pdfBuffer = await page.pdf({ format: 'A4' });
+    
+        return Buffer.from(pdfBuffer);
     }
 
     async updateParticipant(participantId: number, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
