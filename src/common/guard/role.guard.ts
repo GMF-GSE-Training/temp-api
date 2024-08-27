@@ -3,6 +3,7 @@ import {
     CanActivate,
     ExecutionContext,
     HttpException,
+    Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../service/prisma.service';
@@ -11,7 +12,7 @@ import { PrismaService } from '../service/prisma.service';
 export class RoleGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
-        private prismaService: PrismaService
+        private prismaService: PrismaService,
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -21,15 +22,9 @@ export class RoleGuard implements CanActivate {
         const url = request.url;
         if(controller === 'UserController') {
             const requiredRoles = this.getRequiredRoles(context);
-
             const userWithRole = await this.getUserWithRole(request);
-
             const userRole = userWithRole.toLowerCase();
-            const hasRole = requiredRoles.map(role => role.toLowerCase()).includes(userRole);
-
-            if (!hasRole) {
-                throw new HttpException('Forbidden', 403);
-            }
+            this.checkRoleAuthorization(userWithRole, requiredRoles);
 
             const requestedRoleId = request.body.roleId;
             const requestedDinas = request.body.dinas;
@@ -39,11 +34,11 @@ export class RoleGuard implements CanActivate {
                     throw new HttpException('Validation Error', 400);
                 }
 
-                    const requestedRole = await this.prismaService.role.findUnique({
-                        where: { 
-                            id: requestedRoleId,
-                        }
-                    });
+                const requestedRole = await this.prismaService.role.findUnique({
+                    where: { 
+                        id: requestedRoleId,
+                    }
+                });
 
                 if (!requestedRole) {
                     throw new HttpException('Invalid Role', 400);
@@ -154,11 +149,7 @@ export class RoleGuard implements CanActivate {
 
         } else if(controller === 'RoleController') {
             return this.handleController(context);
-        } else if(controller === 'DinasController') {
-            return this.handleController(context);
         } else if(controller === 'ParticipantController') {
-            return this.handleController(context);
-        } else if(controller === 'StaticController') {
             return this.handleController(context);
         }
     }

@@ -14,7 +14,7 @@ export class ParticipantController {
 
     @Post()
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'sim_a', maxCount: 1 },
@@ -25,7 +25,7 @@ export class ParticipantController {
         { name: 'surat_bebas_narkoba', maxCount: 1 },
     ]))
     async create(
-        @Body() createParticipantDto: Omit<CreateParticipantRequest, 'sim_a' | 'sim_b' | 'ktp' | 'foto' | 'surat_sehat_buta_warna' | 'surat_bebas_narkoba'>,
+        @Body() createParticipantDto: CreateParticipantRequest,
         @UploadedFiles() files: {
             sim_a?: Express.Multer.File[],
             sim_b?: Express.Multer.File[],
@@ -33,8 +33,11 @@ export class ParticipantController {
             foto?: Express.Multer.File[],
             surat_sehat_buta_warna?: Express.Multer.File[],
             surat_bebas_narkoba?: Express.Multer.File[],
-        }
+        },
     ): Promise<WebResponse<ParticipantResponse>> {
+        console.log(createParticipantDto);
+        console.log(files);
+
         let participantData: CreateParticipantRequest;
 
         try {
@@ -60,9 +63,10 @@ export class ParticipantController {
 
     @Patch('/:participantId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    @UseInterceptors(FileFieldsInterceptor([
+    @UseInterceptors(
+        FileFieldsInterceptor([
         { name: 'sim_a', maxCount: 1 },
         { name: 'sim_b', maxCount: 1 },
         { name: 'ktp', maxCount: 1 },
@@ -122,7 +126,7 @@ export class ParticipantController {
 
     @Get('foto/:participantId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getFoto(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'foto');
@@ -170,7 +174,7 @@ export class ParticipantController {
     }
 
     @Get('/:participantId/id-card')
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async downloadIdCard(@Param('participantId', ParseIntPipe) participantId: number, @Res() res: Response): Promise<void> {
@@ -191,7 +195,7 @@ export class ParticipantController {
 
     @Delete('/:participantId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     async delete(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<boolean>> {
         await this.participantService.deleteParticipant(participantId);
