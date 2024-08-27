@@ -215,7 +215,6 @@ export class UserService {
                 user.no_pegawai?.includes(query) ||
                 user.email?.toLowerCase().includes(query) ||
                 user.name?.toLowerCase().includes(query) ||
-                user.dinas?.toLowerCase().includes(query) ||
                 user.role?.role.toLowerCase().includes(query)
             );
         }
