@@ -9,6 +9,7 @@ import { ParticipantValidation } from "./participant.validation";
 import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id_card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { Participant } from "@prisma/client";
 
 @Injectable()
 export class ParticipantService {
@@ -83,15 +84,13 @@ export class ParticipantService {
     }
 
     async streamFile(participantId: number, fileType: string, user: CurrentUserRequest): Promise<Buffer> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                id: participantId
-            },
-        });
+        const participant = await this.findOneParticipant(participantId);
 
-        if(participant.dinas != user.user.dinas) {
-            throw new HttpException('LCU hanya bisa melihat data pengguna dengan dinas yang sama', 403);
+        if(!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
         }
+
+        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
 
         if (!participant || !participant[fileType]) {
             throw new HttpException('File tidak ditemukan', 404);
@@ -100,16 +99,14 @@ export class ParticipantService {
         return participant[fileType];
     }
 
-    async getParticipant(participantId: number): Promise<ParticipantResponse> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                id: participantId,
-            }
-        });
+    async getParticipant(participantId: number, user: CurrentUserRequest): Promise<ParticipantResponse> {
+        const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
+
+        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
 
         return this.toParticipantResponse(participant);
     }
@@ -235,5 +232,20 @@ export class ParticipantService {
             link_qr_code: participant.link_qr_code || '',
             gmf_non_gmf: participant.gmf_non_gmf,
         };
+    }
+
+    private async findOneParticipant(participantId: number): Promise<Participant> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                id: participantId
+            },
+        });
+        return participant
+    }
+
+    private validateDinasForLcuRequest(participantDinas, lcuDinas) {
+        if(participantDinas != lcuDinas) {
+            throw new HttpException('LCU hanya bisa melihat data pengguna dengan dinas yang sama', 403);
+        }
     }
 }
