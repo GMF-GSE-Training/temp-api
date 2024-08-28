@@ -10,7 +10,7 @@ import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id_card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
-import { ListRequest, Paging } from "src/model/web.model";
+import { ListRequest, Paging, SearchRequest } from "src/model/web.model";
 
 @Injectable()
 export class ParticipantService {

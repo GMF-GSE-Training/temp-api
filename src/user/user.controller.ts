@@ -59,8 +59,8 @@ export class UserController {
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async searchUser(
-        @Req() request: any,
+    async search(
+        @Req() user: CurrentUserRequest,
         @Query('q') q: string,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
@@ -74,7 +74,7 @@ export class UserController {
             page: page || 1,
             size: size || 10,
         };
-        const result = await this.userService.search(query, request.user);
+        const result = await this.userService.searchUser(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 

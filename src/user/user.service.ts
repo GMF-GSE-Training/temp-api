@@ -218,22 +218,42 @@ export class UserService {
         };
     }
 
-    async search(req: SearchRequest, usersFromGuard): Promise<{ data: UserResponse[], paging: Paging }> {
+    async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
-    
-        // Filter users berdasarkan searchQuery jika tersedia
-        let filteredUsers = usersFromGuard;
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+        let users = await this.prismaService.user.findMany({
+            include: {
+                role: true,
+            }
+        });
+
+        if (userRole === 'lcu') {
+            users = users.filter(u => u.role.role.toLowerCase() === 'user' && u.dinas === userWithRole.dinas);
+        }
+
+        let filteredUsers = users;
         if (searchRequest.searchQuery) {
             const query = searchRequest.searchQuery.toLowerCase();
-            filteredUsers = usersFromGuard.filter(user => 
-                user.no_pegawai?.includes(query) ||
-                user.email?.toLowerCase().includes(query) ||
-                user.name?.toLowerCase().includes(query) ||
-                user.role?.role.toLowerCase().includes(query)
-            );
-        }
+            if (userRole === 'super admin' || userRole === 'supervisor') {
+                filteredUsers = users.filter(user => 
+                    user.no_pegawai?.toLowerCase().includes(query) ||
+                    user.email.toLowerCase().includes(query) ||
+                    user.name.toLowerCase().includes(query) ||
+                    user.role?.role.toLowerCase().includes(query) ||
+                    user.dinas?.toLowerCase().includes(query)
+                );
+            } else {
+                filteredUsers = users.filter(user => 
+                    user.no_pegawai?.toLowerCase().includes(query) ||
+                    user.email.toLowerCase().includes(query) ||
+                    user.name.toLowerCase().includes(query)
+                );
+            }
     
-        // Lakukan paginasi pada pengguna yang sudah difilter oleh guard
+        }
+
         const totalUsers = filteredUsers.length;
         const totalPage = Math.ceil(totalUsers / searchRequest.size);
         const paginatedUsers = filteredUsers.slice(
