@@ -5,17 +5,18 @@ import { CreateUserRequest, ListUserRequest, SearchUserRequest, UpdateUserReques
 import { AuthGuard } from "../common/guard/auth.guard";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller("/users")
 export class UserController {
     constructor(private userService: UserService) {}
 
     @Post('/create')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @Roles('Super Admin', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async createUser(@Body() req: CreateUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.create(req);
+    async create(@Body() req: CreateUserRequest, @Req() user: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+        const result = await this.userService.createUser(req, user);
         return buildResponse(HttpStatus.OK, result);
     }
 
@@ -23,18 +24,17 @@ export class UserController {
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async getUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.get(userId);
+    async get(@Param('userId', ParseIntPipe) userId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+        const result = await this.userService.getUser(userId, user);
         return buildResponse(HttpStatus.OK, result);
     }
 
     @Patch('/:userId')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @Roles('Super Admin', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async updateUser(@Param('userId', ParseIntPipe) userId: number, @Body() req: UpdateUserRequest): Promise<WebResponse<UserResponse>> {
-        req.id = userId;
-        const result = await this.userService.update(req);
+    async update(@Param('userId', ParseIntPipe) userId: number, @Body() req: UpdateUserRequest, @Req() user: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
+        const result = await this.userService.updateUser(userId, req, user);
         return buildResponse(HttpStatus.OK, result);
     }
 
@@ -42,8 +42,8 @@ export class UserController {
     @Roles('Super Admin', 'Supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async listUsers(
-        @Req() request: any,
+    async list(
+        @Req() user: CurrentUserRequest,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
@@ -51,7 +51,7 @@ export class UserController {
             page: page || 1,
             size: size || 10,
         };
-        const result = await this.userService.list(query, request.user);
+        const result = await this.userService.listUsers(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 
@@ -79,7 +79,7 @@ export class UserController {
     }
 
     @Delete('/:userId')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @Roles('Super Admin', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async deleteUser(@Param('userId', ParseIntPipe) userId: number): Promise<WebResponse<boolean>> {

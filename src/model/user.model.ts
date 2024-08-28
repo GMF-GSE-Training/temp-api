@@ -9,8 +9,8 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-    id: number;
     no_pegawai?: string;
+    nik?: string;
     email?: string;
     name?: string;
     password?: string;
@@ -29,6 +29,16 @@ export interface SearchUserRequest {
     size: number;
 }
 
+export interface UserList {
+    id: number;
+    no_pegawai?: string;
+    nik?: string;
+    email: string;
+    name: string;
+    dinas?: string;
+    roleId: number;
+}
+
 export interface UserResponse {
     id: number;
     no_pegawai?: string;
@@ -37,7 +47,6 @@ export interface UserResponse {
     name: string;
     dinas?: string;
     roleId: number;
-    token?: string;
     links: {
         self: string;
         update: string;
