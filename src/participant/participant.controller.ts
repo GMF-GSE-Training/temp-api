@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -7,6 +7,7 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
 import { Response } from "express";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller('/participants')
 export class ParticipantController {
@@ -25,6 +26,7 @@ export class ParticipantController {
         { name: 'surat_bebas_narkoba', maxCount: 1 },
     ]))
     async create(
+        @Req() user: CurrentUserRequest,
         @Body() createParticipantDto: CreateParticipantRequest,
         @UploadedFiles() files: {
             sim_a?: Express.Multer.File[],
@@ -35,9 +37,6 @@ export class ParticipantController {
             surat_bebas_narkoba?: Express.Multer.File[],
         },
     ): Promise<WebResponse<ParticipantResponse>> {
-        console.log(createParticipantDto);
-        console.log(files);
-
         let participantData: CreateParticipantRequest;
 
         try {
@@ -57,7 +56,7 @@ export class ParticipantController {
             throw new HttpException('Semua file/image tidak boleh kosong', 400);
         }
         
-        const participant = await this.participantService.createParticipant(participantData);
+        const participant = await this.participantService.createParticipant(participantData, user);
         return buildResponse(HttpStatus.OK, participant);
     }
 

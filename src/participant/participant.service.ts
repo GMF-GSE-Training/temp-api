@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Scope } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from 'winston';
@@ -8,24 +8,30 @@ import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
 import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id_card.model";
-import { REQUEST } from "@nestjs/core";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Injectable()
 export class ParticipantService {
     constructor(
-        @Inject(REQUEST) private readonly request: any,
         private prismaService: PrismaService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private validationService: ValidationService,
     ) {}
 
-    async createParticipant(data: CreateParticipantRequest): Promise<ParticipantResponse> {
-        const user = this.request.user;
-
+    async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const userWithRole = await this.prismaService.user.findUnique({
-            where: { id: user.id },
+            where: { id: user.user.id },
             include: { role: true }
         });
+
+        const userRole = userWithRole.role.role.toLowerCase();
+        if(userRole === 'lcu') {
+            if(!data.dinas) {
+                throw new HttpException('Dinas tidak boleh kosong', 400);
+            } else if(userWithRole.dinas != data.dinas) {
+                throw new HttpException('LCU hanya bisa menambahkan pengguna dengan role user dengan dinas yang sama', 400);
+            }
+        }
 
         if(!data.nik) {
             throw new HttpException('NIK tidak boleh kosong', 400);
@@ -39,15 +45,6 @@ export class ParticipantService {
 
         if(nikIsAlreadyExists) {
             throw new HttpException('NIK sudah ada di data peserta', 400);
-        }
-
-        const userRole = userWithRole.role.role.toLowerCase();
-        if(userRole === 'lcu') {
-            if(!data.dinas) {
-                throw new HttpException('Dinas tidak boleh kosong', 400);
-            } else if(userWithRole.dinas != data.dinas) {
-                throw new HttpException('LCU hanya bisa menambahkan pengguna dengan role user dengan dinas yang sama', 400);
-            }
         }
 
         const qrCodeBase64 = await QRCode.toDataURL(data.link_qr_code);
