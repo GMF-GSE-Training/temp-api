@@ -48,6 +48,10 @@ export class ParticipantService {
             throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
+        if(!data.link_qr_code) {
+            throw new HttpException('Link tidak boleh kosong', 400);
+        }
+
         const qrCodeBase64 = await QRCode.toDataURL(data.link_qr_code);
         const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
         data.qr_code = qrCodeBuffer;
@@ -213,7 +217,21 @@ export class ParticipantService {
 
     toParticipantResponse(participant: ParticipantList): ParticipantResponse {
         return {
-            ...participant,
+            id: participant.id,
+            no_pegawai: participant.no_pegawai,
+            nama: participant.nama,
+            dinas: participant.dinas,
+            bidang: participant.bidang,
+            perusahaan: participant.perusahaan,
+            email: participant.email,
+            no_telp: participant.no_telp,
+            negara: participant.negara,
+            tempat_lahir: participant.tempat_lahir,
+            tanggal_lahir: participant.tanggal_lahir,
+            exp_surat_sehat: participant.exp_surat_sehat,
+            exp_bebas_narkoba: participant.exp_bebas_narkoba,
+            gmf_non_gmf: participant.gmf_non_gmf,
+            link_qr_code: participant.link_qr_code,
             links: {
                 self: `/participants/${participant.id}`,
                 update: `/participants/${participant.id}`,

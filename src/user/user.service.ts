@@ -165,7 +165,6 @@ export class UserService {
         const userSelectFields = {
             id: true,
             no_pegawai: true,
-            nik: true,
             email: true,
             name: true,
             dinas: true,
@@ -287,7 +286,6 @@ export class UserService {
         const result: UserResponse = {
             id: deleteUser.id,
             no_pegawai: deleteUser.no_pegawai,
-            nik: deleteUser.nik,
             email: deleteUser.email,
             name: deleteUser.name,
             dinas: deleteUser.dinas,

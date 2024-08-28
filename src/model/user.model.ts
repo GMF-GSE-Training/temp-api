@@ -32,7 +32,6 @@ export interface SearchUserRequest {
 export interface UserList {
     id: number;
     no_pegawai?: string;
-    nik?: string;
     email: string;
     name: string;
     dinas?: string;
@@ -42,7 +41,6 @@ export interface UserList {
 export interface UserResponse {
     id: number;
     no_pegawai?: string;
-    nik?: string;
     email: string;
     name: string;
     dinas?: string;

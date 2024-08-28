@@ -69,7 +69,6 @@ export interface ParticipantResponse {
     id: number;
     no_pegawai: string;
     nama: string;
-    nik: string;
     dinas: string;
     bidang: string;
     perusahaan?: string;
