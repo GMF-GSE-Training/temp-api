@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from 'winston';
-import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
+import { CreateParticipantRequest, ParticipantList, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
@@ -208,27 +208,17 @@ export class ParticipantService {
             }
         });
 
-        return result;
+        return this.toParticipantResponse(result);
     }
 
-    toParticipantResponse(participant: ParticipantResponse): ParticipantResponse {
+    toParticipantResponse(participant: ParticipantList): ParticipantResponse {
         return {
-            id: participant.id,
-            no_pegawai: participant.no_pegawai,
-            nama: participant.nama,
-            nik: participant.nik,
-            dinas: participant.dinas,
-            bidang: participant.bidang,
-            perusahaan: participant.perusahaan,
-            email: participant.email,
-            no_telp: participant.no_telp,
-            negara: participant.negara,
-            tempat_lahir: participant.tempat_lahir,
-            tanggal_lahir: participant.tanggal_lahir,
-            exp_surat_sehat: participant.exp_surat_sehat,
-            exp_bebas_narkoba: participant.exp_bebas_narkoba,
-            link_qr_code: participant.link_qr_code || '',
-            gmf_non_gmf: participant.gmf_non_gmf,
+            ...participant,
+            links: {
+                self: `/participants/${participant.id}`,
+                update: `/participants/${participant.id}`,
+                delete: `/participants/${participant.id}`,
+            },
         };
     }
 

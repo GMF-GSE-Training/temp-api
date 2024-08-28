@@ -338,7 +338,7 @@ export class UserService {
         return userRequest;
     }
 
-    toUserResponse(user: UserList) {
+    toUserResponse(user: UserList): UserResponse {
         return {
             ...user,
             links: {
