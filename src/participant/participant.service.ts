@@ -179,24 +179,22 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
-    async deleteParticipant(participantId: number): Promise<ParticipantResponse> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                id: participantId,
-            }
-        });
+    async deleteParticipant(participantId: number, user: CurrentUserRequest): Promise<ParticipantResponse> {
+        const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const user = await this.prismaService.user.findUnique({
+        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+
+        const findUser = await this.prismaService.user.findUnique({
             where: {
                 nik: participant.nik,
             }
         });
 
-        if(user) {
+        if(findUser) {
             await this.prismaService.user.delete({
                 where: {
                     nik: participant.nik,
@@ -243,9 +241,9 @@ export class ParticipantService {
         return participant
     }
 
-    private validateDinasForLcuRequest(participantDinas, lcuDinas) {
+    private validateDinasForLcuRequest(participantDinas: string, lcuDinas: string) {
         if(participantDinas != lcuDinas) {
-            throw new HttpException('LCU hanya bisa melihat data pengguna dengan dinas yang sama', 403);
+            throw new HttpException('LCU hanya bisa menambahkan, melihat, dan menghapus data peserta dengan dinas yang sama', 403);
         }
     }
 }

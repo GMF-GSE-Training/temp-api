@@ -196,8 +196,8 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async delete(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<boolean>> {
-        await this.participantService.deleteParticipant(participantId);
+    async delete(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
+        await this.participantService.deleteParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, true);
     }
 }
