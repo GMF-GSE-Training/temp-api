@@ -82,12 +82,16 @@ export class ParticipantService {
         return this.toParticipantResponse(participant);
     }
 
-    async streamFile(participantId: number, fileType: string): Promise<Buffer> {
+    async streamFile(participantId: number, fileType: string, user: CurrentUserRequest): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
             where: {
                 id: participantId
             },
         });
+
+        if(participant.dinas != user.user.dinas) {
+            throw new HttpException('LCU hanya bisa melihat data pengguna dengan dinas yang sama', 403);
+        }
 
         if (!participant || !participant[fileType]) {
             throw new HttpException('File tidak ditemukan', 404);

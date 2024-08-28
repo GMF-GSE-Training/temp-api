@@ -103,62 +103,62 @@ export class ParticipantController {
         return buildResponse(HttpStatus.OK, participant);
     }
 
-    @Get('sim-a/:participantId')
+    @Get('/:participantId/sim-a')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimA(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a');
+    async getSimA(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('sim-b/:participantId')
+    @Get('/:participantId/sim-b')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimB(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b');
+    async getSimB(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('foto/:participantId')
+    @Get('/:participantId/foto')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getFoto(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'foto');
+    async getFoto(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'foto', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('ktp/:participantId')
+    @Get('/:participantId/ktp')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getKTP(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'ktp');
+    async getKTP(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'ktp', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('surat-sehat-buta-warna/:participantId')
+    @Get('/:participantId/surat-sehat-buta-warna')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratSehat(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna');
+    async getSuratSehat(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('surat-bebas-narkoba/:participantId')
+    @Get('/:participantId/surat-bebas-narkoba')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratKetBebasNarkoba(@Param('participantId', ParseIntPipe) participantId: number): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba');
+    async getSuratKetBebasNarkoba(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
