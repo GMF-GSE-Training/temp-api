@@ -18,17 +18,6 @@ export interface UpdateUserRequest {
     roleId?: number;
 }
 
-export interface ListUserRequest {
-    page?: number,
-    size?: number,
-}
-
-export interface SearchUserRequest {
-    searchQuery: string;
-    page: number;
-    size: number;
-}
-
 export interface UserList {
     id: number;
     no_pegawai?: string;

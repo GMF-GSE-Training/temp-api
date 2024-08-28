@@ -2,11 +2,11 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { CreateUserRequest, ListUserRequest, SearchUserRequest, UpdateUserRequest, UserList, UserResponse } from "../model/user.model";
+import { CreateUserRequest, UpdateUserRequest, UserList, UserResponse } from "../model/user.model";
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
-import { Paging } from "src/model/web.model";
+import { ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { RoleResponse } from "src/model/role.model";
 import { User } from "@prisma/client";
@@ -155,8 +155,8 @@ export class UserService {
         return this.toUserResponse(result);
     }
 
-    async listUsers(req: ListUserRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
-        const listRequest: ListUserRequest = this.validationService.validate(UserValidation.LIST, req);
+    async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
+        const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
 
@@ -218,8 +218,8 @@ export class UserService {
         };
     }
 
-    async search(req: SearchUserRequest, usersFromGuard): Promise<{ data: UserResponse[], paging: Paging }> {
-        const searchRequest: SearchUserRequest = this.validationService.validate(UserValidation.SEARCH, req);
+    async search(req: SearchRequest, usersFromGuard): Promise<{ data: UserResponse[], paging: Paging }> {
+        const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
     
         // Filter users berdasarkan searchQuery jika tersedia
         let filteredUsers = usersFromGuard;

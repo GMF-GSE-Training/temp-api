@@ -50,4 +50,9 @@ export class ParticipantValidation {
         qr_code: z.instanceof(Buffer).optional(),
         gmf_non_gmf: z.string().min(1).max(20).optional(),
     });
+
+    static readonly LIST: ZodType = z.object({
+        page: z.number().positive().optional(),
+        size: z.number().positive().optional(),
+    });
 }

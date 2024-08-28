@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
-import { buildResponse, WebResponse } from "../model/web.model";
+import { buildResponse, ListRequest, WebResponse } from "../model/web.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
@@ -199,5 +199,21 @@ export class ParticipantController {
     async delete(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
         await this.participantService.deleteParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, true);
+    }
+
+    @Get('/list/result')
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async list(
+        @Req() user: CurrentUserRequest,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+    ): Promise<WebResponse<ParticipantResponse[]>> {
+        const query: ListRequest = { 
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.participantService.listParticipants(query, user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 }

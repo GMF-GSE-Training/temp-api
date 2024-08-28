@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { buildResponse, WebResponse } from "../model/web.model";
-import { CreateUserRequest, ListUserRequest, SearchUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
+import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
+import { CreateUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
@@ -47,7 +47,7 @@ export class UserController {
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
-        const query: ListUserRequest = { 
+        const query: ListRequest = { 
             page: page || 1,
             size: size || 10,
         };
@@ -69,7 +69,7 @@ export class UserController {
             throw new HttpException('Search query tidak boleh kosong', 400);
         }
 
-        const query: SearchUserRequest = {
+        const query: SearchRequest = {
             searchQuery: q,
             page: page || 1,
             size: size || 10,

@@ -10,6 +10,7 @@ import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id_card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
+import { ListRequest, Paging } from "src/model/web.model";
 
 @Injectable()
 export class ParticipantService {
@@ -20,10 +21,7 @@ export class ParticipantService {
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        const userWithRole = await this.prismaService.user.findUnique({
-            where: { id: user.user.id },
-            include: { role: true }
-        });
+        const userWithRole = await this.userWithRole(user.user.id);
 
         const userRole = userWithRole.role.role.toLowerCase();
         if(userRole === 'lcu') {
@@ -215,6 +213,72 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
+    async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], paging: Paging }> {
+        const listRequest: ListRequest = this.validationService.validate(ParticipantValidation.LIST, req);
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+
+        let participants: ParticipantList[];
+
+        const participantSelectFields = {
+            id: true,
+            no_pegawai: true,
+            nama: true,
+            nik: true,
+            dinas: true,
+            bidang: true,
+            perusahaan: true,
+            email: true,
+            no_telp: true,
+            negara: true,
+            tempat_lahir: true,
+            tanggal_lahir: true,
+            exp_surat_sehat: true,
+            exp_bebas_narkoba: true,
+            gmf_non_gmf: true,
+            link_qr_code: true,
+        }
+
+        if (userRole === 'supervisor' || userRole === 'super admin') {
+            participants = await this.prismaService.participant.findMany({
+                select: participantSelectFields,
+            });
+        } else if (userRole === 'lcu') {
+            participants = await this.prismaService.participant.findMany({
+                where: {
+                    dinas: userWithRole.dinas,
+                },
+                select: participantSelectFields,
+            });
+        } else {
+            throw new HttpException('Forbidden', 403);
+        }
+
+        const totalUsers = participants.length;
+        const totalPage = Math.ceil(totalUsers / req.size);
+        const paginatedUsers = participants.slice(
+            (req.page - 1) * req.size,
+            req.page * req.size
+        );
+
+        if (paginatedUsers.length === 0) {
+            throw new HttpException("Data peserta tidak ditemukan", 404);
+        }
+
+        return {
+            data: paginatedUsers.map(participant => this.toParticipantResponse(participant)),
+            paging: {
+                current_page: listRequest.page,
+                total_page: totalPage,
+                size: listRequest.size,
+                links: {
+                    next: totalPage > listRequest.page ? `/participants/list/result?page=${listRequest.page + 1}&size=${listRequest.size}` : null,
+                    prev: listRequest.page > 1 ? `/participants/list/result?page=${listRequest.page - 1}&size=${listRequest.size}` : null,
+                }
+            },
+        };
+    }
+
     toParticipantResponse(participant: ParticipantList): ParticipantResponse {
         return {
             id: participant.id,
@@ -238,6 +302,18 @@ export class ParticipantService {
                 delete: `/participants/${participant.id}`,
             },
         };
+    }
+
+    private async userWithRole(userId: number) {
+        const userRequest = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            },
+            include: {
+                role: true
+            }
+        });
+        return userRequest;
     }
 
     private async findOneParticipant(participantId: number): Promise<Participant> {

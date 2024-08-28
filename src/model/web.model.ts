@@ -19,6 +19,17 @@ export interface Paging  {
     }
 }
 
+export interface ListRequest {
+    page?: number,
+    size?: number,
+}
+
+export interface SearchRequest {
+    searchQuery: string;
+    page: number;
+    size: number;
+}
+
 export function buildResponse<T>(
     statusCode: number, 
     data?: T, 
