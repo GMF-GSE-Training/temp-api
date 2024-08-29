@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,8 @@ async function bootstrap() {
     allowedHeaders: 'Authorization, Content-Type',
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   const port = process.env.PORT
   await app.listen(port);

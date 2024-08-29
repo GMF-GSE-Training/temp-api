@@ -9,8 +9,8 @@ import { PrismaService } from "src/common/service/prisma.service";
 @Module({
     imports: [
         JwtModule.register({
-            secret: jwtConstants.secret,
-            signOptions: { expiresIn: '1h' },
+            secret: jwtConstants.access_token,
+            signOptions: { expiresIn: jwtConstants.access_token_expires_in },
         }),
     ],
     providers: [

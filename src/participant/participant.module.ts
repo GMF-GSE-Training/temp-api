@@ -12,8 +12,8 @@ import { extname } from 'path';
 @Module({
     imports: [
         JwtModule.register({
-            secret: jwtConstants.secret,
-            signOptions: { expiresIn: '1h' },
+            secret: jwtConstants.access_token,
+            signOptions: { expiresIn:  jwtConstants.access_token_expires_in},
         }),
         MulterModule.register({
             fileFilter: (_req, file, callback) => {

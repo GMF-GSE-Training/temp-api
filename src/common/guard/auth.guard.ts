@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
         try {
             const payload = await this.jwtService.verifyAsync(
                 token,
-                { secret: jwtConstants.secret }
+                { secret: jwtConstants.access_token }
             );
 
             const user = await this.prismaService.user.findUnique({

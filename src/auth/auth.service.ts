@@ -68,22 +68,30 @@ export class AuthService {
 
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
+        const authSelectedFields = this.authSelectedFields();
+
         const user = await this.prismaService.user.create({
             data: registerRequest,
+            select: authSelectedFields,
         });
+
+        const result = {
+            ...user,
+            links: this.links(),
+        }
         
-        return this.toAuthResponse(user);
+        return this.toAuthResponse(result);
     }
     
     async login(req: LoginUserRequest): Promise<AuthResponse> {
         const loginRequest: LoginUserRequest = this.validationService.validate(AuthValidation.LOGIN, req);
 
-        let user: User;
+        let user;
         if(loginRequest.identifier.includes('@')) {
             user = await this.prismaService.user.findFirst({
                 where: {
                     email: loginRequest.identifier,
-                }
+                },
             });
         } else {
             user = await this.prismaService.user.findFirst({
@@ -104,6 +112,7 @@ export class AuthService {
         }
 
         const payload = { sub: user.id };
+        const authSelectedFields = this.authSelectedFields();
 
         try {
             user = await this.prismaService.user.update({
@@ -113,6 +122,7 @@ export class AuthService {
                 data: { 
                     token: await this.jwtService.signAsync(payload),
                 },
+                select: authSelectedFields,
             });
         } catch (error) {
             throw new HttpException('Failed to generate token', 500);
@@ -135,7 +145,10 @@ export class AuthService {
             throw new HttpException('User not found', 404);
         }
 
-        const result = this.toAuthResponse(user);
+        const result = this.toAuthResponse({
+            ...user,
+            links: this.links(),
+        });
 
         return {
             ...result,
@@ -154,7 +167,7 @@ export class AuthService {
                 },
                 include: {
                     role: true,
-                }
+                },
             });
     
             if(!userCurrent) {
@@ -179,27 +192,38 @@ export class AuthService {
             }
         }   
 
+        const authSelectedFields = this.authSelectedFields();
+
         const result = await this.prismaService.user.update({
             where: {
                 id: user.id,
             },
             data: user,
+            select: authSelectedFields,
         });
 
-        return this.toAuthResponse(result);
+        return this.toAuthResponse({
+            ...result,
+            links: this.links(),
+        });
     }
 
     async logout(user: User): Promise<AuthResponse> {
+        const authSelectedFields = this.authSelectedFields();
         const result = await this.prismaService.user.update({
             where: {
                 id: user.id,
             },
             data: {
                 token: null,
-            }
+            },
+            select: authSelectedFields,
         });
 
-        return this.toAuthResponse(result);
+        return this.toAuthResponse({
+            ...result,
+            links: this.links(),
+        });
     }
 
     async checkUserExists(no_pegawai: string, email: string) {
@@ -226,16 +250,36 @@ export class AuthService {
         }
     }
 
-    toAuthResponse(user: AuthResponse) {
+    authSelectedFields() {
+        return {
+            id: true,
+            no_pegawai: true,
+            email: true,
+            name: true,
+            dinas: true,
+            roleId: true,
+            token: true,
+        }
+    }
+
+    links() {
+        return {
+            self: '/auth/current',
+            update: `/auth/current`,
+            delete: `/auth/current`,
+        }
+    }
+
+    toAuthResponse(user: AuthResponse): AuthResponse {
         return {
             id: user.id,
             no_pegawai: user.no_pegawai,
-            nik: user.nik,
             email: user.email,
             name: user.name,
             dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
+            links: this.links(),
         };
     }
 }
