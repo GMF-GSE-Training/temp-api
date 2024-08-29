@@ -74,7 +74,7 @@ export class UserService {
         return this.toUserResponse(result);
     }
 
-    async getUser(userId: number, user: CurrentUserRequest): Promise<UserResponse> {
+    async getUser(userId: string, user: CurrentUserRequest): Promise<UserResponse> {
         const findUser = await this.findUser(userId);
         if(!findUser) {
             throw new HttpException('User tidak ditemukan', 404);
@@ -101,7 +101,7 @@ export class UserService {
         return this.toUserResponse(result);
     }
 
-    async updateUser(userId: number, req: UpdateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
+    async updateUser(userId: string, req: UpdateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
         const findUser = await this.findUser(userId);
@@ -283,7 +283,7 @@ export class UserService {
         };
     }
 
-    async delete(userId: number): Promise<UserResponse> {
+    async delete(userId: string): Promise<UserResponse> {
         const user = await this.prismaService.user.findUnique({
             where: {
                 id: userId,
@@ -341,7 +341,7 @@ export class UserService {
         }
     }
 
-    private async userWithRole(userId: number) {
+    private async userWithRole(userId: string) {
         const userRequest = await this.prismaService.user.findUnique({
             where: {
                 id: userId,
@@ -376,7 +376,7 @@ export class UserService {
         };
     }
 
-    private async findUser(userId: number): Promise<any> {
+    private async findUser(userId: string): Promise<any> {
         const userSelectFields = this.userSelectFields();
         const findUser = await this.prismaService.user.findUnique({
             where: {
@@ -433,7 +433,7 @@ export class UserService {
         }
     }
 
-    private validateRoleForLcuRequest(reqRoleId: number, roleUserId: number): void {
+    private validateRoleForLcuRequest(reqRoleId: string, roleUserId: string): void {
         if (reqRoleId !== roleUserId) {
             throw new HttpException('LCU hanya dapat membuat, mengakses, dan menghapus akun dengan role user', 403);
         }

@@ -85,7 +85,7 @@ export class ParticipantService {
         return this.toParticipantResponse(participant);
     }
 
-    async streamFile(participantId: number, fileType: string, user: CurrentUserRequest): Promise<Buffer> {
+    async streamFile(participantId: string, fileType: string, user: CurrentUserRequest): Promise<Buffer> {
         const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
@@ -101,7 +101,7 @@ export class ParticipantService {
         return participant[fileType];
     }
 
-    async getParticipant(participantId: number, user: CurrentUserRequest): Promise<ParticipantResponse> {
+    async getParticipant(participantId: string, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
@@ -113,7 +113,7 @@ export class ParticipantService {
         return this.toParticipantResponse(participant);
     }
 
-    async downloadIdCard(participantId: number): Promise<Buffer> {
+    async downloadIdCard(participantId: string): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
             where: { id: participantId },
         });
@@ -135,7 +135,7 @@ export class ParticipantService {
         return Buffer.from(pdfBuffer);
     }
 
-    async updateParticipant(participantId: number, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
+    async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
 
         if(req.nik) {
@@ -181,7 +181,7 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
-    async deleteParticipant(participantId: number, user: CurrentUserRequest): Promise<ParticipantResponse> {
+    async deleteParticipant(participantId: string, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
@@ -372,7 +372,7 @@ export class ParticipantService {
         };
     }
 
-    private async userWithRole(userId: number) {
+    private async userWithRole(userId: string) {
         const userRequest = await this.prismaService.user.findUnique({
             where: {
                 id: userId,
@@ -384,7 +384,7 @@ export class ParticipantService {
         return userRequest;
     }
 
-    private async findOneParticipant(participantId: number): Promise<Participant> {
+    private async findOneParticipant(participantId: string): Promise<Participant> {
         const participant = await this.prismaService.participant.findUnique({
             where: {
                 id: participantId

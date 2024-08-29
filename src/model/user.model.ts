@@ -5,7 +5,7 @@ export interface CreateUserRequest {
     name: string;
     password: string;
     dinas?: string;
-    roleId: number;
+    roleId: string;
 }
 
 export interface UpdateUserRequest {
@@ -15,25 +15,25 @@ export interface UpdateUserRequest {
     name?: string;
     password?: string;
     dinas?: string;
-    roleId?: number;
+    roleId?: string;
 }
 
 export interface UserList {
-    id: number;
+    id: string;
     no_pegawai?: string;
     email: string;
     name: string;
     dinas?: string;
-    roleId: number;
+    roleId: string;
 }
 
 export interface UserResponse {
-    id: number;
+    id: string;
     no_pegawai?: string;
     email: string;
     name: string;
     dinas?: string;
-    roleId: number;
+    roleId: string;
     links: {
         self: string;
         update: string;

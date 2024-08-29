@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards, ParseUUIDPipe } from "@nestjs/common";
 import { RoleService } from "./role.service";
 import { Roles } from "../common/decorator/role.decorator";
 import { AuthGuard } from "../common/guard/auth.guard";
@@ -23,7 +23,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async getRole(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<RoleResponse>> {
+    async getRole(@Param('roleId', ParseUUIDPipe) roleId: string): Promise<WebResponse<RoleResponse>> {
         const result = await this.roleService.get(roleId);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -41,7 +41,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async updateRole(@Param('roleId', ParseIntPipe) roleId: number, @Body() req: UpdateRoleRequest): Promise<WebResponse<RoleResponse>> {
+    async updateRole(@Param('roleId', ParseUUIDPipe) roleId: string, @Body() req: UpdateRoleRequest): Promise<WebResponse<RoleResponse>> {
         const result = await this.roleService.update(roleId, req);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -50,7 +50,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
-    async deleteRole(@Param('roleId', ParseIntPipe) roleId: number): Promise<WebResponse<boolean>> {
+    async deleteRole(@Param('roleId', ParseUUIDPipe) roleId: string): Promise<WebResponse<boolean>> {
         await this.roleService.delete(roleId);
         return buildResponse(HttpStatus.OK, true);
     }

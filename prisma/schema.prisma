@@ -14,14 +14,14 @@ datasource db {
 }
 
 model User {
-  id         Int     @id @default(autoincrement())
+  id         String  @id @default(uuid())
   no_pegawai String? @db.VarChar(20)
   email      String  @db.VarChar(50)
   nik        String? @unique @db.VarChar(50)
   name       String  @db.VarChar(50)
   password   String  @db.VarChar(100)
   token      String? @db.VarChar(255)
-  roleId     Int
+  roleId     String
   dinas      String? @db.VarChar(50)
 
   role        Role         @relation(fields: [roleId], references: [id])
@@ -31,7 +31,7 @@ model User {
 }
 
 model Role {
-  id   Int    @id @default(autoincrement())
+  id   String @id @default(uuid())
   role String @db.VarChar(50)
 
   users User[]
@@ -40,7 +40,7 @@ model Role {
 }
 
 model Participant {
-  id                     Int      @id @default(autoincrement())
+  id                     String   @id @default(uuid())
   no_pegawai             String   @db.VarChar(20)
   nama                   String?  @db.VarChar(50)
   nik                    String   @unique @db.VarChar(50)
@@ -70,7 +70,7 @@ model Participant {
 }
 
 model Capability {
-  id                        Int                  @id @default(autoincrement())
+  id                        String               @id @default(uuid())
   kode_rating               String               @db.VarChar(20)
   kode_training             String               @db.VarChar(50)
   nama_training             String               @db.VarChar(50)
@@ -83,8 +83,8 @@ model Capability {
 }
 
 model CurriculumSyllabus {
-  id                 Int        @id @default(autoincrement())
-  capabilityId       Int
+  id                 String     @id @default(uuid())
+  capabilityId       String
   reg_gse            String     @db.VarChar(255)
   durasi_teori_reg   Int
   durasi_praktek_reg Int

@@ -7,6 +7,6 @@ export interface UpdateRoleRequest {
 }
 
 export interface RoleResponse {
-    id: number;
+    id: string;
     role: string;
 }

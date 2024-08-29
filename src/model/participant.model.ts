@@ -47,7 +47,7 @@ export interface UpdateParticipantRequest {
 }
 
 export interface ParticipantList {
-    id: number;
+    id: string;
     no_pegawai: string;
     nama: string;
     dinas: string;
@@ -65,7 +65,7 @@ export interface ParticipantList {
 }
 
 export interface ParticipantResponse {
-    id: number;
+    id: string;
     no_pegawai: string;
     nama: string;
     dinas: string;

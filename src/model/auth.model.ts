@@ -7,7 +7,7 @@ export interface RegisterUserRequest {
     name: string;
     password: string;
     dinas?: string;
-    roleId: number;
+    roleId: string;
 }
 
 export interface LoginUserRequest {
@@ -20,16 +20,16 @@ export interface CurrentUserRequest {
 }
 
 export interface AuthResponse {
-    id: number;
+    id: string;
     no_pegawai?: string;
     nik?: string;
     email: string;
     name: string;
     dinas?: string;
-    roleId: number;
+    roleId: string;
     token?: string;
     role?: {
-        id: number,
+        id: string,
         role: string,
     }
     links: {

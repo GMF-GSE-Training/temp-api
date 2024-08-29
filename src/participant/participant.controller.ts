@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
@@ -74,7 +74,7 @@ export class ParticipantController {
         { name: 'surat_bebas_narkoba', maxCount: 1 },
     ]))
     async update(
-        @Param('participantId', ParseIntPipe) participantId: number,
+        @Param('participantId', ParseUUIDPipe) participantId: string,
         @Body() req: Omit<UpdateParticipantRequest, 'sim_a' | 'sim_b' | 'ktp' | 'foto' | 'surat_sehat_buta_warna' | 'surat_bebas_narkoba'>,
         @UploadedFiles() files: {
             sim_a?: Express.Multer.File[],
@@ -107,7 +107,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimA(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSimA(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -117,7 +117,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimB(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSimB(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -127,7 +127,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getFoto(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getFoto(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'foto', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -137,7 +137,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getKTP(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getKTP(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'ktp', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -147,7 +147,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratSehat(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSuratSehat(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -157,7 +157,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratKetBebasNarkoba(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -167,7 +167,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
+    async get(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
         const result = await this.participantService.getParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -176,7 +176,7 @@ export class ParticipantController {
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async downloadIdCard(@Param('participantId', ParseIntPipe) participantId: number, @Res() res: Response): Promise<void> {
+    async downloadIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {
         try {
             const pdfBuffer = await this.participantService.downloadIdCard(participantId);
 
@@ -196,7 +196,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async delete(@Param('participantId', ParseIntPipe) participantId: number, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
+    async delete(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
         await this.participantService.deleteParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, true);
     }
@@ -206,8 +206,8 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     async list(
         @Req() user: CurrentUserRequest,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
+        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,
@@ -224,8 +224,8 @@ export class ParticipantController {
     async search(
         @Req() user: CurrentUserRequest,
         @Query('q') q: string,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
+        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
         if(!q) {
             throw new HttpException('Search query tidak boleh kosong', 400);

@@ -35,7 +35,7 @@ export class RoleService {
         return this.toRoleResponse(role);
     }
 
-    async get(roleId: number): Promise<RoleResponse> {
+    async get(roleId: string): Promise<RoleResponse> {
         const role = await this.prismaService.role.findUnique({
             where: {
                 id: roleId,
@@ -59,7 +59,7 @@ export class RoleService {
         return roles.map((role) => this.toRoleResponse(role));
     }
 
-    async update(roleId: number, req: UpdateRoleRequest): Promise<RoleResponse> {
+    async update(roleId: string, req: UpdateRoleRequest): Promise<RoleResponse> {
         const updateRequest: UpdateRoleRequest = this.validationService.validate(RoleValidation.UPDATE, req);
 
         const role = await this.prismaService.role.findUnique({
@@ -82,7 +82,7 @@ export class RoleService {
         return this.toRoleResponse(result);
     }
 
-    async delete(roleId: number): Promise<RoleResponse> {
+    async delete(roleId: string): Promise<RoleResponse> {
         const role = await this.prismaService.role.findUnique({
             where: {
                 id: roleId,
