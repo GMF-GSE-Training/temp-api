@@ -39,7 +39,7 @@ export class AuthGuard implements CanActivate {
                 }
             });
 
-            if (!user) {
+            if (!user || user.token !== token) {
                 throw new HttpException('Unauthorized', 401);
             }
 
