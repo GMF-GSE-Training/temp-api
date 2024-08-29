@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
+import { PrismaClientKnownRequestError, PrismaClientRustPanicError, PrismaClientUnknownRequestError, PrismaClientValidationError } from "@prisma/client/runtime/library";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 
@@ -25,7 +26,7 @@ export class ErrorFilter implements ExceptionFilter {
                 status: HttpStatus[statusCode],
                 errors: exception.message,
             };
-        } else if(exception instanceof MulterError) {
+        } else if (exception instanceof MulterError) {
             statusCode = HttpStatus.BAD_REQUEST;
             errorResponse = {
                 code: statusCode,
@@ -35,8 +36,51 @@ export class ErrorFilter implements ExceptionFilter {
                     message: exception.message,
                 },
             };
+        } else if (exception instanceof PrismaClientKnownRequestError) {
+            // Kesalahan kueri yang diketahui dari Prisma (misalnya, pelanggaran batasan unik)
+            statusCode = HttpStatus.BAD_REQUEST;
+            errorResponse = {
+                code: statusCode,
+                status: HttpStatus[statusCode],
+                errors: {
+                    message: 'Database request error',
+                    details: exception.message,
+                },
+            };
+        } else if (exception instanceof PrismaClientUnknownRequestError) {
+            // Kesalahan permintaan yang tidak diketahui dari Prisma
+            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            errorResponse = {
+                code: statusCode,
+                status: HttpStatus[statusCode],
+                errors: {
+                    message: 'Unknown database error',
+                    details: exception.message,
+                },
+            };
+        } else if (exception instanceof PrismaClientValidationError) {
+            // Kesalahan validasi dari Prisma
+            statusCode = HttpStatus.BAD_REQUEST;
+            errorResponse = {
+                code: statusCode,
+                status: HttpStatus[statusCode],
+                errors: {
+                    message: 'Database validation error',
+                    details: exception.message,
+                },
+            };
+        } else if (exception instanceof PrismaClientRustPanicError) {
+            // Kesalahan internal dari Prisma (misalnya, panic di sisi Rust)
+            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            errorResponse = {
+                code: statusCode,
+                status: HttpStatus[statusCode],
+                errors: {
+                    message: 'Internal server error in the database layer',
+                    details: exception.message,
+                },
+            };
         } else {
-            console.log(exception)
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResponse = {
                 code: statusCode,
