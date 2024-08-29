@@ -1,5 +1,4 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { PrismaService } from './service/prisma.service';
@@ -17,9 +16,6 @@ import { jwtConstants } from '../config/constants';
             transports: [
                 new winston.transports.Console()
             ]
-        }),
-        ConfigModule.forRoot({
-            isGlobal: true,
         }),
         JwtModule.register({
             secret: jwtConstants.access_token,
