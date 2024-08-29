@@ -9,7 +9,6 @@ import * as bcrypt from 'bcrypt';
 import { ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { RoleResponse } from "src/model/role.model";
-import { User } from "@prisma/client";
 
 @Injectable()
 export class UserService {
@@ -56,8 +55,11 @@ export class UserService {
 
         createRequest.password = await bcrypt.hash(createRequest.password, 10);
 
+        const userSelectFields = this.userSelectFields();
+
         const createUser = await this.prismaService.user.create({
                 data: createRequest,
+                select: userSelectFields,
         });
 
         const result: UserResponse = {
@@ -136,11 +138,14 @@ export class UserService {
             }
         }
 
+        const userSelectFields = this.userSelectFields();
+
         const updateUser = await this.prismaService.user.update({
             where: {
                 id: userId,
             },
             data: updateRequest,
+            select: userSelectFields,
         });
         
         const result: UserResponse = {
@@ -162,15 +167,7 @@ export class UserService {
 
         let users: UserList[];
 
-        const userSelectFields = {
-            id: true,
-            no_pegawai: true,
-            email: true,
-            name: true,
-            dinas: true,
-            roleId: true,
-            role: true,
-        };
+        const userSelectFields = this.userSelectFields();
 
         if (userRole === 'supervisor' || userRole === 'super admin') {
             users = await this.prismaService.user.findMany({
@@ -367,11 +364,25 @@ export class UserService {
         }
     }
 
-    private async findUser(userId: number): Promise<User> {
+    userSelectFields()  {
+        return {
+            id: true,
+            no_pegawai: true,
+            email: true,
+            name: true,
+            dinas: true,
+            roleId: true,
+            role: true,
+        };
+    }
+
+    private async findUser(userId: number): Promise<any> {
+        const userSelectFields = this.userSelectFields();
         const findUser = await this.prismaService.user.findUnique({
             where: {
                 id: userId,
-            }
+            },
+            select: userSelectFields,
         });
         return findUser;
     }
