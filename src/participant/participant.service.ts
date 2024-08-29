@@ -279,6 +279,74 @@ export class ParticipantService {
         };
     }
 
+    async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ParticipantResponse[], paging: Paging }> {
+        const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+        let participants = await this.prismaService.participant.findMany({});
+
+        if (userRole === 'lcu') {
+            participants = participants.filter(u => u.dinas=== userWithRole.dinas);
+        }
+
+        let filteredParticipants = participants;
+        if (searchRequest.searchQuery) {
+            const query = searchRequest.searchQuery.toLowerCase();
+            if (userRole === 'super admin' || userRole === 'supervisor') {
+                filteredParticipants = participants.filter(participant => 
+                    participant.no_pegawai?.toLowerCase().includes(query) ||
+                    participant.nama.toLowerCase().includes(query) ||
+                    participant.email.toLowerCase().includes(query) ||
+                    participant.no_telp.includes(query) ||
+                    participant.dinas?.toLowerCase().includes(query) ||
+                    participant.bidang?.toLowerCase().includes(query) ||
+                    participant.perusahaan?.toLowerCase().includes(query)
+                );
+            } else {
+                filteredParticipants = participants.filter(participant => 
+                    participant.no_pegawai?.toLowerCase().includes(query) ||
+                    participant.nama.toLowerCase().includes(query) ||
+                    participant.email.toLowerCase().includes(query) ||
+                    participant.no_telp.includes(query) ||
+                    participant.bidang?.toLowerCase().includes(query)
+                );
+            }
+    
+        }
+
+        const totalParticipants = filteredParticipants.length;
+        const totalPage = Math.ceil(totalParticipants / searchRequest.size);
+        const paginatedParticipants = filteredParticipants.slice(
+            (searchRequest.page - 1) * searchRequest.size,
+            searchRequest.page * searchRequest.size
+        );
+
+        if (paginatedParticipants.length === 0) {
+            throw new HttpException("Data peserta tidak ditemukan", 404);
+        }
+
+        return {
+            data: paginatedParticipants.map(participant => ({
+                ...this.toParticipantResponse(participant),
+                links: {
+                    self: `/participants/${participant.id}`,
+                    update: `/participants/${participant.id}`,
+                    delete: `/participants/${participant.id}`,
+                }
+            })),
+            paging: {
+                current_page: searchRequest.page,
+                total_page: totalPage,
+                size: searchRequest.size,
+                links: {
+                    next: totalPage > searchRequest.page ? `/participants/search/result?paging=${searchRequest.page + 1}&size=${searchRequest.size}` : null,
+                    prev: searchRequest.page > 1 ? `/participants/search/result?paging=${searchRequest.page - 1}&size=${searchRequest.size}` : null,
+                }
+            },
+        };
+    }
+
     toParticipantResponse(participant: ParticipantList): ParticipantResponse {
         return {
             id: participant.id,

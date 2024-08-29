@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
-import { buildResponse, ListRequest, WebResponse } from "../model/web.model";
+import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
@@ -214,6 +214,29 @@ export class ParticipantController {
             size: size || 10,
         };
         const result = await this.participantService.listParticipants(query, user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
+    }
+
+    @Get('/search/result')
+    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async search(
+        @Req() user: CurrentUserRequest,
+        @Query('q') q: string,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+    ): Promise<WebResponse<ParticipantResponse[]>> {
+        if(!q) {
+            throw new HttpException('Search query tidak boleh kosong', 400);
+        }
+
+        const query: SearchRequest = {
+            searchQuery: q,
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.participantService.searchParticipant(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.paging);
     }
 }
