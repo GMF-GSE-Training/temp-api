@@ -17,7 +17,7 @@ export class IdCardModel {
         this.perusahaan = perusahaan;
         this.no_pegawai = no_pegawai;
         this.negara = negara;
-        this.logoBuffer = fs.readFileSync(path.join(__dirname, '..', '..', 'assets', 'images', 'Logo_GMF_Aero_Asia.png'));
+        this.logoBuffer = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'assets', 'images', 'Logo_GMF_Aero_Asia.png'));
     }
 
     async getHtmlTemplate(): Promise<string> {

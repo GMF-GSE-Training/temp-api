@@ -92,7 +92,9 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        if(user.user.dinas || user.user.dinas !== null) {
+            this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        }
 
         if (!participant || !participant[fileType]) {
             throw new HttpException('File tidak ditemukan', 404);
@@ -108,7 +110,9 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        if(user.user.dinas || user.user.dinas !== null) {
+            this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        }
 
         return this.toParticipantResponse(participant);
     }
