@@ -115,12 +115,13 @@ export class AuthService {
         const authSelectedFields = this.authSelectedFields();
 
         try {
+            const token = await this.jwtService.signAsync(payload);
             user = await this.prismaService.user.update({
                 where: { 
                     id: user.id 
                 },
                 data: { 
-                    token: await this.jwtService.signAsync(payload),
+                    token 
                 },
                 select: authSelectedFields,
             });

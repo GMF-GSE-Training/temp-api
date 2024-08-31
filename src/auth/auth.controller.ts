@@ -19,8 +19,14 @@ export class AuthController {
 
     @Post('/login')
     @HttpCode(200)
-    async login(@Body() req: LoginUserRequest): Promise<WebResponse<AuthResponse>> {
+    async login(@Body() req: LoginUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<AuthResponse>> {
+        console.log(res)
         const result = await this.authService.login(req);
+        res.cookie('access_token', result.token, {
+            httpOnly: true,
+            // secure: process.env.NODE_ENV === 'production',
+            maxAge: 1000 * 60 * 60 * 24,
+        });
         return buildResponse(HttpStatus.OK, result);
     }
 
@@ -43,8 +49,14 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
-    async logout(@Req() req: CurrentUserRequest): Promise<WebResponse<boolean>> {
+    async logout(@Req() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<boolean>> {
         await this.authService.logout(req.user);
+        res.cookie('access_token', '', {
+            httpOnly: true,
+            // secure: process.env.NODE_ENV === 'production', 
+            sameSite: 'strict',
+            expires: new Date(0) // or you can use maxAge: 0
+        });
         return buildResponse(HttpStatus.OK, true);
     }
 }
