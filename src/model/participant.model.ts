@@ -75,9 +75,9 @@ export interface ParticipantResponse {
     no_telp: string;
     negara: string;
     tempat_lahir: string;
-    tanggal_lahir: Date;
-    exp_surat_sehat: Date;
-    exp_bebas_narkoba: Date;
+    tanggal_lahir: string;
+    exp_surat_sehat: string;
+    exp_bebas_narkoba: string;
     gmf_non_gmf: string;
     link_qr_code?: string;
     links: {
