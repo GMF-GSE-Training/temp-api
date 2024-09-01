@@ -55,38 +55,38 @@ async function seedDatabase(prismaService: PrismaClient) {
     const qrCodeBase64 = await QRCode.toDataURL('http://localhost:4200/participant/view');
     const qr_code = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
-  for (let i = 1; i <= 15; i++) {
-    const dinas = dinasList[i % 5];
+    for (let i = 1; i <= 15; i++) {
+        const dinas = dinasList[i % 5];
 
-    // Membuat data participant
-        await prismaService.participant.create({
-            data: {
-              no_pegawai: `P${i.toString().padStart(3, '0')}`,
-              nama: `Participant ${i}`,
-              nik: `NIK${i.toString().padStart(4, '0')}`,
-              dinas: dinas,
-              bidang: `Bidang ${i}`,
-              perusahaan: i % 2 === 0 ? `Perusahaan ${i}` : null,
-              email: `participant${i}@example.com`,
-              no_telp: `0812345678${i.toString().padStart(2, '0')}`,
-              negara: `Negara ${i}`,
-              tempat_lahir: `Tempat Lahir ${i}`,
-              tanggal_lahir: new Date(1990, i % 12, i),
-              sim_a,
-              sim_b,
-              ktp,
-              foto,
-              surat_sehat_buta_warna,
-              exp_surat_sehat: new Date(2025, 11, 31),
-              surat_bebas_narkoba,
-              exp_bebas_narkoba: new Date(2025, 11, 31),
-              gmf_non_gmf: i % 2 === 0 ? 'GMF' : 'Non-GMF',
-              qr_code,
-            },
-          });
+        // Membuat data participant
+            await prismaService.participant.create({
+                data: {
+                no_pegawai: `P${i.toString().padStart(3, '0')}`,
+                nama: `Participant ${i}`,
+                nik: `NIK${i.toString().padStart(4, '0')}`,
+                dinas: dinas,
+                bidang: `Bidang ${i}`,
+                perusahaan: i % 2 === 0 ? `Perusahaan ${i}` : null,
+                email: `participant${i}@example.com`,
+                no_telp: `0812345678${i.toString().padStart(2, '0')}`,
+                negara: `Negara ${i}`,
+                tempat_lahir: `Tempat Lahir ${i}`,
+                tanggal_lahir: new Date(1990, i % 12, i),
+                sim_a,
+                sim_b,
+                ktp,
+                foto,
+                surat_sehat_buta_warna,
+                exp_surat_sehat: new Date(2025, 11, 31),
+                surat_bebas_narkoba,
+                exp_bebas_narkoba: new Date(2025, 11, 31),
+                gmf_non_gmf: i % 2 === 0 ? 'GMF' : 'Non-GMF',
+                qr_code,
+                },
+            });
 
-    console.log(`Participant ${i} created successfully.`);
-  }
+        console.log(`Participant ${i} created successfully.`);
+    }
 
 
     // Seed 5 super admins
