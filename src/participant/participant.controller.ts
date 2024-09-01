@@ -202,7 +202,7 @@ export class ParticipantController {
     }
 
     @Get('/list/result')
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
         @Req() user: CurrentUserRequest,
