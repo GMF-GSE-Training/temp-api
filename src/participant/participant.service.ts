@@ -192,7 +192,9 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        if(user.user.dinas || user.user.dinas !== null) {
+            this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
+        }
 
         const findUser = await this.prismaService.user.findUnique({
             where: {
@@ -363,9 +365,9 @@ export class ParticipantService {
             no_telp: participant.no_telp,
             negara: participant.negara,
             tempat_lahir: participant.tempat_lahir,
-            tanggal_lahir: participant.tanggal_lahir,
-            exp_surat_sehat: participant.exp_surat_sehat,
-            exp_bebas_narkoba: participant.exp_bebas_narkoba,
+            tanggal_lahir: this.formatDate(new Date(participant.tanggal_lahir)),
+            exp_surat_sehat: this.formatDate(new Date(participant.exp_surat_sehat)),
+            exp_bebas_narkoba: this.formatDate(new Date(participant.exp_bebas_narkoba)),
             gmf_non_gmf: participant.gmf_non_gmf,
             link_qr_code: participant.link_qr_code,
             links: {
@@ -374,6 +376,14 @@ export class ParticipantService {
                 delete: `/participants/${participant.id}`,
             },
         };
+    }
+
+    formatDate(date: Date): string {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().slice();
+
+        return `${day}-${month}-${year}`;
     }
 
     private async userWithRole(userId: string) {
