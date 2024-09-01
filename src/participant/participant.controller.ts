@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
@@ -206,8 +206,8 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     async list(
         @Req() user: CurrentUserRequest,
-        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
-        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,
