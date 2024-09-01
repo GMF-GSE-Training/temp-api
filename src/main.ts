@@ -9,14 +9,14 @@ async function bootstrap() {
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   app.useLogger(logger);
 
+  app.use(cookieParser());
+
   app.enableCors({
-    origin: `*`,
+    origin: `${process.env.ORIGIN}`,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Authorization, Content-Type',
     credentials: true,
   });
-
-  app.use(cookieParser());
 
   const port = process.env.PORT
   await app.listen(port);

@@ -3,7 +3,6 @@ import {
     CanActivate,
     ExecutionContext,
     HttpException,
-    Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../service/prisma.service';

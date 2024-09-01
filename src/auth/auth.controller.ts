@@ -20,11 +20,14 @@ export class AuthController {
     @Post('/login')
     @HttpCode(200)
     async login(@Body() req: LoginUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<AuthResponse>> {
-        console.log(res)
         const result = await this.authService.login(req);
         res.cookie('access_token', result.token, {
             httpOnly: true,
-            // secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production',
+            // secure: false,
+            domain: process.env.HOST,
+            sameSite: 'lax',
+            path: '/',
             maxAge: 1000 * 60 * 60 * 24,
         });
         return buildResponse(HttpStatus.OK, result);
@@ -54,7 +57,8 @@ export class AuthController {
         res.cookie('access_token', '', {
             httpOnly: true,
             // secure: process.env.NODE_ENV === 'production', 
-            sameSite: 'strict',
+            secure: false,
+            sameSite: 'none',
             expires: new Date(0) // or you can use maxAge: 0
         });
         return buildResponse(HttpStatus.OK, true);

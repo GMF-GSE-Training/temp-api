@@ -8,7 +8,7 @@ export class UserValidation {
         name: z.string().min(1).max(50),    
         password: z.string().min(1).max(100),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.number().positive(),
+        roleId: z.string().min(1),
     });
 
     static readonly UPDATE: ZodType = z.object({
@@ -18,7 +18,7 @@ export class UserValidation {
         name: z.string().min(1).max(50).optional(),    
         password: z.string().min(1).max(100).optional(),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.number().positive().optional(),
+        roleId: z.string().min(1).optional(),
     });
 
     static readonly LIST: ZodType = z.object({
