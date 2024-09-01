@@ -247,7 +247,7 @@ export class ParticipantService {
             participants = await this.prismaService.participant.findMany({
                 select: participantSelectFields,
             });
-        } else if (userRole === 'lcu') {
+        } else if (userRole === 'lcu' || userRole === 'user') {
             participants = await this.prismaService.participant.findMany({
                 where: {
                     dinas: userWithRole.dinas,
