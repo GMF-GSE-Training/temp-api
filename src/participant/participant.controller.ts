@@ -89,15 +89,15 @@ export class ParticipantController {
 
         const participantData = {
             ...req,
-            tanggal_lahir: new Date(req.tanggal_lahir),
-            exp_surat_sehat: new Date(req.exp_surat_sehat),
-            exp_bebas_narkoba: new Date(req.exp_bebas_narkoba),
-            sim_a: files.sim_a ? files.sim_a[0].buffer : null,
-            sim_b: files.sim_b ? files.sim_b[0].buffer : null,
-            ktp: files.ktp ? files.ktp[0].buffer : null,
-            foto: files.foto ? files.foto[0].buffer : null,
-            surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
-            surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
+            tanggal_lahir: req.tanggal_lahir ? new Date(req.tanggal_lahir) : undefined,
+            exp_surat_sehat: req.exp_surat_sehat ? new Date(req.exp_surat_sehat) : undefined,
+            exp_bebas_narkoba: req.exp_bebas_narkoba ? new Date(req.exp_bebas_narkoba) : undefined,
+            sim_a: files?.sim_a?.[0]?.buffer || undefined,
+            sim_b: files?.sim_b?.[0]?.buffer || undefined,
+            ktp: files?.ktp?.[0]?.buffer || undefined,
+            foto: files?.foto?.[0]?.buffer || undefined,
+            surat_sehat_buta_warna: files?.surat_sehat_buta_warna?.[0]?.buffer || undefined,
+            surat_bebas_narkoba: files?.surat_bebas_narkoba?.[0]?.buffer || undefined,
         };
 
         const participant = await this.participantService.updateParticipant(participantId, participantData);
