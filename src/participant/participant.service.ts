@@ -46,6 +46,10 @@ export class ParticipantService {
             throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
+        if(data.perusahaan) {
+            data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') ? 'GMF' : 'Non GMF';
+        }
+
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 
         const participant = await this.prismaService.participant.create({
