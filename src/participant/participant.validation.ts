@@ -22,7 +22,7 @@ export class ParticipantValidation {
         surat_bebas_narkoba: z.instanceof(Buffer),
         exp_bebas_narkoba: z.date(),
         link_qr_code: z.string().min(1).max(255).optional(),
-        qr_code: z.instanceof(Buffer),
+        qr_code: z.instanceof(Buffer).optional(),
         gmf_non_gmf: z.string().min(1).max(20),
     });
 

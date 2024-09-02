@@ -61,7 +61,7 @@ model Participant {
   surat_bebas_narkoba    Bytes
   exp_bebas_narkoba      DateTime @db.Date
   link_qr_code           String?  @db.VarChar(255)
-  qr_code                Bytes
+  qr_code                Bytes?
   gmf_non_gmf            String   @db.VarChar(20)
 
   user User?

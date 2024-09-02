@@ -18,7 +18,7 @@ export interface CreateParticipantRequest {
     exp_surat_sehat: Date;
     surat_bebas_narkoba: Buffer;
     exp_bebas_narkoba: Date;
-    gmf_non_gmf: string;
+    gmf_non_gmf?: string;
     link_qr_code?: string;
     qr_code?: Buffer;
 }

@@ -56,9 +56,13 @@ async function seedDatabase(prismaService: PrismaClient) {
     const qr_code = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
     for (let i = 1; i <= 15; i++) {
+        const email = `participant${i}@example.com`;
+        const existingParticipant = await prismaService.participant.findFirst({
+            where: { email },
+        });
         const dinas = dinasList[i % 5];
 
-        // Membuat data participant
+        if(!existingParticipant) {
             await prismaService.participant.create({
                 data: {
                 no_pegawai: `P${i.toString().padStart(3, '0')}`,
@@ -84,8 +88,8 @@ async function seedDatabase(prismaService: PrismaClient) {
                 qr_code,
                 },
             });
-
-        console.log(`Participant ${i} created successfully.`);
+            console.log(`Participant ${i} created successfully.`);
+        }
     }
 
 
@@ -106,8 +110,8 @@ async function seedDatabase(prismaService: PrismaClient) {
                     roleId: superAdminRole.id,
                 },
             });
+            console.log(`Super Admin ${i} created successfully.`);
         }
-        console.log(`Super Admin ${i} created successfully.`);
     }
 
     // Seed 5 supervisors
@@ -127,8 +131,8 @@ async function seedDatabase(prismaService: PrismaClient) {
                     roleId: supervisorRole.id,
                 },
             });
+            console.log(`Supervisor ${i} created successfully.`);
         }
-        console.log(`Supervisor ${i} created successfully.`);
     }
 
     // Seed 5 LCUs
@@ -148,8 +152,8 @@ async function seedDatabase(prismaService: PrismaClient) {
                     roleId: lcuRole.id,
                 },
             });
+            console.log(`LCU ${i} created successfully.`);
         }
-        console.log(`LCU ${i} created successfully.`);
     }
 
     // Seed 5 Usrs
@@ -172,8 +176,8 @@ async function seedDatabase(prismaService: PrismaClient) {
                     roleId: userRole.id,
                 },
             });
+            console.log(`User ${i} created successfully.`);
         }
-        console.log(`User ${i} created successfully.`);
     }
 }
 

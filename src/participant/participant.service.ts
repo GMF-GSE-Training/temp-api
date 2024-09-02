@@ -46,13 +46,6 @@ export class ParticipantService {
             throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
-        if(!data.link_qr_code) {
-            throw new HttpException('Link tidak boleh kosong', 400);
-        }
-
-        const qrCodeBase64 = await QRCode.toDataURL(data.link_qr_code);
-        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
-        data.qr_code = qrCodeBuffer;
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 
         const participant = await this.prismaService.participant.create({
@@ -76,13 +69,29 @@ export class ParticipantService {
                 exp_surat_sehat: validatedData.exp_surat_sehat,
                 surat_bebas_narkoba: validatedData.surat_bebas_narkoba,
                 exp_bebas_narkoba: validatedData.exp_bebas_narkoba,
-                link_qr_code: validatedData.link_qr_code,
-                qr_code: validatedData.qr_code,
+                link_qr_code: '',
+                qr_code: null,
                 gmf_non_gmf: validatedData.gmf_non_gmf,
             },
         });
 
-        return this.toParticipantResponse(participant);
+    // Modifikasi link_qr_code dengan ID peserta
+    const link = data.link_qr_code.replace('{id}', participant.id);
+
+    // Generate QR code
+    const qrCodeBase64 = await QRCode.toDataURL(link);
+    const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+
+    // Update peserta dengan QR code dan link
+    const result = await this.prismaService.participant.update({
+        where: { id: participant.id },
+        data: {
+            link_qr_code: link,
+            qr_code: qrCodeBuffer,
+        },
+    });
+
+        return this.toParticipantResponse(result);
     }
 
     async streamFile(participantId: string, fileType: string, user: CurrentUserRequest): Promise<Buffer> {

@@ -37,6 +37,7 @@ export class ParticipantController {
             surat_bebas_narkoba?: Express.Multer.File[],
         },
     ): Promise<WebResponse<ParticipantResponse>> {
+        console.log(createParticipantDto)
         let participantData: CreateParticipantRequest;
 
         try {
@@ -98,7 +99,7 @@ export class ParticipantController {
             surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
             surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
         };
-        
+
         const participant = await this.participantService.updateParticipant(participantId, participantData);
         return buildResponse(HttpStatus.OK, participant);
     }
@@ -159,6 +160,16 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba', user);
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:participantId/qr-code')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getQrCode(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const fileBuffer = await this.participantService.streamFile(participantId, 'qr_code', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
