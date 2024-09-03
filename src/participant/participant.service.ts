@@ -161,7 +161,9 @@ export class ParticipantService {
     }
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
+        console.log(req)
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
+        console.log(updateRequest)
 
         if(req.nik) {
             const nikIsAlreadyExists = await this.prismaService.participant.count({
@@ -192,23 +194,25 @@ export class ParticipantService {
             data: updateRequest,
         });
 
-        const updateData: { nik?: string; dinas?: string } = {};
+        if(req.nik || req.dinas) {
+            const updateData: { nik?: string; dinas?: string } = {};
 
-        if (req.nik) {
-            updateData.nik = req.nik;
+            if (req.nik) {
+                updateData.nik = req.nik;
+            }
+
+            if (req.dinas) {
+                updateData.dinas = req.dinas;
+            }
+
+            // Lakukan update sekali saja
+            await this.prismaService.user.update({
+                where: {
+                    nik: participant.nik,
+                },
+                data: updateData,
+            });
         }
-
-        if (req.dinas) {
-            updateData.dinas = req.dinas;
-        }
-
-        // Lakukan update sekali saja
-        await this.prismaService.user.update({
-            where: {
-                nik: participant.nik,
-            },
-            data: updateData,
-        });
 
         return this.toParticipantResponse(result);
     }
