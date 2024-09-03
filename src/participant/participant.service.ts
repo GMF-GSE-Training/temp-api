@@ -184,16 +184,23 @@ export class ParticipantService {
             data: updateRequest,
         });
 
-        if(req.nik) {
-            await this.prismaService.user.update({
-                where: {
-                    nik: req.nik,
-                },
-                data: {
-                    nik: req.nik
-                }
-            });
+        const updateData: { nik?: string; dinas?: string } = {};
+
+        if (req.nik) {
+            updateData.nik = req.nik;
         }
+
+        if (req.dinas) {
+            updateData.dinas = req.dinas;
+        }
+
+        // Lakukan update sekali saja
+        await this.prismaService.user.update({
+            where: {
+                nik: participant.nik,
+            },
+            data: updateData,
+        });
 
         return this.toParticipantResponse(result);
     }
