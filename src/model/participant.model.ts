@@ -1,9 +1,9 @@
 export interface CreateParticipantRequest {
-    no_pegawai: string;
+    no_pegawai?: string;
     nama: string;
     nik: string;
-    dinas: string;
-    bidang: string;
+    dinas?: string;
+    bidang?: string;
     perusahaan: string;
     email: string;
     no_telp: string;

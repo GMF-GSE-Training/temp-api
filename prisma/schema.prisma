@@ -41,12 +41,12 @@ model Role {
 
 model Participant {
   id                     String   @id @default(uuid())
-  no_pegawai             String   @db.VarChar(20)
+  no_pegawai             String?   @db.VarChar(20)
   nama                   String?  @db.VarChar(50)
   nik                    String   @unique @db.VarChar(50)
-  dinas                  String   @db.VarChar(50)
-  bidang                 String   @db.VarChar(50)
-  perusahaan             String?  @db.VarChar(50)
+  dinas                  String?   @db.VarChar(50)
+  bidang                 String?   @db.VarChar(50)
+  perusahaan             String  @db.VarChar(50)
   email                  String   @db.VarChar(50)
   no_telp                String   @db.VarChar(50)
   negara                 String   @db.VarChar(50)
