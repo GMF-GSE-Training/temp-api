@@ -27,11 +27,11 @@ export class ParticipantValidation {
     });
 
     static readonly UPDATE: ZodType = z.object({
-        no_pegawai: z.string().min(1).max(20).optional(),
+        no_pegawai: z.string().max(20).optional().nullable(),
         nama: z.string().min(1).max(50).optional(),
         nik: z.string().min(1).min(1).max(50).optional(),
-        dinas: z.string().min(1).max(50).optional(),
-        bidang: z.string().min(1).max(50).optional(),
+        dinas: z.string().max(50).optional().nullable(),
+        bidang: z.string().max(50).optional().nullable(),
         perusahaan: z.string().min(1).max(50).optional(),
         email: z.string().email().min(1).max(50).optional(),
         no_telp: z.string().min(1).max(50).optional(),

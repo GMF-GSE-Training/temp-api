@@ -161,9 +161,7 @@ export class ParticipantService {
     }
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
-        console.log(req)
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
-        console.log(updateRequest)
 
         if(req.nik) {
             const nikIsAlreadyExists = await this.prismaService.participant.count({
@@ -187,10 +185,12 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
+        if (req.no_pegawai === undefined) updateRequest.no_pegawai = null;
+        if (req.dinas === undefined) updateRequest.dinas = null;
+        if (req.bidang === undefined) updateRequest.bidang = null;
+
         const result = await this.prismaService.participant.update({
-            where: {
-                id: participantId,
-            },
+            where: { id: participantId },
             data: updateRequest,
         });
 
@@ -201,11 +201,10 @@ export class ParticipantService {
                 updateData.nik = req.nik;
             }
 
-            if (req.dinas) {
+            if (req.dinas || req.dinas != '') {
                 updateData.dinas = req.dinas;
             }
 
-            // Lakukan update sekali saja
             await this.prismaService.user.update({
                 where: {
                     nik: participant.nik,

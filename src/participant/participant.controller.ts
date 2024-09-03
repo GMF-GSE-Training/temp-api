@@ -38,7 +38,6 @@ export class ParticipantController {
         },
     ): Promise<WebResponse<ParticipantResponse>> {
         let participantData: CreateParticipantRequest;
-        console.log(createParticipantDto)
         try {
             participantData = {
                 ...createParticipantDto,
@@ -52,7 +51,6 @@ export class ParticipantController {
                 surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
                 surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
             };
-            console.log(participantData);
         } catch(error) {
             throw new HttpException('Semua file/image tidak boleh kosong', 400);
         }
@@ -86,7 +84,6 @@ export class ParticipantController {
             surat_bebas_narkoba?: Express.Multer.File[],
         }
     ): Promise<WebResponse<ParticipantResponse>> {
-
         const participantData = {
             ...req,
             tanggal_lahir: req.tanggal_lahir ? new Date(req.tanggal_lahir) : undefined,
