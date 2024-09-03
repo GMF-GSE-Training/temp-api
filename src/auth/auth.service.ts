@@ -56,11 +56,11 @@ export class AuthService {
             throw new HttpException('Email tidak sesuai dengan data participant', 400);
         }
 
-        if (registerRequest.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
+        if (participant.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
             throw new HttpException('No Pegawai tidak sesuai dengan data participant', 400);
         }
 
-        if (registerRequest.dinas && registerRequest.dinas !== participant.dinas) {
+        if (participant.dinas && registerRequest.dinas !== participant.dinas) {
             throw new HttpException('Dinas tidak sesuai dengan data participant', 400);
         }
 
