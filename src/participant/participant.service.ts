@@ -127,7 +127,15 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
-        return this.toParticipantResponse(participant);
+        const userWithRole = await this.userWithRole(user.user.id);
+
+        const userRole = userWithRole.role.role.toLowerCase();
+        if(userRole === 'super admin') {
+            return this.toParticipantResponse(participant);
+        } else {
+            const { nik, ...participantWhitoutNik } = participant;
+            return this.toParticipantResponse(participantWhitoutNik);
+        }
     }
 
     async downloadIdCard(participantId: string): Promise<Buffer> {
@@ -265,16 +273,26 @@ export class ParticipantService {
             link_qr_code: true,
         }
 
-        if (userRole === 'supervisor' || userRole === 'super admin') {
+        if (userRole === 'super admin') {
             participants = await this.prismaService.participant.findMany({
                 select: participantSelectFields,
+            });
+        } else if(userRole === 'supervisor') {
+            participants = await this.prismaService.participant.findMany({
+                select: {
+                    ...participantSelectFields,
+                    nik: false,
+                },
             });
         } else if (userRole === 'lcu' || userRole === 'user') {
             participants = await this.prismaService.participant.findMany({
                 where: {
                     dinas: userWithRole.dinas,
                 },
-                select: participantSelectFields,
+                select: {
+                    ...participantSelectFields,
+                    nik: false,
+                },
             });
         } else {
             throw new HttpException('Forbidden', 403);
@@ -378,6 +396,7 @@ export class ParticipantService {
             id: participant.id,
             no_pegawai: participant.no_pegawai,
             nama: participant.nama,
+            nik: participant.nik,
             dinas: participant.dinas,
             bidang: participant.bidang,
             perusahaan: participant.perusahaan,

@@ -50,6 +50,7 @@ export interface ParticipantList {
     id: string;
     no_pegawai: string;
     nama: string;
+    nik?: string;
     dinas: string;
     bidang: string;
     perusahaan?: string;
@@ -68,6 +69,7 @@ export interface ParticipantResponse {
     id: string;
     no_pegawai: string;
     nama: string;
+    nik?: string;
     dinas: string;
     bidang: string;
     perusahaan?: string;
