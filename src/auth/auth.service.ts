@@ -49,19 +49,19 @@ export class AuthService {
         });
 
         if(!participant) {
-            throw new HttpException('NIK tidak ada di data participant', 400);
+            throw new HttpException('NIK tidak ada di data peserta', 400);
         }
 
         if (registerRequest.email !== participant.email) {
-            throw new HttpException('Email tidak sesuai dengan data participant', 400);
+            throw new HttpException('Email tidak sesuai dengan data peserta', 400);
         }
 
         if (participant.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
-            throw new HttpException('No Pegawai tidak sesuai dengan data participant', 400);
+            throw new HttpException('No Pegawai tidak sesuai dengan data peserta', 400);
         }
 
         if (participant.dinas && registerRequest.dinas !== participant.dinas) {
-            throw new HttpException('Dinas tidak sesuai dengan data participant', 400);
+            throw new HttpException('Dinas tidak sesuai dengan data peserta', 400);
         }
 
         await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);

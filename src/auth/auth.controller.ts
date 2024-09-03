@@ -14,13 +14,14 @@ export class AuthController {
     @HttpCode(200)
     async register(@Body() req: any): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.register(req);
-        return buildResponse(HttpStatus.OK, result);
+        const { token, ...response } = result;
+        return buildResponse(HttpStatus.OK, response);
     }
 
     @Post('/login')
     @HttpCode(200)
     async login(@Body() req: LoginUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<AuthResponse>> {
-        const result = await this.authService.login(req);
+        let result = await this.authService.login(req);
         res.cookie('access_token', result.token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -30,7 +31,8 @@ export class AuthController {
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
         });
-        return buildResponse(HttpStatus.OK, result);
+        const { token, ...response } = result;
+        return buildResponse(HttpStatus.OK, response);
     }
 
     @UseGuards(AuthGuard)
