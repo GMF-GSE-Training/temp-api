@@ -66,7 +66,7 @@ export class UserController {
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
         if(!q) {
-            throw new HttpException('Search query tidak boleh kosong', 400);
+            throw new HttpException('No Content', 204);
         }
 
         const query: SearchRequest = {

@@ -232,11 +232,11 @@ export class ParticipantController {
     async search(
         @Req() user: CurrentUserRequest,
         @Query('q') q: string,
-        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
-        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
         if(!q) {
-            throw new HttpException('Search query tidak boleh kosong', 400);
+            throw new HttpException('Query kosong, data tidak ditemukan', 204);
         }
 
         const query: SearchRequest = {

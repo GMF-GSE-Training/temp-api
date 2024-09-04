@@ -370,7 +370,7 @@ export class ParticipantService {
         );
 
         if (paginatedParticipants.length === 0) {
-            throw new HttpException("Data peserta tidak ditemukan", 404);
+            throw new HttpException("Data peserta tidak ditemukan", 204);
         }
 
         return {
