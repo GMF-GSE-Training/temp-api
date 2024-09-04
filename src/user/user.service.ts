@@ -259,7 +259,7 @@ export class UserService {
         );
     
         if (paginatedUsers.length === 0) {
-            throw new HttpException("Data users tidak ditemukan", 404);
+            throw new HttpException("Data users tidak ditemukan", 204);
         }
     
         return {
