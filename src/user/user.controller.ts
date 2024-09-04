@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
 import { CreateUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
@@ -44,8 +44,8 @@ export class UserController {
     @HttpCode(200)
     async list(
         @Req() user: CurrentUserRequest,
-        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
-        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,
@@ -62,8 +62,8 @@ export class UserController {
     async search(
         @Req() user: CurrentUserRequest,
         @Query('q') q: string,
-        @Query('page', new ParseUUIDPipe({ optional: true })) page?: number,
-        @Query('size', new ParseUUIDPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
         if(!q) {
             throw new HttpException('Search query tidak boleh kosong', 400);
