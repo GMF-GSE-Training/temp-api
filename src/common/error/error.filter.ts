@@ -38,12 +38,12 @@ export class ErrorFilter implements ExceptionFilter {
             };
         } else if (exception instanceof PrismaClientKnownRequestError) {
             // Kesalahan kueri yang diketahui dari Prisma (misalnya, pelanggaran batasan unik)
-            statusCode = HttpStatus.BAD_REQUEST;
+            statusCode = HttpStatus.CONFLICT;
             errorResponse = {
                 code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: {
-                    message: 'Database request error',
+                    message: 'NIK sudah digunakan',
                     details: exception.message,
                 },
             };
@@ -58,18 +58,20 @@ export class ErrorFilter implements ExceptionFilter {
                     details: exception.message,
                 },
             };
-        } else if (exception instanceof PrismaClientValidationError) {
-            // Kesalahan validasi dari Prisma
-            statusCode = HttpStatus.BAD_REQUEST;
-            errorResponse = {
-                code: statusCode,
-                status: HttpStatus[statusCode],
-                errors: {
-                    message: 'Database validation error',
-                    details: exception.message,
-                },
-            };
-        } else if (exception instanceof PrismaClientRustPanicError) {
+        } 
+        // else if (exception instanceof PrismaClientValidationError) {
+        //     // Kesalahan validasi dari Prisma
+        //     statusCode = HttpStatus.BAD_REQUEST;
+        //     errorResponse = {
+        //         code: statusCode,
+        //         status: HttpStatus[statusCode],
+        //         errors: {
+        //             message: 'Database validation error',
+        //             details: exception.message,
+        //         },
+        //     };
+        // } 
+        else if (exception instanceof PrismaClientRustPanicError) {
             // Kesalahan internal dari Prisma (misalnya, panic di sisi Rust)
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResponse = {

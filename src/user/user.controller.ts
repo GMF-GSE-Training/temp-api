@@ -11,7 +11,7 @@ import { CurrentUserRequest } from "src/model/auth.model";
 export class UserController {
     constructor(private userService: UserService) {}
 
-    @Post('/create')
+    @Post()
     @Roles('Super Admin', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)

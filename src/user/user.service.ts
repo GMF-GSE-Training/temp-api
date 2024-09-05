@@ -19,6 +19,10 @@ export class UserService {
     ) {}
 
     async createUser(req: CreateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
+        if(!req.roleId) {
+            throw new HttpException('Role tidak boleh kosong', 404);
+        }
+
         const userWithRole = await this.userWithRole(user.user.id);
         const userRequest = userWithRole.role.role.toLowerCase();
 
