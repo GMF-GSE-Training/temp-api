@@ -16,6 +16,7 @@ export interface LoginUserRequest {
 }
 
 export interface CurrentUserRequest {
+    role: any;
     user: User;
 }
 

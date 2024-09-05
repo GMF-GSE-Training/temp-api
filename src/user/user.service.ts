@@ -75,7 +75,7 @@ export class UserService {
             },
         }
         
-        return this.toUserResponse(result);
+        return this.toUserResponse(result, userRequest);
     }
 
     async getUser(userId: string, user: CurrentUserRequest): Promise<UserResponse> {
@@ -102,7 +102,7 @@ export class UserService {
             },
         }
         
-        return this.toUserResponse(result);
+        return this.toUserResponse(result, userRequest);
     }
 
     async updateUser(userId: string, req: UpdateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
@@ -120,6 +120,11 @@ export class UserService {
         const roleUser = await this.findRoleUser();
         const userWithRole = await this.userWithRole(user.user.id);
         const userRequest = userWithRole.role.role.toLowerCase();
+
+        if (req.roleId === roleUser.id) {
+            this.validateNikForUser(req);
+            await this.validateParticipantNik(req.nik);
+        }
 
         if(userRequest === 'lcu') {
             if(req.roleId) {
@@ -161,7 +166,48 @@ export class UserService {
             },
         }
         
-        return this.toUserResponse(result);
+        return this.toUserResponse(result, userRequest);
+    }
+
+    async delete(userId: string, user: CurrentUserRequest): Promise<UserResponse> {
+        const findUser = await this.findUser(userId);
+
+        if(!findUser) {
+            throw new HttpException('User tidak ditemukan', 404);
+        }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRequest = userWithRole.role.role.toLowerCase();
+        const roleUser = await this.findRoleUser();
+
+        if(userRequest === 'lcu') {
+            this.validateRoleForLcuRequest(findUser.roleId, roleUser.id);
+            this.validateDinasForLcuRequest(findUser.dinas, userWithRole.dinas);
+        }
+
+        const deleteUser = await this.prismaService.user.delete({
+            where: {
+                id: userId,
+            }
+        });
+
+        console.log(deleteUser);
+
+        const result: UserResponse = {
+            id: deleteUser.id,
+            no_pegawai: deleteUser.no_pegawai,
+            email: deleteUser.email,
+            name: deleteUser.name,
+            dinas: deleteUser.dinas,
+            roleId: deleteUser.roleId,
+            links: {
+                self: `/users/${deleteUser.id}`,
+                update: `/users/${deleteUser.id}`,
+                delete: `/users/${deleteUser.id}`,
+            },
+        }
+
+        return this.toUserResponse(result, userRequest);
     }
 
     async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
@@ -206,7 +252,7 @@ export class UserService {
         }
 
         return {
-            data: paginatedUsers.map(user => this.toUserResponse(user)),
+            data: paginatedUsers.map(user => this.toUserResponse(user, userRole)),
             paging: {
                 current_page: listRequest.page,
                 total_page: totalPage,
@@ -268,7 +314,7 @@ export class UserService {
     
         return {
             data: paginatedUsers.map(user => ({
-                ...this.toUserResponse(user),
+                ...this.toUserResponse(user, userRole),
                 links: {
                     self: `/users/${user.id}`,
                     update: `/users/${user.id}`,
@@ -285,40 +331,6 @@ export class UserService {
                 }
             },
         };
-    }
-
-    async delete(userId: string): Promise<UserResponse> {
-        const user = await this.prismaService.user.findUnique({
-            where: {
-                id: userId,
-            }
-        });
-
-        if(!user) {
-            throw new HttpException('User tidak ditemukan', 404);
-        }
-
-        const deleteUser = await this.prismaService.user.delete({
-            where: {
-                id: userId,
-            }
-        });
-
-        const result: UserResponse = {
-            id: deleteUser.id,
-            no_pegawai: deleteUser.no_pegawai,
-            email: deleteUser.email,
-            name: deleteUser.name,
-            dinas: deleteUser.dinas,
-            roleId: deleteUser.roleId,
-            links: {
-                self: `/users/${deleteUser.id}`,
-                update: `/users/${deleteUser.id}`,
-                delete: `/users/${deleteUser.id}`,
-            },
-        }
-
-        return this.toUserResponse(result);
     }
 
     async checkUserExists(no_pegawai: string, email: string) {
@@ -357,13 +369,25 @@ export class UserService {
         return userRequest;
     }
 
-    toUserResponse(user: UserList): UserResponse {
+    toUserResponse(data: UserResponse, currentRoleUser: string): UserResponse {
+        if(currentRoleUser === 'super admin' || currentRoleUser === 'lcu') {
+            return {
+                ...data,
+                nik: data.nik,
+                links: {
+                    self: `/users/${data.id}`,
+                    update: `/users/${data.id}`,
+                    delete: `/users/${data.id}`,
+                },
+            }
+        }
+
         return {
-            ...user,
+            ...data,
             links: {
-                self: `/users/${user.id}`,
-                update: `/users/${user.id}`,
-                delete: `/users/${user.id}`,
+                self: `/users/${data.id}`,
+                update: `/users/${data.id}`,
+                delete: `/users/${data.id}`,
             },
         }
     }

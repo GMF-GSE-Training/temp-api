@@ -82,8 +82,8 @@ export class UserController {
     @Roles('Super Admin', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async deleteUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<WebResponse<boolean>> {
-        await this.userService.delete(userId);
+    async deleteUser(@Param('userId', ParseUUIDPipe) userId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
+        await this.userService.delete(userId, user);
         return buildResponse(HttpStatus.OK, true);
     }
 }

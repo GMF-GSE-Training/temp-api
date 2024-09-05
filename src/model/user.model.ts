@@ -31,10 +31,15 @@ export interface UserResponse {
     id: string;
     no_pegawai?: string;
     email: string;
+    nik?: string;
     name: string;
     dinas?: string;
     roleId: string;
-    links: {
+    role?: {
+        id: string,
+        role: string;
+    }
+    links?: {
         self: string;
         update: string;
         delete: string;
