@@ -84,7 +84,7 @@ async function seedDatabase(prismaService: PrismaClient) {
                 exp_surat_sehat: new Date(2025, 11, 31),
                 surat_bebas_narkoba,
                 exp_bebas_narkoba: new Date(2025, 11, 31),
-                gmf_non_gmf: i % 2 === 0 ? 'GMF' : 'Non-GMF',
+                gmf_non_gmf: i % 2 === 0 ? 'GMF' : 'Non GMF',
                 qr_code,
                 },
             });

@@ -46,9 +46,7 @@ export class ParticipantService {
             throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
-        if(data.perusahaan) {
-            data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') ? 'GMF' : 'Non GMF';
-        }
+        data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
 
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 
@@ -162,7 +160,6 @@ export class ParticipantService {
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
-
         if(req.nik) {
             const nikIsAlreadyExists = await this.prismaService.participant.count({
                 where: {
@@ -185,9 +182,9 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        if (req.no_pegawai === undefined) updateRequest.no_pegawai = null;
-        if (req.dinas === undefined) updateRequest.dinas = null;
-        if (req.bidang === undefined) updateRequest.bidang = null;
+        updateRequest.no_pegawai === "null" ? updateRequest.no_pegawai = null : updateRequest.no_pegawai;
+        updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
+        updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
         const result = await this.prismaService.participant.update({
             where: { id: participantId },
