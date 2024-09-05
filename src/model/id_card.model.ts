@@ -26,19 +26,16 @@ export class IdCardModel {
         const logoBase64 = this.logoBuffer.toString('base64');
 
         return `
-        <!DOCTYPE html>
-        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>ID Card</title>
             <style>
-                body {
-                    font-family: Arial, sans-serif;
+                .container {
+                    font-family: 'Petrona', sans-serif;
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    height: 100vh;
                     gap: 50px;
                 }
             
@@ -62,7 +59,7 @@ export class IdCardModel {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    gap: 7px;
+                    gap: 50px;
                     height: 150px;
                     margin-bottom: 20px;
                 }
@@ -160,51 +157,52 @@ export class IdCardModel {
             </style>
         </head>
         <body>
-            <!-- Front Side -->
-            <div class="id-card">
-            <div class="logo">
-                <img src="data:image/png;base64,${logoBase64}" alt="GMF AeroAsia">
-            </div>
-            <hr>
-            <div class="id-card-front">
-                <h2>PERSONEL PERALATAN PELAYANAN DARAT PESAWAT UDARA
-                    <br>
-                    (GSE Operator)
-                </h2>
-                <div class="img">
-                    <div class="photo">
-                        <img src="data:/image/png;base64,${photoBase64}" alt="Profile Picture">
-                    </div>
-                    <div class="qr-code">
-                        <img src="data:image/png;base64,${qrCodeBase64}" alt="QR Code">
-                    </div>
-                </div>
-                <div class="details">
-                    <p><span>Name</span><span>: ${this.nama}</span></p>
-                    <p><span>Company</span><span>: ${this.perusahaan}</span></p>
-                    <p><span>ID Number</span><span>: ${this.no_pegawai}</span></p>
-                    <p><span>Nationality</span><span>: ${this.negara}</span></p>
-                </div>          
-            </div>
-            </div>
-
-            <!-- Back Side -->
-            <div class="id-card">
+            <div class="container">
+                <!-- Front Side -->
+                <div class="id-card">
                 <div class="logo">
                     <img src="data:image/png;base64,${logoBase64}" alt="GMF AeroAsia">
                 </div>
                 <hr>
-                <div class="id-card-back">
-                <p id="p1">Kartu ini merupakan kartu ijin mengendarai kendaraan ground support equipment (GSE) berdasarkan kompetensi yang dimiliki masing-masing pemegang kartu ini.</p>
-                <p id="p2">Dengan digunakannya kartu ini, Pemegang kartu menyatakan tunduk dan patuh pada peraturan yang berlaku.</p>
-                <br>
-                <p id="p3">Jika kartu ini ditemukan, mohon dikembalikan ke:</p>
-                <br>
-                <p id="p4" class="footer"><strong>Gedung Posko GMF</strong>Area Perkantoran Bandara Soekarno Hatta - Tangerang, Banten</p>
+                <div class="id-card-front">
+                    <h2>PERSONEL PERALATAN PELAYANAN DARAT PESAWAT UDARA
+                        <br>
+                        (GSE Operator)
+                    </h2>
+                    <div class="img">
+                        <div class="photo">
+                            <img src="data:/image/png;base64,${photoBase64}" alt="Profile Picture">
+                        </div>
+                        <div class="qr-code">
+                            <img src="data:image/png;base64,${qrCodeBase64}" alt="QR Code">
+                        </div>
+                    </div>
+                    <div class="details">
+                        <p><span>Name</span><span>: ${this.nama}</span></p>
+                        <p><span>Company</span><span>: ${this.perusahaan}</span></p>
+                        <p><span>ID Number</span><span>: ${this.no_pegawai}</span></p>
+                        <p><span>Nationality</span><span>: ${this.negara}</span></p>
+                    </div>          
+                </div>
+                </div>
+
+                <!-- Back Side -->
+                <div class="id-card">
+                    <div class="logo">
+                        <img src="data:image/png;base64,${logoBase64}" alt="GMF AeroAsia">
+                    </div>
+                    <hr>
+                    <div class="id-card-back">
+                    <p id="p1">Kartu ini merupakan kartu ijin mengendarai kendaraan ground support equipment (GSE) berdasarkan kompetensi yang dimiliki masing-masing pemegang kartu ini.</p>
+                    <p id="p2">Dengan digunakannya kartu ini, Pemegang kartu menyatakan tunduk dan patuh pada peraturan yang berlaku.</p>
+                    <br>
+                    <p id="p3">Jika kartu ini ditemukan, mohon dikembalikan ke:</p>
+                    <br>
+                    <p id="p4" class="footer"><strong>Gedung Posko GMF</strong>Area Perkantoran Bandara Soekarno Hatta - Tangerang, Banten</p>
+                    </div>
                 </div>
             </div>
         </body>
-        </html>        
         `;
     }
 }

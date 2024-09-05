@@ -158,6 +158,22 @@ export class ParticipantService {
         return Buffer.from(pdfBuffer);
     }
 
+    async getIdCard(participantId: string): Promise<string> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: { id: participantId },
+        });
+
+        if (!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        const idCardModel = new IdCardModel(participant.foto, participant.qr_code, participant.nama, participant.perusahaan, participant.no_pegawai, participant.negara);
+
+        const htmlContent = idCardModel.getHtmlTemplate();
+    
+        return htmlContent;
+    }
+
     async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
         if(req.nik) {

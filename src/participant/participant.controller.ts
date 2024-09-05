@@ -181,6 +181,24 @@ export class ParticipantController {
     }
 
     @Get('/:participantId/id-card')
+    @Roles('super admin', 'lcu', 'supervisor', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async getIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {
+        try {
+            const idCardView = await this.participantService.getIdCard(participantId);
+
+            res.set({
+                'Content-Type': 'text/html',
+            });
+
+            res.send(idCardView);
+        } catch (error) {
+            throw new HttpException(error.message, error.status || 500);
+        }
+    }
+
+    @Get('/:participantId/id-card/download')
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
