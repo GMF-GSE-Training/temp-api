@@ -128,7 +128,7 @@ export class ParticipantService {
         const userWithRole = await this.userWithRole(user.user.id);
 
         const userRole = userWithRole.role.role.toLowerCase();
-        if(userRole === 'super admin') {
+        if(userRole === 'super admin' || userRole === 'lcu') {
             return this.toParticipantResponse(participant);
         } else {
             const { nik, ...participantWhitoutNik } = participant;
