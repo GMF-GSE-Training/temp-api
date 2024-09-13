@@ -145,14 +145,10 @@ export class AuthService {
         if (!user) {
             throw new HttpException('User not found', 404);
         }
-
-        const result = this.toAuthResponse({
-            ...user,
-            links: this.links(),
-        });
-
         return {
-            ...result,
+            id: user.id,
+            name: user.name,
+            links: this.links(),
             role: {
                 id: user.role.id,
                 role: user.role.role,
