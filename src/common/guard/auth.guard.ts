@@ -13,6 +13,12 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
+
+        const referer = request.headers.referer || request.headers.origin;
+        if (!this.isValidReferer(referer)) {
+            throw new HttpException('Akses terlarang', 403);
+        }
+
         const token = this.extractTokenFromCookie(request);
 
         if (!token) {
@@ -52,5 +58,19 @@ export class AuthGuard implements CanActivate {
 
     private extractTokenFromCookie(request: Request): string | undefined {
         return request.cookies.access_token;
-    }   
+    }
+
+    private isValidReferer(referer: string | undefined): boolean {
+        // Daftar referer yang valid (ganti sesuai environment)
+        const allowedOrigins = [
+            process.env.ORIGIN, // url aplikasi front-end
+        ];
+
+        if (!referer) {
+            return false; // Jika referer tidak ada, tolak akses
+        }
+
+        // Periksa apakah referer atau origin ada dalam daftar yang diizinkan
+        return allowedOrigins.some(origin => referer.startsWith(origin));
+    }
 }
