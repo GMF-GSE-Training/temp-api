@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from 'winston';
-import { CreateParticipantRequest, ParticipantList, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
+import { CreateParticipantRequest, ListParticipantResponse, ParticipantList, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
@@ -338,45 +338,64 @@ export class ParticipantService {
         };
     }
 
-    async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
+    async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ListParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
 
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
-        let participants = await this.prismaService.participant.findMany({});
+        
+        const participantSelectFields = {
+            id: true,
+            no_pegawai: true,
+            nama: true,
+            email: true,
+            no_telp: true,
+            dinas: true,
+            bidang: true,
+            perusahaan: true,
+        };
 
+        // Prepare where clause for Prisma based on role and search query
+        let whereClause: any = {};
+
+        // Add dinas filter if user is LCU
         if (userRole === 'lcu') {
-            participants = participants.filter(u => u.dinas=== userWithRole.dinas);
+            whereClause.dinas = userWithRole.dinas;
         }
 
-        let filteredParticipants = participants;
+        // Add search query filters if provided
         if (searchRequest.searchQuery) {
             const query = searchRequest.searchQuery.toLowerCase();
             if (userRole === 'super admin' || userRole === 'supervisor') {
-                filteredParticipants = participants.filter(participant => 
-                    participant.no_pegawai?.toLowerCase().includes(query) ||
-                    participant.nama.toLowerCase().includes(query) ||
-                    participant.email.toLowerCase().includes(query) ||
-                    participant.no_telp.includes(query) ||
-                    participant.dinas?.toLowerCase().includes(query) ||
-                    participant.bidang?.toLowerCase().includes(query) ||
-                    participant.perusahaan?.toLowerCase().includes(query)
-                );
+                whereClause.OR = [
+                    { no_pegawai: { contains: query, mode: 'insensitive' } },
+                    { nama: { contains: query, mode: 'insensitive' } },
+                    { email: { contains: query, mode: 'insensitive' } },
+                    { no_telp: { contains: query, mode: 'insensitive' } },
+                    { dinas: { contains: query, mode: 'insensitive' } },
+                    { bidang: { contains: query, mode: 'insensitive' } },
+                    { perusahaan: { contains: query, mode: 'insensitive' } },
+                ];
             } else {
-                filteredParticipants = participants.filter(participant => 
-                    participant.no_pegawai?.toLowerCase().includes(query) ||
-                    participant.nama.toLowerCase().includes(query) ||
-                    participant.email.toLowerCase().includes(query) ||
-                    participant.no_telp.includes(query) ||
-                    participant.bidang?.toLowerCase().includes(query)
-                );
+                whereClause.OR = [
+                    { no_pegawai: { contains: query, mode: 'insensitive' } },
+                    { nama: { contains: query, mode: 'insensitive' } },
+                    { email: { contains: query, mode: 'insensitive' } },
+                    { no_telp: { contains: query, mode: 'insensitive' } },
+                    { bidang: { contains: query, mode: 'insensitive' } },
+                ];
             }
-    
         }
 
-        const totalParticipants = filteredParticipants.length;
+        // Fetch participants directly with filters
+        const participants = await this.prismaService.participant.findMany({
+            where: whereClause,
+            select: participantSelectFields,
+        });
+
+        const totalParticipants = participants.length;
         const totalPage = Math.ceil(totalParticipants / searchRequest.size);
-        const paginatedParticipants = filteredParticipants.slice(
+        const paginatedParticipants = participants.slice(
             (searchRequest.page - 1) * searchRequest.size,
             searchRequest.page * searchRequest.size
         );
@@ -388,8 +407,15 @@ export class ParticipantService {
         const actions = this.validateActions(userRole);
 
         return {
-            data: paginatedParticipants.map(participant => ({
-                ...this.toParticipantResponse(participant),
+            data: participants.map(participant => ({
+                id: participant.id,
+                no_pegawai: participant.no_pegawai,
+                nama: participant.nama,
+                email: participant.email,
+                no_telp: participant.no_telp,
+                dinas: participant.dinas,
+                bidang: participant.bidang,
+                perusahaan: participant.perusahaan
             })),
             actions: actions,
             paging: {

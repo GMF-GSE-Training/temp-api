@@ -13,17 +13,16 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-
         const referer = request.headers.referer || request.headers.origin;
-        if (!this.isValidReferer(referer)) {
-            throw new HttpException('Akses terlarang', 403);
-        }
-
         const token = this.extractTokenFromCookie(request);
 
         if (!token) {
             throw new HttpException('Unauthorized', 401);
         }
+
+        // if (!this.isValidReferer(referer)) {
+        //     throw new HttpException('Akses terlarang', 403);
+        // }
 
         try {
             const payload = await this.jwtService.verifyAsync(

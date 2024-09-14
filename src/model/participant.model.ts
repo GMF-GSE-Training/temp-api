@@ -65,6 +65,15 @@ export interface ParticipantList {
     link_qr_code: string;
 }
 
+export interface ListParticipantResponse {
+    id: string;
+    no_pegawai?: string;
+    nama: string;
+    dinas?: string;
+    bidang?: string;
+    perusahaan: string;
+}
+
 export interface ParticipantResponse {
     id: string;
     no_pegawai: string;

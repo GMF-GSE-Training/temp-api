@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
-import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
+import { CreateParticipantRequest, ListParticipantResponse, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
@@ -252,7 +252,7 @@ export class ParticipantController {
         @Query('q') q: string,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<ParticipantResponse[]>> {
+    ): Promise<WebResponse<ListParticipantResponse[]>> {
         if(!q) {
             throw new HttpException('Query kosong, data tidak ditemukan', 204);
         }
