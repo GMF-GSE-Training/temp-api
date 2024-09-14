@@ -173,7 +173,7 @@ export class ParticipantController {
 
     @Get('/:participantId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
         const result = await this.participantService.getParticipant(participantId, user);
@@ -228,7 +228,7 @@ export class ParticipantController {
     }
 
     @Get('/list/result')
-    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
         @Req() user: CurrentUserRequest,
@@ -240,7 +240,7 @@ export class ParticipantController {
             size: size || 10,
         };
         const result = await this.participantService.listParticipants(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
     @Get('/search/result')
@@ -263,6 +263,6 @@ export class ParticipantController {
             size: size || 10,
         };
         const result = await this.participantService.searchParticipant(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 }

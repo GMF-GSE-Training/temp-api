@@ -10,7 +10,7 @@ import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id_card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
-import { ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 
 @Injectable()
 export class ParticipantService {
@@ -263,7 +263,7 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
-    async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], paging: Paging }> {
+    async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(ParticipantValidation.LIST, req);
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
@@ -325,21 +325,20 @@ export class ParticipantService {
             throw new HttpException("Data peserta tidak ditemukan", 404);
         }
 
+        const actions = this.validateActions(userRole);
+
         return {
             data: paginatedUsers.map(participant => this.toParticipantResponse(participant)),
+            actions: actions,
             paging: {
                 current_page: listRequest.page,
                 total_page: totalPage,
                 size: listRequest.size,
-                links: {
-                    next: totalPage > listRequest.page ? `/participants/list/result?page=${listRequest.page + 1}&size=${listRequest.size}` : null,
-                    prev: listRequest.page > 1 ? `/participants/list/result?page=${listRequest.page - 1}&size=${listRequest.size}` : null,
-                }
             },
         };
     }
 
-    async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ParticipantResponse[], paging: Paging }> {
+    async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
 
         const userWithRole = await this.userWithRole(user.user.id);
@@ -386,23 +385,17 @@ export class ParticipantService {
             throw new HttpException("Data peserta tidak ditemukan", 204);
         }
 
+        const actions = this.validateActions(userRole);
+
         return {
             data: paginatedParticipants.map(participant => ({
                 ...this.toParticipantResponse(participant),
-                links: {
-                    self: `/participants/${participant.id}`,
-                    update: `/participants/${participant.id}`,
-                    delete: `/participants/${participant.id}`,
-                }
             })),
+            actions: actions,
             paging: {
                 current_page: searchRequest.page,
                 total_page: totalPage,
                 size: searchRequest.size,
-                links: {
-                    next: totalPage > searchRequest.page ? `/participants/search/result?paging=${searchRequest.page + 1}&size=${searchRequest.size}` : null,
-                    prev: searchRequest.page > 1 ? `/participants/search/result?paging=${searchRequest.page - 1}&size=${searchRequest.size}` : null,
-                }
             },
         };
     }
@@ -425,11 +418,6 @@ export class ParticipantService {
             exp_bebas_narkoba: this.formatDate(new Date(participant.exp_bebas_narkoba)),
             gmf_non_gmf: participant.gmf_non_gmf,
             link_qr_code: participant.link_qr_code,
-            links: {
-                self: `/participants/${participant.id}`,
-                update: `/participants/${participant.id}`,
-                delete: `/participants/${participant.id}`,
-            },
         };
     }
 
@@ -465,6 +453,22 @@ export class ParticipantService {
     private validateDinasForLcuRequest(participantDinas: string, lcuDinas: string) {
         if(participantDinas != lcuDinas) {
             throw new HttpException('LCU hanya bisa menambahkan, melihat, dan menghapus data peserta dengan dinas yang sama', 403);
+        }
+    }
+
+    private validateActions(userRole: string): ActionAccessRights {
+        if(userRole === 'super admin' || userRole === 'lcu') {
+            return {
+                canEdit: true,
+                canDelete: true,
+                canView: true,
+            }
+        } else {
+            return {
+                canEdit: false,
+                canDelete: false,
+                canView: true,
+            }
         }
     }
 }

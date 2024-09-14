@@ -82,9 +82,4 @@ export interface ParticipantResponse {
     exp_bebas_narkoba: string;
     gmf_non_gmf: string;
     link_qr_code?: string;
-    links: {
-        self: string;
-        update: string;
-        delete: string;
-    }
 }

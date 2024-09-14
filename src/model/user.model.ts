@@ -39,9 +39,4 @@ export interface UserResponse {
         id: string,
         role: string;
     }
-    links?: {
-        self: string;
-        update: string;
-        delete: string;
-    }
 }

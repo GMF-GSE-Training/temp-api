@@ -6,7 +6,7 @@ import { CreateUserRequest, UpdateUserRequest, UserList, UserResponse } from "..
 import { Logger } from 'winston';
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
-import { ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { RoleResponse } from "src/model/role.model";
 
@@ -68,11 +68,6 @@ export class UserService {
 
         const result: UserResponse = {
             ...createUser,
-            links: {
-                self: `/users/${createUser.id}`,
-                update: `/users/${createUser.id}`,
-                delete: `/users/${createUser.id}`,
-            },
         }
         
         return this.toUserResponse(result, userRequest);
@@ -95,11 +90,6 @@ export class UserService {
 
         const result: UserResponse = {
             ...findUser,
-            links: {
-                self: `/users/${findUser.id}`,
-                update: `/users/${findUser.id}`,
-                delete: `/users/${findUser.id}`,
-            },
         }
         
         return this.toUserResponse(result, userRequest);
@@ -159,11 +149,6 @@ export class UserService {
         
         const result: UserResponse = {
             ...updateUser,
-            links: {
-                self: `/users/${updateUser.id}`,
-                update: `/users/${updateUser.id}`,
-                delete: `/users/${updateUser.id}`,
-            },
         }
         
         return this.toUserResponse(result, userRequest);
@@ -200,17 +185,12 @@ export class UserService {
             name: deleteUser.name,
             dinas: deleteUser.dinas,
             roleId: deleteUser.roleId,
-            links: {
-                self: `/users/${deleteUser.id}`,
-                update: `/users/${deleteUser.id}`,
-                delete: `/users/${deleteUser.id}`,
-            },
         }
 
         return this.toUserResponse(result, userRequest);
     }
 
-    async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], paging: Paging }> {
+    async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
@@ -251,21 +231,20 @@ export class UserService {
             throw new HttpException("Data users tidak ditemukan", 404);
         }
 
+        const actions = this.validateActions(userRole);
+
         return {
             data: paginatedUsers.map(user => this.toUserResponse(user, userRole)),
+            actions: actions,
             paging: {
                 current_page: listRequest.page,
                 total_page: totalPage,
                 size: listRequest.size,
-                links: {
-                    next: totalPage > listRequest.page ? `/users/list/result?page=${listRequest.page + 1}&size=${listRequest.size}` : null,
-                    prev: listRequest.page > 1 ? `/users/list/result?page=${listRequest.page - 1}&size=${listRequest.size}` : null,
-                }
             },
         };
     }
 
-    async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], paging: Paging }> {
+    async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
 
         const userWithRole = await this.userWithRole(user.user.id);
@@ -311,24 +290,18 @@ export class UserService {
         if (paginatedUsers.length === 0) {
             throw new HttpException("Data users tidak ditemukan", 204);
         }
+
+        const actions = this.validateActions(userRole);
     
         return {
             data: paginatedUsers.map(user => ({
                 ...this.toUserResponse(user, userRole),
-                links: {
-                    self: `/users/${user.id}`,
-                    update: `/users/${user.id}`,
-                    delete: `/users/${user.id}`,
-                }
             })),
+            actions: actions,
             paging: {
                 current_page: searchRequest.page,
                 total_page: totalPage,
                 size: searchRequest.size,
-                links: {
-                    next: totalPage > searchRequest.page ? `/users/search/result?paging=${searchRequest.page + 1}&size=${searchRequest.size}` : null,
-                    prev: searchRequest.page > 1 ? `/users/search/result?paging=${searchRequest.page - 1}&size=${searchRequest.size}` : null,
-                }
             },
         };
     }
@@ -374,21 +347,11 @@ export class UserService {
             return {
                 ...data,
                 nik: data.nik,
-                links: {
-                    self: `/users/${data.id}`,
-                    update: `/users/${data.id}`,
-                    delete: `/users/${data.id}`,
-                },
             }
         }
 
         return {
             ...data,
-            links: {
-                self: `/users/${data.id}`,
-                update: `/users/${data.id}`,
-                delete: `/users/${data.id}`,
-            },
         }
     }
 
@@ -470,6 +433,22 @@ export class UserService {
     private validateDinasForLcuRequest(dinasRequest: string, dinasLCU: string) {
         if(dinasRequest != dinasLCU) {
             throw new HttpException('LCU hanya dapat membuat, mengakses, dan menghapus akun Pengguna dalam dinas yang sama', 403);
+        }
+    }
+
+    private validateActions(userRole: string): ActionAccessRights {
+        if(userRole === 'super admin' || userRole === 'lcu') {
+            return {
+                canEdit: true,
+                canDelete: true,
+                canView: true,
+            }
+        } else {
+            return {
+                canEdit: false,
+                canDelete: false,
+                canView: true,
+            }
         }
     }
 }

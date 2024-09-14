@@ -52,7 +52,7 @@ export class UserController {
             size: size || 10,
         };
         const result = await this.userService.listUsers(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
     @Get('/search/result')
@@ -75,7 +75,7 @@ export class UserController {
             size: size || 10,
         };
         const result = await this.userService.searchUser(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.paging);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
     @Delete('/:userId')

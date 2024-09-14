@@ -77,7 +77,6 @@ export class AuthService {
 
         const result = {
             ...user,
-            links: this.links(),
         }
         
         return this.toAuthResponse(result);
@@ -148,7 +147,6 @@ export class AuthService {
         return {
             id: user.id,
             name: user.name,
-            links: this.links(),
             role: {
                 id: user.role.id,
                 role: user.role.role,
@@ -201,7 +199,6 @@ export class AuthService {
 
         return this.toAuthResponse({
             ...result,
-            links: this.links(),
         });
     }
 
@@ -219,7 +216,6 @@ export class AuthService {
 
         return this.toAuthResponse({
             ...result,
-            links: this.links(),
         });
     }
 
@@ -259,14 +255,6 @@ export class AuthService {
         }
     }
 
-    links() {
-        return {
-            self: '/auth/current',
-            update: `/auth/current`,
-            delete: `/auth/current`,
-        }
-    }
-
     toAuthResponse(user: AuthResponse): AuthResponse {
         return {
             id: user.id,
@@ -276,7 +264,6 @@ export class AuthService {
             dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
-            links: this.links(),
         };
     }
 }

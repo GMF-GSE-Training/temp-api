@@ -32,9 +32,4 @@ export interface AuthResponse {
         id: string,
         role: string,
     }
-    links: {
-        self: string;
-        update: string;
-        delete: string;
-    }
 }
