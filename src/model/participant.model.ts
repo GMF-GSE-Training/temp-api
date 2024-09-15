@@ -67,10 +67,10 @@ export interface ParticipantList {
 
 export interface ListParticipantResponse {
     id: string;
-    no_pegawai?: string;
+    no_pegawai: string;
     nama: string;
-    dinas?: string;
-    bidang?: string;
+    dinas: string;
+    bidang: string;
     perusahaan: string;
 }
 
@@ -78,10 +78,10 @@ export interface ParticipantResponse {
     id: string;
     no_pegawai: string;
     nama: string;
-    nik?: string;
+    nik: string;
     dinas: string;
     bidang: string;
-    perusahaan?: string;
+    perusahaan: string;
     email: string;
     no_telp: string;
     negara: string;
@@ -90,5 +90,5 @@ export interface ParticipantResponse {
     exp_surat_sehat: string;
     exp_bebas_narkoba: string;
     gmf_non_gmf: string;
-    link_qr_code?: string;
+    link_qr_code: string;
 }
