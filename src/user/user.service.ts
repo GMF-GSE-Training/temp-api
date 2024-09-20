@@ -103,18 +103,9 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        if(req.nik) {
-            await this.validateParticipantNik(req.nik);
-        }
-
         const roleUser = await this.findRoleUser();
         const userWithRole = await this.userWithRole(user.user.id);
         const userRequest = userWithRole.role.role.toLowerCase();
-
-        if (req.roleId === roleUser.id) {
-            this.validateNikForUser(req);
-            await this.validateParticipantNik(req.nik);
-        }
 
         if(userRequest === 'lcu') {
             if(req.roleId) {
