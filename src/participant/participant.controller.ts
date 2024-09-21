@@ -191,7 +191,7 @@ export class ParticipantController {
     }
 
     @Get('/:participantId/id-card')
-    @Roles('super admin', 'lcu', 'supervisor', 'user', 'user')
+    @Roles('super admin', 'lcu', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async getIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {

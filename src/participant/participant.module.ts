@@ -17,11 +17,11 @@ import { extname } from 'path';
         }),
         MulterModule.register({
             fileFilter: (_req, file, callback) => {
-                const allowedExtensions = ['.png', '.jpg', '.jpeg'];
+                const allowedExtensions = ['.png', '.jpg', '.jpeg', '.pdf'];
                 const fileExtension = extname(file.originalname).toLowerCase();
 
                 if (!allowedExtensions.includes(fileExtension)) {
-                    return callback(new HttpException(`Invalid file format for ${file.fieldname}. Only PNG, JPG, and JPEG are allowed.`, 400), false);
+                    return callback(new HttpException(`Invalid file format for ${file.fieldname}. Only PNG, JPG, JPEG, and PDF are allowed.`, 400), false);
                 }
                 callback(null, true);
             },
