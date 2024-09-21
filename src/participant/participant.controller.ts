@@ -61,7 +61,7 @@ export class ParticipantController {
 
     @Patch('/:participantId')
     @HttpCode(200)
-    @Roles('super admin', 'lcu')
+    @Roles('super admin', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(
         FileFieldsInterceptor([
@@ -103,7 +103,7 @@ export class ParticipantController {
 
     @Get('/:participantId/sim-a')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSimA(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a', user);
@@ -113,7 +113,7 @@ export class ParticipantController {
 
     @Get('/:participantId/sim-b')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSimB(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b', user);
@@ -133,7 +133,7 @@ export class ParticipantController {
 
     @Get('/:participantId/ktp')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getKTP(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'ktp', user);
@@ -143,7 +143,7 @@ export class ParticipantController {
 
     @Get('/:participantId/surat-sehat-buta-warna')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSuratSehat(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna', user);
@@ -153,7 +153,7 @@ export class ParticipantController {
 
     @Get('/:participantId/surat-bebas-narkoba')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba', user);
@@ -163,7 +163,7 @@ export class ParticipantController {
 
     @Get('/:participantId/qr-code')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getQrCode(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'qr_code', user);
@@ -180,8 +180,18 @@ export class ParticipantController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Get('/get/profile')
+    @HttpCode(200)
+    @Roles('super admin', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getParticipantByNik(@Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        console.log(user)
+        const result = await this.participantService.getParticipantByNik(user);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
     @Get('/:participantId/id-card')
-    @Roles('super admin', 'lcu', 'supervisor', 'user')
+    @Roles('super admin', 'lcu', 'supervisor', 'user', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async getIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {

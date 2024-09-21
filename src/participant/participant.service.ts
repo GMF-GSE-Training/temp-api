@@ -77,21 +77,21 @@ export class ParticipantService {
             },
         });
 
-    // Modifikasi link_qr_code dengan ID peserta
-    const link = data.link_qr_code.replace('{id}', participant.id);
+        // Modifikasi link_qr_code dengan ID peserta
+        const link = data.link_qr_code.replace('{id}', participant.id);
 
-    // Generate QR code
-    const qrCodeBase64 = await QRCode.toDataURL(link);
-    const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+        // Generate QR code
+        const qrCodeBase64 = await QRCode.toDataURL(link);
+        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
-    // Update peserta dengan QR code dan link
-    const result = await this.prismaService.participant.update({
-        where: { id: participant.id },
-        data: {
-            link_qr_code: link,
-            qr_code: qrCodeBuffer,
-        },
-    });
+        // Update peserta dengan QR code dan link
+        const result = await this.prismaService.participant.update({
+            where: { id: participant.id },
+            data: {
+                link_qr_code: link,
+                qr_code: qrCodeBuffer,
+            },
+        });
 
         return this.toParticipantResponse(result);
     }
@@ -101,6 +101,15 @@ export class ParticipantService {
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+
+        if(userRole === 'user') {
+            if(participant.nik !== user.user.nik) {
+                throw new HttpException('Akses terlarang, pengguna tidak bisa mengakses data pengguna lain', 403);
+            }
         }
 
         if(user.user.dinas || user.user.dinas !== null) {
@@ -121,6 +130,10 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
+        if(participant.nik !== user.user.nik) {
+            throw new HttpException('Akses terlarang, pengguna tidak bisa melihat data pengguna lain', 403);
+        }
+
         if(user.user.dinas || user.user.dinas !== null) {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
@@ -134,6 +147,23 @@ export class ParticipantService {
             const { nik, ...participantWhitoutNik } = participant;
             return this.toParticipantResponse(participantWhitoutNik);
         }
+    }
+
+    async getParticipantByNik(user: CurrentUserRequest): Promise<string> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                nik: user.user.nik,
+            },
+            select: {
+                id: true,
+            }
+        });
+
+        if(!participant) {
+            throw new HttpException('Data peserta tidak ditemukan', 404);
+        }
+
+        return participant.id;
     }
 
     async downloadIdCard(participantId: string): Promise<Buffer> {
