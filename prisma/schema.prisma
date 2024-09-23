@@ -26,7 +26,6 @@ model User {
   emailVerified Boolean @default(false)
 
   role        Role         @relation(fields: [roleId], references: [id])
-  participant Participant? @relation(fields: [nik], references: [nik], onUpdate: Cascade, onDelete: SetNull)
 
   @@map("users")
 }
@@ -64,8 +63,6 @@ model Participant {
   link_qr_code           String?  @db.VarChar(255)
   qr_code                Bytes?
   gmf_non_gmf            String   @db.VarChar(20)
-
-  user User?
 
   @@map("participants")
 }

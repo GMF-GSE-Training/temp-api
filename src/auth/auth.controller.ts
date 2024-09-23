@@ -27,7 +27,6 @@ export class AuthController {
     @Get('/verify-email')
     async verifyEmail(@Query('token') token: string, @Res() res: Response): Promise<any> {
         try {
-            console.log('HHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa');
             const payload = this.jwtService.verify(token);
             console.log(payload)
             await this.prismaService.user.update({

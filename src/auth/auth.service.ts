@@ -51,20 +51,18 @@ export class AuthService {
             }
         });
 
-        if(!participant) {
-            throw new HttpException('NIK tidak ada di data peserta', 400);
-        }
-
-        if (registerRequest.email !== participant.email) {
-            throw new HttpException('Email tidak sesuai dengan data peserta', 400);
-        }
-
-        if (participant.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
-            throw new HttpException('No Pegawai tidak sesuai dengan data peserta', 400);
-        }
-
-        if (participant.dinas && registerRequest.dinas !== participant.dinas) {
-            throw new HttpException('Dinas tidak sesuai dengan data peserta', 400);
+        if(participant) {
+            if (registerRequest.email !== participant.email) {
+                throw new HttpException('Email tidak sesuai dengan data peserta', 400);
+            }
+    
+            if (participant.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
+                throw new HttpException('No Pegawai tidak sesuai dengan data peserta', 400);
+            }
+    
+            if (participant.dinas && registerRequest.dinas !== participant.dinas) {
+                throw new HttpException('Dinas tidak sesuai dengan data peserta', 400);
+            }
         }
 
         await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
@@ -96,8 +94,7 @@ export class AuthService {
             ...user,
         }
 
-        // const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-        const verificationLink = `http://192.168.1.7:3000/auth/verify-email?token=${token}`;
+        const verificationLink = `http://192.168.1.12:3000/auth/verify-email?token=${token}`;
 
         const email: SendEmail = {
             from: {
