@@ -9,7 +9,9 @@ import { Logger } from "winston";
 import { AuthValidation } from "./auth.validation";
 import { User } from "@prisma/client";
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt'; 
+import { JwtService } from '@nestjs/jwt';
+import { SendEmail } from "src/model/mailer.model";
+import { MailerService } from "src/mailer/mailer.service";
 
 @Injectable()
 export class AuthService {
@@ -18,6 +20,7 @@ export class AuthService {
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private prismaService: PrismaService,
         private jwtService: JwtService,
+        private readonly mailerService: MailerService,
     ) {}
 
     async register(req: RegisterUserRequest): Promise<AuthResponse> {
@@ -70,14 +73,46 @@ export class AuthService {
 
         const authSelectedFields = this.authSelectedFields();
 
-        const user = await this.prismaService.user.create({
+        let user = await this.prismaService.user.create({
             data: registerRequest,
+            select: authSelectedFields,
+        });
+
+        const token = await this.jwtService.signAsync({ sub: user.id }, {
+            expiresIn: '1d',
+        });
+
+        user = await this.prismaService.user.update({
+            where: { 
+                id: user.id 
+            },
+            data: { 
+                token 
+            },
             select: authSelectedFields,
         });
 
         const result = {
             ...user,
         }
+
+        // const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+        const verificationLink = `http://192.168.1.7:3000/auth/verify-email?token=${token}`;
+
+        const email: SendEmail = {
+            from: {
+                name: process.env.APP_NAME,
+                address: process.env.MAIL_USER
+            },
+            receptients: [{
+                name: user.name,
+                address: user.email,
+            }],
+            subject: 'Email Verifikasi',
+            html: `<p>Klik <a href="${verificationLink}">link ini</a> untuk memverifikasi akun Anda.</p>`,
+        };
+    
+        await this.mailerService.sendEmail(email);
         
         return this.toAuthResponse(result);
     }
@@ -85,7 +120,7 @@ export class AuthService {
     async login(req: LoginUserRequest): Promise<AuthResponse> {
         const loginRequest: LoginUserRequest = this.validationService.validate(AuthValidation.LOGIN, req);
 
-        let user;
+        let user: any;
         if(loginRequest.identifier.includes('@')) {
             user = await this.prismaService.user.findFirst({
                 where: {
@@ -100,8 +135,11 @@ export class AuthService {
             });
         }
 
-        if(!user) {
-            throw new HttpException('no_pegawai or email or password is invalid', 401);
+        console.log(user);
+        console.log(user.emailVerified)
+
+        if(!user || !user.emailVerified) {
+            throw new HttpException('Akun belum diverifikasi atau data login salah', 401);
         }
 
         const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);

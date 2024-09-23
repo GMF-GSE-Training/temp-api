@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { ParticipantModule } from './participant/participant.module';
 import { ConfigModule } from '@nestjs/config';
+import { MailerModule } from './mailer/mailer.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
     AuthModule,
     RoleModule,
     ParticipantModule,
+    MailerModule
   ],
   controllers: [],
   providers: [],

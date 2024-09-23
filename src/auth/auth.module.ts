@@ -5,6 +5,7 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { PrismaService } from "src/common/service/prisma.service";
+import { MailerModule } from "src/mailer/mailer.module";
 
 @Module({
     imports: [
@@ -12,11 +13,12 @@ import { PrismaService } from "src/common/service/prisma.service";
             secret: jwtConstants.access_token,
             signOptions: { expiresIn: jwtConstants.access_token_expires_in },
         }),
+        MailerModule,
     ],
     providers: [
         AuthService,
         AuthGuard,
-        PrismaService
+        PrismaService,
     ],
     controllers: [AuthController],
 })

@@ -20,10 +20,21 @@ export class IdCardModel {
         this.logoBuffer = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'assets', 'images', 'Logo_GMF_Aero_Asia.png'));
     }
 
+    private getMediaType(buffer: Buffer): string {
+        const header = buffer.toString('hex', 0, 4);
+        if (header.startsWith('89504e47')) return 'image/png'; // PNG
+        if (header.startsWith('ffd8ff')) return 'image/jpeg'; // JPEG
+        if (header.startsWith('25504446')) return 'application/pdf'; // PDF
+        return ''; // Unknown type
+    }
+
     async getHtmlTemplate(): Promise<string> {
         const photoBase64 = this.foto.toString('base64');
         const qrCodeBase64 = this.qr_code.toString('base64');
         const logoBase64 = this.logoBuffer.toString('base64');
+
+        const photoType = this.getMediaType(this.foto);
+        const qrCodeType = this.getMediaType(this.qr_code);
 
         return `
         <head>
@@ -171,10 +182,10 @@ export class IdCardModel {
                     </h2>
                     <div class="img">
                         <div class="photo">
-                            <img src="data:/image/png;base64,${photoBase64}" alt="Profile Picture">
+                            <img src="data:/image/${photoType};base64,${photoBase64}" alt="Profile Picture">
                         </div>
                         <div class="qr-code">
-                            <img src="data:image/png;base64,${qrCodeBase64}" alt="QR Code">
+                            <img src="data:image/${qrCodeType};base64,${qrCodeBase64}" alt="QR Code">
                         </div>
                     </div>
                     <div class="details">

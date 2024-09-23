@@ -1,14 +1,20 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { UpdateUserRequest } from "../model/user.model";
 import { AuthResponse, CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 import { Response } from "express";
+import { JwtService } from "@nestjs/jwt";
+import { PrismaService } from "src/common/service/prisma.service";
 
 @Controller('/auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService,
+        private readonly jwtService: JwtService,
+        private readonly prismaService: PrismaService,
+    ) {}
 
     @Post('/register')
     @HttpCode(200)
@@ -16,6 +22,34 @@ export class AuthController {
         const result = await this.authService.register(req);
         const { token, ...response } = result;
         return buildResponse(HttpStatus.OK, response);
+    }
+
+    @Get('/verify-email')
+    async verifyEmail(@Query('token') token: string, @Res() res: Response): Promise<any> {
+        try {
+            console.log('HHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa');
+            const payload = this.jwtService.verify(token);
+            console.log(payload)
+            await this.prismaService.user.update({
+                where: { id: payload.sub },
+                data: { 
+                    emailVerified: true,
+                },
+            });
+
+            res.cookie('access_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                // domain: process.env.HOST,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 1000 * 60 * 60 * 24,
+            });
+
+            return res.redirect(`${process.env.FRONTEND_URL}`);
+        } catch (error) {
+            throw new HttpException('Token tidak valid atau telah kadaluarsa', 400);
+        }
     }
 
     @Post('/login')

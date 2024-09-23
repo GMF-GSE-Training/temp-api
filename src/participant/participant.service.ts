@@ -96,7 +96,7 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
-    async streamFile(participantId: string, fileType: string, user: CurrentUserRequest): Promise<Buffer> {
+    async streamFile(participantId: string, fileName: string, user: CurrentUserRequest): Promise<Buffer> {
         const participant = await this.findOneParticipant(participantId);
 
         if(!participant) {
@@ -116,11 +116,11 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
-        if (!participant || !participant[fileType]) {
+        if (!participant || !participant[fileName]) {
             throw new HttpException('File tidak ditemukan', 404);
         }
 
-        return participant[fileType];
+        return participant[fileName];
     }
 
     async getParticipant(participantId: string, user: CurrentUserRequest): Promise<ParticipantResponse> {
@@ -130,23 +130,20 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        if(participant.nik !== user.user.nik) {
-            throw new HttpException('Akses terlarang, pengguna tidak bisa melihat data pengguna lain', 403);
-        }
-
         if(user.user.dinas || user.user.dinas !== null) {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
         const userWithRole = await this.userWithRole(user.user.id);
-
         const userRole = userWithRole.role.role.toLowerCase();
-        if(userRole === 'super admin' || userRole === 'lcu') {
-            return this.toParticipantResponse(participant);
-        } else {
-            const { nik, ...participantWhitoutNik } = participant;
-            return this.toParticipantResponse(participantWhitoutNik);
+
+        if(userRole === 'user') {
+            if(participant.nik !== user.user.nik) {
+                throw new HttpException('Akses terlarang, pengguna tidak bisa mengakses data pengguna lain', 403);
+            }
         }
+
+        return this.toParticipantResponse(participant);
     }
 
     async getParticipantByNik(user: CurrentUserRequest): Promise<string> {
