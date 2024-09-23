@@ -21,19 +21,13 @@ export class ParticipantService {
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        const userWithRole = await this.userWithRole(user.user.id);
 
-        const userRole = userWithRole.role.role.toLowerCase();
-        if(userRole === 'lcu') {
+        if(user.role === 'lcu') {
             if(!data.dinas) {
                 throw new HttpException('Dinas tidak boleh kosong', 400);
-            } else if(userWithRole.dinas != data.dinas) {
+            } else if(user.user.dinas != data.dinas) {
                 throw new HttpException('LCU hanya bisa menambahkan pengguna dengan role user dengan dinas yang sama', 400);
             }
-        }
-
-        if(!data.nik) {
-            throw new HttpException('NIK tidak boleh kosong', 400);
         }
 
         const nikIsAlreadyExists = await this.prismaService.participant.findUnique({
@@ -44,6 +38,12 @@ export class ParticipantService {
 
         if(nikIsAlreadyExists) {
             throw new HttpException('NIK sudah ada di data peserta', 400);
+        }
+
+        if(user.role === 'user') {
+            if(data.nik !== user.user.nik) {
+                throw new HttpException('NIK tidak sama dengan data pengguna', 400);
+            }
         }
 
         data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
@@ -103,10 +103,7 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
-
-        if(userRole === 'user') {
+        if(user.role === 'user') {
             if(participant.nik !== user.user.nik) {
                 throw new HttpException('Akses terlarang, pengguna tidak bisa mengakses data pengguna lain', 403);
             }
@@ -134,10 +131,7 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
-
-        if(userRole === 'user') {
+        if(user.role === 'user') {
             if(participant.nik !== user.user.nik) {
                 throw new HttpException('Akses terlarang, pengguna tidak bisa mengakses data pengguna lain', 403);
             }
@@ -201,7 +195,7 @@ export class ParticipantService {
         return htmlContent;
     }
 
-    async updateParticipant(participantId: string, req: UpdateParticipantRequest): Promise<ParticipantResponse> {
+    async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
         if(req.nik) {
             const nikIsAlreadyExists = await this.prismaService.participant.count({
@@ -223,6 +217,12 @@ export class ParticipantService {
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        if(user.role === 'user') {
+            if(req.nik !== user.user.nik) {
+                throw new HttpException('NIK tidak sama dengan data pengguna', 400);
+            }
         }
 
         updateRequest.no_pegawai === "null" ? updateRequest.no_pegawai = null : updateRequest.no_pegawai;
@@ -292,8 +292,6 @@ export class ParticipantService {
 
     async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(ParticipantValidation.LIST, req);
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
 
         let participants: ParticipantList[];
 
@@ -316,21 +314,21 @@ export class ParticipantService {
             link_qr_code: true,
         }
 
-        if (userRole === 'super admin') {
+        if (user.role === 'super admin') {
             participants = await this.prismaService.participant.findMany({
                 select: participantSelectFields,
             });
-        } else if(userRole === 'supervisor') {
+        } else if(user.role === 'supervisor') {
             participants = await this.prismaService.participant.findMany({
                 select: {
                     ...participantSelectFields,
                     nik: false,
                 },
             });
-        } else if (userRole === 'lcu' || userRole === 'user') {
+        } else if (user.role === 'lcu' || user.role === 'user') {
             participants = await this.prismaService.participant.findMany({
                 where: {
-                    dinas: userWithRole.dinas,
+                    dinas: user.user.dinas,
                 },
                 select: {
                     ...participantSelectFields,
@@ -352,7 +350,7 @@ export class ParticipantService {
             throw new HttpException("Data peserta tidak ditemukan", 404);
         }
 
-        const actions = this.validateActions(userRole);
+        const actions = this.validateActions(user.role);
 
         return {
             data: paginatedUsers.map(participant => this.toParticipantResponse(participant)),
@@ -367,9 +365,6 @@ export class ParticipantService {
 
     async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ListParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
-
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
         
         const participantSelectFields = {
             id: true,
@@ -386,14 +381,14 @@ export class ParticipantService {
         let whereClause: any = {};
 
         // Add dinas filter if user is LCU
-        if (userRole === 'lcu') {
-            whereClause.dinas = userWithRole.dinas;
+        if (user.role === 'lcu') {
+            whereClause.dinas = user.user.dinas;
         }
 
         // Add search query filters if provided
         if (searchRequest.searchQuery) {
             const query = searchRequest.searchQuery.toLowerCase();
-            if (userRole === 'super admin' || userRole === 'supervisor') {
+            if (user.role === 'super admin' || user.role === 'supervisor') {
                 whereClause.OR = [
                     { no_pegawai: { contains: query, mode: 'insensitive' } },
                     { nama: { contains: query, mode: 'insensitive' } },
@@ -431,7 +426,7 @@ export class ParticipantService {
             throw new HttpException("Data peserta tidak ditemukan", 204);
         }
 
-        const actions = this.validateActions(userRole);
+        const actions = this.validateActions(user.role);
 
         return {
             data: participants.map(participant => ({
@@ -480,18 +475,6 @@ export class ParticipantService {
         const year = date.getFullYear().toString().slice();
 
         return `${day}-${month}-${year}`;
-    }
-
-    private async userWithRole(userId: string) {
-        const userRequest = await this.prismaService.user.findUnique({
-            where: {
-                id: userId,
-            },
-            include: {
-                role: true
-            }
-        });
-        return userRequest;
     }
 
     private async findOneParticipant(participantId: string): Promise<Participant> {

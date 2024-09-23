@@ -15,7 +15,7 @@ export class ParticipantController {
 
     @Post()
     @HttpCode(200)
-    @Roles('super admin', 'lcu')
+    @Roles('super admin', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'sim_a', maxCount: 1 },
@@ -73,6 +73,7 @@ export class ParticipantController {
         { name: 'surat_bebas_narkoba', maxCount: 1 },
     ]))
     async update(
+        @Req() user: CurrentUserRequest,
         @Param('participantId', ParseUUIDPipe) participantId: string,
         @Body() req: Omit<UpdateParticipantRequest, 'sim_a' | 'sim_b' | 'ktp' | 'foto' | 'surat_sehat_buta_warna' | 'surat_bebas_narkoba'>,
         @UploadedFiles() files: {
@@ -97,7 +98,7 @@ export class ParticipantController {
             surat_bebas_narkoba: files?.surat_bebas_narkoba?.[0]?.buffer || undefined,
         };
 
-        const participant = await this.participantService.updateParticipant(participantId, participantData);
+        const participant = await this.participantService.updateParticipant(participantId, participantData, user);
         return buildResponse(HttpStatus.OK, participant);
     }
 
