@@ -7,6 +7,7 @@ import { AuthService } from "./auth.service";
 import { Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/common/service/prisma.service";
+import { ConfigService } from "@nestjs/config";
 
 @Controller('/auth')
 export class AuthController {
@@ -14,6 +15,7 @@ export class AuthController {
         private authService: AuthService,
         private readonly jwtService: JwtService,
         private readonly prismaService: PrismaService,
+        private readonly configService: ConfigService,
     ) {}
 
     @Post('/register')
@@ -38,14 +40,14 @@ export class AuthController {
 
             res.cookie('access_token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                // domain: process.env.HOST,
+                secure: this.configService.get<string>('NODE_ENV') === 'production',
+                // domain: this.configService.get<string>('HOST'),
                 sameSite: 'lax',
                 path: '/',
                 maxAge: 1000 * 60 * 60 * 24,
             });
 
-            const redirectUrl = callbackUrl || process.env.FRONTEND_URL;
+            const redirectUrl = callbackUrl || this.configService.get<string>('FRONTEND_URL');
 
             return res.redirect(redirectUrl);
         } catch (error) {
@@ -59,8 +61,8 @@ export class AuthController {
         let result = await this.authService.login(req);
         res.cookie('access_token', result.token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            // domain: process.env.HOST,
+            secure: this.configService.get<string>('NODE_ENV') === 'production',
+                // domain: this.configService.get<string>('HOST'),
             sameSite: 'lax',
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
@@ -92,7 +94,7 @@ export class AuthController {
         await this.authService.logout(req.user);
         res.cookie('access_token', '', {
             httpOnly: true,
-            // secure: process.env.NODE_ENV === 'production', 
+            // secure: this.configService.get<string>('NODE_ENV') === 'production', 
             secure: false,
             sameSite: 'none',
             expires: new Date(0) // or you can use maxAge: 0

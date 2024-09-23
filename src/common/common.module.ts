@@ -6,7 +6,7 @@ import { ValidationService } from './service/validation.service';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from '../config/constants';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
@@ -17,9 +17,15 @@ import { jwtConstants } from '../config/constants';
                 new winston.transports.Console()
             ]
         }),
-        JwtModule.register({
-            secret: jwtConstants.access_token,
-            signOptions: { expiresIn: jwtConstants.access_token_expires_in },
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => ({
+                secret: configService.get<string>('ACCESS_TOKEN'),
+                signOptions: {
+                    expiresIn: configService.get<string>('ACCESS_TOKEN_EXPIRES_IN'),
+                },
+            }),
         }),
     ],
     providers: [

@@ -21,7 +21,8 @@ export class ParticipantService {
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         if(userRole === 'lcu') {
             if(!data.dinas) {
@@ -99,11 +100,13 @@ export class ParticipantService {
 
     async streamFile(participantId: string, fileName: string, user: CurrentUserRequest): Promise<Buffer> {
         const participant = await this.findOneParticipant(participantId);
-        const userRole = user.role.toLowerCase()
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         if(userRole === 'user') {
             if(participant.nik !== user.user.nik) {
@@ -124,7 +127,6 @@ export class ParticipantService {
 
     async getParticipant(participantId: string, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const participant = await this.findOneParticipant(participantId);
-        const userRole = user.role.toLowerCase();
 
         if(!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
@@ -133,6 +135,9 @@ export class ParticipantService {
         if(user.user.dinas || user.user.dinas !== null) {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         if(userRole === 'user') {
             if(participant.nik !== user.user.nik) {
@@ -222,7 +227,8 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         if(userRole === 'user') {
             if(req.nik !== user.user.nik) {
@@ -297,6 +303,8 @@ export class ParticipantService {
 
     async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(ParticipantValidation.LIST, req);
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         let participants: ParticipantList[];
 
@@ -318,8 +326,6 @@ export class ParticipantService {
             gmf_non_gmf: true,
             link_qr_code: true,
         }
-
-        const userRole = user.role.toLowerCase();
 
         if (userRole === 'super admin') {
             participants = await this.prismaService.participant.findMany({
@@ -372,6 +378,9 @@ export class ParticipantService {
 
     async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ListParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
         
         const participantSelectFields = {
             id: true,
@@ -388,8 +397,6 @@ export class ParticipantService {
         let whereClause: any = {};
 
         // Add dinas filter if user is LCU
-        const userRole = user.role.toLowerCase();
-
         if (userRole === 'lcu') {
             whereClause.dinas = user.user.dinas;
         }
@@ -484,6 +491,18 @@ export class ParticipantService {
         const year = date.getFullYear().toString().slice();
 
         return `${day}-${month}-${year}`;
+    }
+
+    private async userWithRole(userId: string) {
+        const userRequest = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                role: true
+            }
+        });
+        return userRequest;
     }
 
     private async findOneParticipant(participantId: string): Promise<Participant> {

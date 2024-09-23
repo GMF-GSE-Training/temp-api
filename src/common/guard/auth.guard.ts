@@ -1,14 +1,15 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from "../../config/constants";
 import { Request } from 'express';
 import { PrismaService } from "../service/prisma.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private prismaService: PrismaService,
+        private readonly configService: ConfigService
     ){}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -27,7 +28,7 @@ export class AuthGuard implements CanActivate {
         try {
             const payload = await this.jwtService.verifyAsync(
                 token,
-                { secret: jwtConstants.access_token }
+                { secret: this.configService.get<string>('ACCESS_TOKEN') }
             );
 
             const user = await this.prismaService.user.findUnique({
@@ -62,7 +63,7 @@ export class AuthGuard implements CanActivate {
     private isValidReferer(referer: string | undefined): boolean {
         // Daftar referer yang valid (ganti sesuai environment)
         const allowedOrigins = [
-            process.env.ORIGIN, // url aplikasi front-end
+            this.configService.get<string>('ORIGIN'), // url aplikasi front-end
         ];
 
         if (!referer) {

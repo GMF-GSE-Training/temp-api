@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SendEmail } from "src/model/mailer.model";
 import { MailerService } from "src/mailer/mailer.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
         private prismaService: PrismaService,
         private jwtService: JwtService,
         private readonly mailerService: MailerService,
+        private readonly configService: ConfigService,
     ) {}
 
     async register(req: RegisterUserRequest): Promise<AuthResponse> {
@@ -98,8 +100,8 @@ export class AuthService {
 
         const email: SendEmail = {
             from: {
-                name: process.env.APP_NAME,
-                address: process.env.MAIL_USER
+                name: this.configService.get<string>('APP_NAME'),
+                address: this.configService.get<string>('MAIL_USER'),
             },
             receptients: [{
                 name: user.name,

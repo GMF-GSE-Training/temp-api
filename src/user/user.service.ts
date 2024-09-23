@@ -23,7 +23,8 @@ export class UserService {
             throw new HttpException('Role tidak boleh kosong', 404);
         }
 
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         const roleUser = await this.findRoleUser();
 
@@ -78,7 +79,8 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
         const roleUser = await this.findRoleUser();
 
         if(userRole === 'lcu') {
@@ -102,7 +104,8 @@ export class UserService {
         }
 
         const roleUser = await this.findRoleUser();
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         if(userRole === 'lcu') {
             if(req.roleId) {
@@ -149,7 +152,8 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
         const roleUser = await this.findRoleUser();
 
         if(userRole === 'lcu') {
@@ -179,7 +183,8 @@ export class UserService {
 
     async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
 
         let users: UserList[];
 
@@ -233,7 +238,8 @@ export class UserService {
     async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
 
-        const userRole = user.role.toLowerCase();
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
         let users = await this.prismaService.user.findMany({
             include: {
                 role: true,
@@ -361,6 +367,18 @@ export class UserService {
             }
         });
         return roleUser;
+    }
+
+    private async userWithRole(userId: string) {
+        const userRequest = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                role: true
+            }
+        });
+        return userRequest;
     }
 
     private validateNikForUser(req: any) {
