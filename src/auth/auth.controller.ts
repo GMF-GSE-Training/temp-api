@@ -25,7 +25,7 @@ export class AuthController {
     }
 
     @Get('/verify-email')
-    async verifyEmail(@Query('token') token: string, @Res() res: Response): Promise<any> {
+    async verifyEmail(@Query('token') token: string, @Query('callback') callbackUrl: string, @Res() res: Response): Promise<any> {
         try {
             const payload = this.jwtService.verify(token);
             console.log(payload)
@@ -45,7 +45,9 @@ export class AuthController {
                 maxAge: 1000 * 60 * 60 * 24,
             });
 
-            return res.redirect(`${process.env.FRONTEND_URL}`);
+            const redirectUrl = callbackUrl || process.env.FRONTEND_URL;
+
+            return res.redirect(redirectUrl);
         } catch (error) {
             throw new HttpException('Token tidak valid atau telah kadaluarsa', 400);
         }
