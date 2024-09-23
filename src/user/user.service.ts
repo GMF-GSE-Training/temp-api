@@ -78,10 +78,10 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const userRequest = user.role;
+        const userRole = user.role.toLowerCase();
         const roleUser = await this.findRoleUser();
 
-        if(userRequest === 'lcu') {
+        if(userRole === 'lcu') {
             this.validateRoleForLcuRequest(findUser.roleId, roleUser.id);
             this.validateDinasForLcuRequest(findUser.dinas, user.user.dinas);
         }
@@ -90,7 +90,7 @@ export class UserService {
             ...findUser,
         }
         
-        return this.toUserResponse(result, userRequest);
+        return this.toUserResponse(result, userRole);
     }
 
     async updateUser(userId: string, req: UpdateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
@@ -179,7 +179,7 @@ export class UserService {
 
     async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
-        const userRole = user.role;
+        const userRole = user.role.toLowerCase();
 
         let users: UserList[];
 
@@ -217,7 +217,7 @@ export class UserService {
             throw new HttpException("Data users tidak ditemukan", 404);
         }
 
-        const actions = this.validateActions(user.role);
+        const actions = this.validateActions(userRole);
 
         return {
             data: paginatedUsers.map(user => this.toUserResponse(user, userRole)),
@@ -233,7 +233,7 @@ export class UserService {
     async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
 
-        const userRole = user.role;
+        const userRole = user.role.toLowerCase();
         let users = await this.prismaService.user.findMany({
             include: {
                 role: true,
