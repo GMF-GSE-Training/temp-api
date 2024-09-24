@@ -10,9 +10,9 @@ import { Role } from "@prisma/client";
 @Injectable()
 export class RoleService {
     constructor(
-        private validationService: ValidationService,
+        private readonly validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
-        private prismaService: PrismaService,
+        private readonly prismaService: PrismaService,
     ){}
 
     async create(req: CreateRoleRequest): Promise<RoleResponse> {

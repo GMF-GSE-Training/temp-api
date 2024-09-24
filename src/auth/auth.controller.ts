@@ -12,7 +12,7 @@ import { ConfigService } from "@nestjs/config";
 @Controller('/auth')
 export class AuthController {
     constructor(
-        private authService: AuthService,
+        private readonly authService: AuthService,
         private readonly jwtService: JwtService,
         private readonly prismaService: PrismaService,
         private readonly configService: ConfigService,

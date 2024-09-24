@@ -13,9 +13,9 @@ import { RoleResponse } from "src/model/role.model";
 @Injectable()
 export class UserService {
     constructor(
-        private validationService: ValidationService,
+        private readonly validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
-        private prismaService: PrismaService,
+        private readonly prismaService: PrismaService,
     ) {}
 
     async createUser(req: CreateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {

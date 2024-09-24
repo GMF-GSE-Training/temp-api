@@ -15,9 +15,9 @@ import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/mode
 @Injectable()
 export class ParticipantService {
     constructor(
-        private prismaService: PrismaService,
+        private readonly prismaService: PrismaService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
-        private validationService: ValidationService,
+        private readonly validationService: ValidationService,
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {

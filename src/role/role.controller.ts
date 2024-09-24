@@ -8,7 +8,7 @@ import { buildResponse, WebResponse } from "../model/web.model";
 
 @Controller("/roles")
 export class RoleController {
-    constructor(private roleService: RoleService) {}
+    constructor(private readonly roleService: RoleService) {}
 
     @Post()
     @HttpCode(200)

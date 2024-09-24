@@ -9,7 +9,7 @@ import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller("/users")
 export class UserController {
-    constructor(private userService: UserService) {}
+    constructor(private readonly userService: UserService) {}
 
     @Post()
     @Roles('Super Admin', 'LCU')

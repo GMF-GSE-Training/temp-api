@@ -11,7 +11,7 @@ import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller('/participants')
 export class ParticipantController {
-    constructor(private participantService: ParticipantService) {}
+    constructor(private readonly participantService: ParticipantService) {}
 
     @Post()
     @HttpCode(200)

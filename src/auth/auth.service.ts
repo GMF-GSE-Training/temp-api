@@ -17,10 +17,10 @@ import { ConfigService } from "@nestjs/config";
 @Injectable()
 export class AuthService {
     constructor(
-        private validationService: ValidationService,
+        private readonly validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
-        private prismaService: PrismaService,
-        private jwtService: JwtService,
+        private readonly prismaService: PrismaService,
+        private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
         private readonly configService: ConfigService,
     ) {}
