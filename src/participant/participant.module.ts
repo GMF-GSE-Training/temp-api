@@ -43,6 +43,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
         ParticipantService,
     ],
     controllers: [ParticipantController],
+    exports: [ParticipantService],
 })
 export class ParticipantModule {
 

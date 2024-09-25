@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { UpdateUserRequest } from "../model/user.model";
-import { AuthResponse, CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
+import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 import { Response } from "express";
@@ -20,10 +20,9 @@ export class AuthController {
 
     @Post('/register')
     @HttpCode(200)
-    async register(@Body() req: any): Promise<WebResponse<AuthResponse>> {
+    async register(@Body() req: RegisterUserRequest): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.register(req);
-        const { token, ...response } = result;
-        return buildResponse(HttpStatus.OK, response);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/verify-email')
@@ -47,7 +46,7 @@ export class AuthController {
                 maxAge: 1000 * 60 * 60 * 24,
             });
 
-            const redirectUrl = callbackUrl || this.configService.get<string>('FRONTEND_URL');
+            const redirectUrl = callbackUrl || `${this.configService.get<string>('FRONTEND_URL')}/home`;
 
             return res.redirect(redirectUrl);
         } catch (error) {
@@ -62,7 +61,7 @@ export class AuthController {
         res.cookie('access_token', result.token, {
             httpOnly: true,
             secure: this.configService.get<string>('NODE_ENV') === 'production',
-                // domain: this.configService.get<string>('HOST'),
+            // domain: this.configService.get<string>('HOST'),
             sameSite: 'lax',
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
@@ -75,7 +74,7 @@ export class AuthController {
     @Get('/current')
     @HttpCode(200)
     async me(@Req() req: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
-        const result = await this.authService.me(req.user);
+        const result = await this.authService.me(req);
         return buildResponse(HttpStatus.OK, result);
     }
 
@@ -88,31 +87,35 @@ export class AuthController {
     // }
 
     @Post('request-reset-password')
-    async requestResetPassword(@Body('email') email: string) {
-        return this.authService.requestPasswordReset(email);
+    async requestResetPassword(@Body('email') email: string): Promise<WebResponse<string>> {
+        const result = await this.authService.requestPasswordReset(email);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('verify-reset-password/:token')
-    async verifyResetPassword(@Param('token') token: string, @Res() res: Response) {
+    async verifyResetPassword(@Param('token') token: string, @Res() res: Response): Promise<WebResponse<boolean>> {
         const isValid = await this.authService.verifyResetPasswordToken(token);
         if (isValid) {
-        // Redirect ke frontend untuk memasukkan password baru
-        res.redirect('http://192.168.1.12:4200/reset-password?token=' + token);
+            // Redirect ke frontend untuk memasukkan password baru
+            res.redirect(`${this.configService.get<string>('FRONTEND_URL')}/reset/${token}`);
+            return buildResponse(HttpStatus.OK, isValid);
         } else {
-        return res.status(400).json({ message: 'Token tidak valid atau sudah kadaluarsa' });
+            throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
         }
     }
 
     @Post('reset-password')
-    async resetPassword(@Body('token') token: string, @Body('newPassword') newPassword: string) {
-        return this.authService.resetPassword(token, newPassword);
+    async resetPassword(@Body() req: ResetPassword): Promise<WebResponse<boolean>> {
+        console.log(req);
+        await this.authService.resetPassword(req);
+        return buildResponse(HttpStatus.OK, true);
     }
 
     @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
     async logout(@Req() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<boolean>> {
-        await this.authService.logout(req.user);
+        await this.authService.logout(req);
         res.cookie('access_token', '', {
             httpOnly: true,
             // secure: this.configService.get<string>('NODE_ENV') === 'production', 

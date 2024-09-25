@@ -2,17 +2,16 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { UpdateUserRequest } from "../model/user.model";
-import { AuthResponse, RegisterUserRequest } from "../model/auth.model";
+import { AuthResponse, CurrentUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
 import { LoginUserRequest } from "../model/auth.model";
 import { Logger } from "winston";
 import { AuthValidation } from "./auth.validation";
-import { User } from "@prisma/client";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SendEmail } from "src/model/mailer.model";
 import { MailerService } from "src/mailer/mailer.service";
 import { ConfigService } from "@nestjs/config";
+import { ParticipantService } from "src/participant/participant.service";
 
 @Injectable()
 export class AuthService {
@@ -23,6 +22,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
         private readonly configService: ConfigService,
+        private participantService: ParticipantService,
     ) {}
 
     async register(req: RegisterUserRequest): Promise<AuthResponse> {
@@ -79,15 +79,15 @@ export class AuthService {
         });
 
         // Buat participant berdasarkan data user
-        await this.prismaService.participant.create({
-            data: {
-                no_pegawai: user.no_pegawai,
-                nama: user.name,
-                nik: user.nik,
-                email: user.email,
-                dinas: user.dinas,
-            },
-        })
+        // await this.prismaService.participant.create({
+        //     data: {
+        //         no_pegawai: user.no_pegawai,
+        //         nama: user.name,
+        //         nik: user.nik,
+        //         email: user.email,
+        //         dinas: user.dinas,
+        //     },
+        // });
 
         const token = await this.jwtService.signAsync({ sub: user.id }, {
             expiresIn: '1d',
@@ -106,6 +106,22 @@ export class AuthService {
         const result = {
             ...user,
         }
+
+        const createParticipant = {
+            no_pegawai: user.no_pegawai,
+            nama: user.name,
+            nik: user.nik,
+            email: user.email,
+            dinas: user.dinas,
+        };
+
+        const userRegister: CurrentUserRequest = {
+            user: {
+                ...user,
+            }
+        };
+
+        this.participantService.createParticipant(createParticipant, userRegister);
 
         const verificationLink = `http://192.168.1.12:3000/auth/verify-email?token=${token}`;
 
@@ -145,8 +161,7 @@ export class AuthService {
             });
         }
 
-        console.log(user);
-        console.log(user.emailVerified)
+        console.log("User : ", user);
 
         if(!user || !user.emailVerified) {
             throw new HttpException('Akun belum diverifikasi atau data login salah', 401);
@@ -179,10 +194,10 @@ export class AuthService {
         return this.toAuthResponse(user);
     }
 
-    async me(me: User): Promise<AuthResponse> {
+    async me(me: CurrentUserRequest): Promise<AuthResponse> {
         const user = await this.prismaService.user.findUnique({
             where: { 
-                id: me.id
+                id: me.user.id
             },
             include: {
                 role: true,
@@ -192,6 +207,7 @@ export class AuthService {
         if (!user) {
             throw new HttpException('User not found', 404);
         }
+
         return {
             id: user.id,
             name: user.name,
@@ -250,23 +266,24 @@ export class AuthService {
     //     });
     // }
 
-    async requestPasswordReset(email: string) {
+    async requestPasswordReset(email: string): Promise<string> {
+        console.log(email);
         // Cek apakah email ada di database
         const user = await this.prismaService.user.findFirst({
             where: {
-                email
+                email: email,
             }
         });
 
         if (!user) {
             throw new HttpException('Email tidak ditemukan', 404);
         }
-    
+
         // Buat token reset password
         const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
     
         // Kirim email reset password
-        const resetPasswordLink = `http://192.168.1.12:3000/auth/verify-reset-password/${resetToken}`;
+        const resetPasswordLink = `http://192.168.1.14:3000/auth/verify-reset-password/${resetToken}`;
         await this.mailerService.sendEmail({
             from: {
                 name: this.configService.get<string>('APP_NAME'),
@@ -280,23 +297,24 @@ export class AuthService {
             html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
         });
 
-        return { message: 'Email reset password sudah dikirim' };
+        return 'Email reset password sudah dikirim';
     }
 
     async verifyResetPasswordToken(token: string): Promise<boolean> {
         try {
             // Verifikasi token
-            const payload = this.jwtService.verify(token);
+            this.jwtService.verify(token);
             return true; // Token valid
         } catch (error) {
-            return false; // Token tidak valid atau kadaluarsa
+            throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
         }
     }
 
-    async resetPassword(token: string, newPassword: string) {
+    async resetPassword(req: ResetPassword): Promise<string> {
+        const resetPasswordRequest = this.validationService.validate(AuthValidation.RESETPASSWORD, req);
         try {
             // Verifikasi token
-            const payload = this.jwtService.verify(token);
+            const payload = this.jwtService.verify(req.token);
             const email = payload.email;
 
             // Cari user berdasarkan email
@@ -306,23 +324,23 @@ export class AuthService {
             }
 
             // Hash password baru dan update di database
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const hashedPassword = await bcrypt.hash(resetPasswordRequest.newPassword, 10);
             await this.prismaService.user.update({
                 where: { id: user.id },
                 data: { password: hashedPassword },
             });
 
-            return { message: 'Password berhasil diubah' };
+            return 'Password berhasil diubah';
         } catch (error) {
             throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
         }
     }
 
-    async logout(user: User): Promise<AuthResponse> {
+    async logout(user: CurrentUserRequest): Promise<AuthResponse> {
         const authSelectedFields = this.authSelectedFields();
         const result = await this.prismaService.user.update({
             where: {
-                id: user.id,
+                id: user.user.id,
             },
             data: {
                 token: null,

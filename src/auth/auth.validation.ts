@@ -25,4 +25,10 @@ export class AuthValidation {
         dinas: z.string().min(1).max(20).optional(),
         roleId: z.string().min(1).optional(),
     });
+
+    static readonly RESETPASSWORD: ZodType = z.object({
+        token: z.string().min(1),
+        newPassword: z.string().min(1).max(20),
+        confirmNewPassword: z.string().min(1).max(20),
+    });
 }

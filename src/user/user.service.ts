@@ -62,7 +62,10 @@ export class UserService {
         const userSelectFields = this.userSelectFields();
 
         const createUser = await this.prismaService.user.create({
-                data: createRequest,
+                data: {
+                    ...createRequest,
+                    emailVerified: true,
+                },
                 select: userSelectFields,
         });
 

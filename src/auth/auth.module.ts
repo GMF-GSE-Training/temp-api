@@ -6,6 +6,7 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { PrismaService } from "src/common/service/prisma.service";
 import { MailerModule } from "src/mailer/mailer.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ParticipantModule } from "src/participant/participant.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
             }),
         }),
         MailerModule,
+        ParticipantModule,
     ],
     providers: [
         AuthService,
