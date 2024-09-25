@@ -25,7 +25,7 @@ model User {
   dinas         String? @db.VarChar(50)
   emailVerified Boolean @default(false)
 
-  role        Role         @relation(fields: [roleId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
@@ -40,29 +40,29 @@ model Role {
 }
 
 model Participant {
-  id                     String   @id @default(uuid())
-  no_pegawai             String?  @db.VarChar(20)
-  nama                   String?  @db.VarChar(50)
-  nik                    String   @unique @db.VarChar(50)
-  dinas                  String?  @db.VarChar(50)
-  bidang                 String?  @db.VarChar(50)
-  perusahaan             String   @db.VarChar(50)
-  email                  String   @db.VarChar(50)
-  no_telp                String   @db.VarChar(50)
-  negara                 String   @db.VarChar(50)
-  tempat_lahir           String   @db.VarChar(50)
-  tanggal_lahir          DateTime @db.Date
-  sim_a                  Bytes
-  sim_b                  Bytes
-  ktp                    Bytes
-  foto                   Bytes
-  surat_sehat_buta_warna Bytes
-  exp_surat_sehat        DateTime @db.Date
-  surat_bebas_narkoba    Bytes
-  exp_bebas_narkoba      DateTime @db.Date
-  link_qr_code           String?  @db.VarChar(255)
+  id                     String    @id @default(uuid())
+  no_pegawai             String?   @db.VarChar(20)
+  nama                   String    @db.VarChar(50)
+  nik                    String    @unique @db.VarChar(50)
+  dinas                  String?   @db.VarChar(50)
+  bidang                 String?   @db.VarChar(50)
+  perusahaan             String?   @db.VarChar(50)
+  email                  String    @db.VarChar(50)
+  no_telp                String?   @db.VarChar(50)
+  negara                 String?   @db.VarChar(50)
+  tempat_lahir           String?   @db.VarChar(50)
+  tanggal_lahir          DateTime? @db.Date
+  sim_a                  Bytes?
+  sim_b                  Bytes?
+  ktp                    Bytes?
+  foto                   Bytes?
+  surat_sehat_buta_warna Bytes?
+  exp_surat_sehat        DateTime? @db.Date
+  surat_bebas_narkoba    Bytes?
+  exp_bebas_narkoba      DateTime? @db.Date
+  link_qr_code           String?   @db.VarChar(255)
   qr_code                Bytes?
-  gmf_non_gmf            String   @db.VarChar(20)
+  gmf_non_gmf            String?   @db.VarChar(20)
 
   @@map("participants")
 }

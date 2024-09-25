@@ -78,6 +78,17 @@ export class AuthService {
             select: authSelectedFields,
         });
 
+        // Buat participant berdasarkan data user
+        await this.prismaService.participant.create({
+            data: {
+                no_pegawai: user.no_pegawai,
+                nama: user.name,
+                nik: user.nik,
+                email: user.email,
+                dinas: user.dinas,
+            },
+        })
+
         const token = await this.jwtService.signAsync({ sub: user.id }, {
             expiresIn: '1d',
         });
@@ -110,7 +121,7 @@ export class AuthService {
             subject: 'Email Verifikasi',
             html: `<p>Klik <a href="${verificationLink}">link ini</a> untuk memverifikasi akun Anda.</p>`,
         };
-    
+
         await this.mailerService.sendEmail(email);
         
         return this.toAuthResponse(result);
@@ -191,52 +202,120 @@ export class AuthService {
         }
     }
 
-    async updateCurrent(user: User, req: UpdateUserRequest): Promise<AuthResponse> {
-        if(req.roleId) {
-            const userCurrent = await this.prismaService.user.findUnique({
-                where: {
-                    id: user.id,
-                },
-                include: {
-                    role: true,
-                },
-            });
+    // async updateCurrent(user: User, req: UpdateUserRequest): Promise<AuthResponse> {
+    //     if(req.roleId) {
+    //         const userCurrent = await this.prismaService.user.findUnique({
+    //             where: {
+    //                 id: user.id,
+    //             },
+    //             include: {
+    //                 role: true,
+    //             },
+    //         });
     
-            if(!userCurrent) {
-                throw new HttpException('User not found', 404);
-            }
+    //         if(!userCurrent) {
+    //             throw new HttpException('User not found', 404);
+    //         }
     
-            const restrictedRoles = ['user', 'lcu', 'supervisor'];
-            if (restrictedRoles.includes(userCurrent.role.role.toLowerCase())) {
-                throw new HttpException('Forbidden: You are not allowed to update your role', 403);
-            }
-        }
+    //         const restrictedRoles = ['user', 'lcu', 'supervisor'];
+    //         if (restrictedRoles.includes(userCurrent.role.role.toLowerCase())) {
+    //             throw new HttpException('Forbidden: You are not allowed to update your role', 403);
+    //         }
+    //     }
 
-        const updateRequest: UpdateUserRequest = this.validationService.validate(AuthValidation.UPDATE, req);
+    //     const updateRequest: UpdateUserRequest = this.validationService.validate(AuthValidation.UPDATE, req);
 
-        for (const key of Object.keys(updateRequest)) {
-            if (updateRequest[key] !== undefined) {
-                if (key === 'password') {
-                    user.password = await bcrypt.hash(updateRequest.password, 10);
-                } else {
-                    (user as any)[key] = updateRequest[key];
-                }
-            }
-        }   
+    //     for (const key of Object.keys(updateRequest)) {
+    //         if (updateRequest[key] !== undefined) {
+    //             if (key === 'password') {
+    //                 user.password = await bcrypt.hash(updateRequest.password, 10);
+    //             } else {
+    //                 (user as any)[key] = updateRequest[key];
+    //             }
+    //         }
+    //     }   
 
-        const authSelectedFields = this.authSelectedFields();
+    //     const authSelectedFields = this.authSelectedFields();
 
-        const result = await this.prismaService.user.update({
+    //     const result = await this.prismaService.user.update({
+    //         where: {
+    //             id: user.id,
+    //         },
+    //         data: user,
+    //         select: authSelectedFields,
+    //     });
+
+    //     return this.toAuthResponse({
+    //         ...result,
+    //     });
+    // }
+
+    async requestPasswordReset(email: string) {
+        // Cek apakah email ada di database
+        const user = await this.prismaService.user.findFirst({
             where: {
-                id: user.id,
-            },
-            data: user,
-            select: authSelectedFields,
+                email
+            }
         });
 
-        return this.toAuthResponse({
-            ...result,
+        if (!user) {
+            throw new HttpException('Email tidak ditemukan', 404);
+        }
+    
+        // Buat token reset password
+        const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    
+        // Kirim email reset password
+        const resetPasswordLink = `http://192.168.1.12:3000/auth/verify-reset-password/${resetToken}`;
+        await this.mailerService.sendEmail({
+            from: {
+                name: this.configService.get<string>('APP_NAME'),
+                address: this.configService.get<string>('MAIL_USER'),
+            },
+            receptients: [{
+                name: user.name,
+                address: email,
+            }],
+            subject: 'Reset Password',
+            html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
         });
+
+        return { message: 'Email reset password sudah dikirim' };
+    }
+
+    async verifyResetPasswordToken(token: string): Promise<boolean> {
+        try {
+            // Verifikasi token
+            const payload = this.jwtService.verify(token);
+            return true; // Token valid
+        } catch (error) {
+            return false; // Token tidak valid atau kadaluarsa
+        }
+    }
+
+    async resetPassword(token: string, newPassword: string) {
+        try {
+            // Verifikasi token
+            const payload = this.jwtService.verify(token);
+            const email = payload.email;
+
+            // Cari user berdasarkan email
+            const user = await this.prismaService.user.findFirst({ where: { email } });
+            if (!user) {
+                throw new HttpException('User tidak ditemukan', 404);
+            }
+
+            // Hash password baru dan update di database
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { password: hashedPassword },
+            });
+
+            return { message: 'Password berhasil diubah' };
+        } catch (error) {
+            throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
+        }
     }
 
     async logout(user: User): Promise<AuthResponse> {
@@ -286,6 +365,7 @@ export class AuthService {
             no_pegawai: true,
             email: true,
             name: true,
+            nik: true,
             dinas: true,
             roleId: true,
             token: true,

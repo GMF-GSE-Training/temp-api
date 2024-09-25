@@ -11,6 +11,7 @@ import { IdCardModel } from "../model/id_card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class ParticipantService {
@@ -18,6 +19,7 @@ export class ParticipantService {
         private readonly prismaService: PrismaService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private readonly validationService: ValidationService,
+        private readonly configService: ConfigService,
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
@@ -80,7 +82,7 @@ export class ParticipantService {
         });
 
         // Modifikasi link_qr_code dengan ID peserta
-        const link = data.link_qr_code.replace('{id}', participant.id);
+        const link = this.configService.get<string>('QR_CODE_LINK');
 
         // Generate QR code
         const qrCodeBase64 = await QRCode.toDataURL(link);
@@ -244,9 +246,20 @@ export class ParticipantService {
         updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
         updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
+        // Modifikasi link_qr_code dengan ID peserta
+        let link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
+
+        // Generate QR code
+        const qrCodeBase64 = await QRCode.toDataURL(link);
+        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+
         const result = await this.prismaService.participant.update({
             where: { id: participantId },
-            data: updateRequest,
+            data: {
+                ...updateRequest,
+                link_qr_code: link,
+                qr_code: qrCodeBuffer,
+            },
         });
 
         if(req.nik || req.dinas) {

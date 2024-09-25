@@ -19,8 +19,6 @@ export interface CreateParticipantRequest {
     surat_bebas_narkoba: Buffer;
     exp_bebas_narkoba: Date;
     gmf_non_gmf?: string;
-    link_qr_code?: string;
-    qr_code?: Buffer;
 }
 
 export interface UpdateParticipantRequest {
@@ -44,6 +42,7 @@ export interface UpdateParticipantRequest {
     surat_bebas_narkoba?: Buffer;
     exp_bebas_narkoba?: Date;
     gmf_non_gmf?: string;
+    link_qr_code?: string;
 }
 
 export interface ParticipantList {

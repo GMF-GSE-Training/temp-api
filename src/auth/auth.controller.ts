@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
 import { UpdateUserRequest } from "../model/user.model";
 import { AuthResponse, CurrentUserRequest, LoginUserRequest } from "../model/auth.model";
@@ -79,12 +79,33 @@ export class AuthController {
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @UseGuards(AuthGuard)
-    @Patch('/current')
-    @HttpCode(200)
-    async update(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<AuthResponse>> {
-        const result = await this.authService.updateCurrent(userCurrent.user, req);
-        return buildResponse(HttpStatus.OK, result);
+    // @UseGuards(AuthGuard)
+    // @Patch('/current')
+    // @HttpCode(200)
+    // async update(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<AuthResponse>> {
+    //     const result = await this.authService.updateCurrent(userCurrent.user, req);
+    //     return buildResponse(HttpStatus.OK, result);
+    // }
+
+    @Post('request-reset-password')
+    async requestResetPassword(@Body('email') email: string) {
+        return this.authService.requestPasswordReset(email);
+    }
+
+    @Get('verify-reset-password/:token')
+    async verifyResetPassword(@Param('token') token: string, @Res() res: Response) {
+        const isValid = await this.authService.verifyResetPasswordToken(token);
+        if (isValid) {
+        // Redirect ke frontend untuk memasukkan password baru
+        res.redirect('http://192.168.1.12:4200/reset-password?token=' + token);
+        } else {
+        return res.status(400).json({ message: 'Token tidak valid atau sudah kadaluarsa' });
+        }
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body('token') token: string, @Body('newPassword') newPassword: string) {
+        return this.authService.resetPassword(token, newPassword);
     }
 
     @UseGuards(AuthGuard)
