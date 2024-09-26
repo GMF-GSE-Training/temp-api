@@ -28,29 +28,66 @@ export class UserService {
 
         const roleUser = await this.findRoleUser();
 
-        const roleLCU = await this.prismaService.role.findFirst({
+        // const roleLCU = await this.prismaService.role.findFirst({
+        //     where: {
+        //         role: {
+        //             equals: "lcu",
+        //             mode: "insensitive",
+        //         }
+        //     }
+        // });
+
+        // const roleSupervisor = await this.prismaService.role.findFirst({
+        //     where: {
+        //         role: {
+        //             equals: "supervisor",
+        //             mode: "insensitive",
+        //         }
+        //     }
+        // });
+
+        // if (req.roleId === roleUser.id) {
+        //     this.validateNikForUser(req);
+        //     await this.validateParticipantNik(req.nik);
+        // } else if (req.roleId === roleLCU.id) {
+        //     this.validateNikForNonUserRoles(req.nik);
+        //     this.validateDinas(req.dinas);
+        // } else if(req.roleId === roleSupervisor.id) {
+            
+        // } else {
+        //     this.validateNikForNonUserRoles(req.nik);
+        //     this.validateDinasForAdminOrSupervisor(req.dinas);
+        // }
+
+        const role = await this.prismaService.role.findUnique({
             where: {
-                role: {
-                    equals: "lcu",
-                    mode: "insensitive",
-                }
+                id: req.roleId
             }
         });
 
-        if (req.roleId === roleUser.id) {
+        const roleRequest = role.role.toLowerCase();
+
+        if (roleRequest === 'user') {
             this.validateNikForUser(req);
             await this.validateParticipantNik(req.nik);
-        } else if (req.roleId === roleLCU.id) {
+        } else if (roleRequest === 'lcu') {
+            this.validateNikForNonUserRoles(req.nik);
+            this.validateDinas(req.dinas);
+        } else if(roleRequest === 'supervisor') {
             this.validateNikForNonUserRoles(req.nik);
             this.validateDinas(req.dinas);
         } else {
             this.validateNikForNonUserRoles(req.nik);
-            this.validateDinasForAdminOrSupervisor(req.dinas);
+            this.validateDinasForSuperAdmin(req.dinas);
         }
 
         if(userRole === 'lcu') {
             this.validateRoleForLcuRequest(req.roleId, roleUser.id);
             this.validateDinasForLcuRequest(req.dinas, user.user.dinas);
+        } else if(userRole === 'supervisor') {
+            if(roleRequest !== 'user') {
+                throw new HttpException('Akses terlarang, supervisor hanya bisa membuat akun dengan role user', 403);
+            }
         }
 
         const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
@@ -412,9 +449,9 @@ export class UserService {
         }
     }
     
-    private validateDinasForAdminOrSupervisor(dinas: string) {
+    private validateDinasForSuperAdmin(dinas: string) {
         if (dinas) {
-            throw new HttpException('Role super admin atau supervisor tidak perlu dinas', 400);
+            throw new HttpException('Role Super Admin tidak perlu dinas', 400);
         }
     }
 
