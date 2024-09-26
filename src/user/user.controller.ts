@@ -12,7 +12,7 @@ export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Post()
-    @Roles('Super Admin', 'LCU')
+    @Roles('Super Admin', 'supervisor', 'LCU')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async create(@Body() req: CreateUserRequest, @Req() user: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
