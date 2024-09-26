@@ -82,12 +82,10 @@ export class UserService {
         }
 
         if(userRole === 'lcu') {
-            this.validateRoleForLcuRequest(req.roleId, roleUser.id);
+            this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
             this.validateDinasForLcuRequest(req.dinas, user.user.dinas);
         } else if(userRole === 'supervisor') {
-            if(roleRequest !== 'user') {
-                throw new HttpException('Akses terlarang, supervisor hanya bisa membuat akun dengan role user', 403);
-            }
+            this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
         }
 
         const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
@@ -124,7 +122,7 @@ export class UserService {
         const roleUser = await this.findRoleUser();
 
         if(userRole === 'lcu') {
-            this.validateRoleForLcuRequest(findUser.roleId, roleUser.id);
+            this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
             this.validateDinasForLcuRequest(findUser.dinas, user.user.dinas);
         }
 
@@ -149,10 +147,14 @@ export class UserService {
 
         if(userRole === 'lcu') {
             if(req.roleId) {
-                this.validateRoleForLcuRequest(req.roleId, roleUser.id);
+                this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
             }
             if(req.dinas) {
                 this.validateDinasForLcuRequest(req.dinas, user.user.dinas);
+            }
+        } else if(userRole === 'supervisor') {
+            if(req.roleId) {
+                this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
             }
         }
 
@@ -197,7 +199,7 @@ export class UserService {
         const roleUser = await this.findRoleUser();
 
         if(userRole === 'lcu') {
-            this.validateRoleForLcuRequest(findUser.roleId, roleUser.id);
+            this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
             this.validateDinasForLcuRequest(findUser.dinas, user.user.dinas);
         }
 
@@ -455,7 +457,7 @@ export class UserService {
         }
     }
 
-    private validateRoleForLcuRequest(reqRoleId: string, roleUserId: string): void {
+    private validateRoleForLcuOrSupervisorRequest(reqRoleId: string, roleUserId: string): void {
         if (reqRoleId !== roleUserId) {
             throw new HttpException('LCU hanya dapat membuat, mengakses, dan menghapus akun dengan role user', 403);
         }
