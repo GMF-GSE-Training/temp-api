@@ -82,7 +82,7 @@ export class ParticipantService {
         });
 
         // Modifikasi link_qr_code dengan ID peserta
-        const link = this.configService.get<string>('QR_CODE_LINK');
+        const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
 
         // Generate QR code
         const qrCodeBase64 = await QRCode.toDataURL(link);
@@ -207,17 +207,17 @@ export class ParticipantService {
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
-        if(req.nik) {
-            const nikIsAlreadyExists = await this.prismaService.participant.count({
-                where: {
-                    nik: req.nik,
-                }
-            });
+        // if(req.nik) {
+        //     const nikIsAlreadyExists = await this.prismaService.participant.count({
+        //         where: {
+        //             nik: req.nik,
+        //         }
+        //     });
 
-            if(nikIsAlreadyExists > 1) {
-                throw new HttpException('NIK sudah ada di data peserta', 400);
-            }
-        }
+        //     if(nikIsAlreadyExists > 1) {
+        //         throw new HttpException('NIK sudah ada di data peserta', 400);
+        //     }
+        // }
 
         const participant = await this.prismaService.participant.findUnique({
             where: {
@@ -247,7 +247,7 @@ export class ParticipantService {
         updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
         // Modifikasi link_qr_code dengan ID peserta
-        let link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
+        const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
 
         // Generate QR code
         const qrCodeBase64 = await QRCode.toDataURL(link);
@@ -262,23 +262,33 @@ export class ParticipantService {
             },
         });
 
+        console.log("LOGGING 265 : ", result.nik)
+
         if(req.nik || req.dinas) {
-            const updateData: { nik?: string; dinas?: string } = {};
+            const updateUser: { nik?: string; dinas?: string } = {};
 
             if (req.nik) {
-                updateData.nik = req.nik;
+                updateUser.nik = req.nik;
             }
 
             if (req.dinas || req.dinas != '') {
-                updateData.dinas = req.dinas;
+                updateUser.dinas = req.dinas;
             }
 
-            await this.prismaService.user.update({
+            const user = await this.prismaService.user.findFirst({
                 where: {
                     nik: participant.nik,
                 },
-                data: updateData,
             });
+
+            if(user) {
+                await this.prismaService.user.update({
+                    where: {
+                        id: user.id,
+                    },
+                    data: updateUser,
+                });
+            }
         }
 
         return this.toParticipantResponse(result);
