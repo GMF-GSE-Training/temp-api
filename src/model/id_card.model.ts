@@ -42,7 +42,7 @@ export class IdCardModel {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>ID Card</title>
             <style>
-                .container {
+                .id-card-container {
                     font-family: 'Petrona', sans-serif;
                     display: flex;
                     justify-content: center;
@@ -168,7 +168,7 @@ export class IdCardModel {
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="id-card-container">
                 <!-- Front Side -->
                 <div class="id-card">
                 <div class="logo">
