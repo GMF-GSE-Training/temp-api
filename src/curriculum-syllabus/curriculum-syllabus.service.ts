@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CapabilityResponse } from "src/model/capability.model";
 import { CreateCurriculumSyllabus } from "src/model/curriculum-syllabus.model";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
