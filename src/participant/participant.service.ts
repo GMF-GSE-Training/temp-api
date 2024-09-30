@@ -116,7 +116,7 @@ export class ParticipantService {
             }
         }
 
-        if(user.user.dinas || user.user.dinas !== null) {
+        if(userRole === 'lcu') {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
@@ -134,10 +134,6 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        if(user.user.dinas || user.user.dinas !== null) {
-            this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
-        }
-
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
 
@@ -145,6 +141,10 @@ export class ParticipantService {
             if(participant.nik !== user.user.nik) {
                 throw new HttpException('Akses terlarang, pengguna tidak bisa mengakses data pengguna lain', 403);
             }
+        }
+
+        if(userRole === 'lcu') {
+            this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
         return this.toParticipantResponse(participant);
@@ -242,9 +242,9 @@ export class ParticipantService {
             }
         }
 
-        updateRequest.no_pegawai === "null" ? updateRequest.no_pegawai = null : updateRequest.no_pegawai;
-        updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
-        updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
+        // updateRequest.no_pegawai === "null" ? updateRequest.no_pegawai = null : updateRequest.no_pegawai;
+        // updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
+        // updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
         // Modifikasi link_qr_code dengan ID peserta
         const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);

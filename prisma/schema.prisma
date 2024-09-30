@@ -74,29 +74,72 @@ model Participant {
 }
 
 model Capability {
-  id                        String               @id @default(uuid())
-  kode_rating               String               @db.VarChar(20)
-  kode_training             String               @db.VarChar(50)
-  nama_training             String               @db.VarChar(50)
-  durasi_materi_rating_exam Int
-  durasi_materi_reguler     Int
-  total_durasi_training     Int
-  curriculumSyllabus        CurriculumSyllabus[]
+  id            String @id @default(uuid())
+  kode_rating   String @db.VarChar(20)
+  kode_training String @db.VarChar(50)
+  nama_training String @db.VarChar(50)
+
+  // Relasi one-to-many ke CurriculumSyllabus
+  curriculums CurriculumSyllabus?
 
   @@map("capability")
 }
 
 model CurriculumSyllabus {
-  id                 String     @id @default(uuid())
-  capabilityId       String
-  reg_gse            String     @db.VarChar(255)
-  durasi_teori_reg   Int
-  durasi_praktek_reg Int
-  kompetensi         String     @db.VarChar(255)
-  durasi_teori_kom   Int
-  durasi_praktek_kom Int
-  total_durasi       Int
-  capability         Capability @relation(fields: [capabilityId], references: [id])
+  id           String     @id @default(uuid())
+  capabilityId String     @unique
+  capability   Capability @relation(fields: [capabilityId], references: [id])
+  total_durasi Int
 
-  @@map("curriculumSyllabus")
+  // Relasi ke pivot tabel
+  regulasiGSEs RegulasiGSECurriculumSyllabus[]
+  kompetensis  KompetensiCurriculumSyllabus[]
+
+  @@map("curriculum_syllabus")
+}
+
+model RegulasiGSE {
+  id      String @id @default(uuid())
+  reg_gse String @db.VarChar(50)
+
+  // Tidak ada durasi di sini, durasi dipindahkan ke pivot table
+  regulasiSyllabus RegulasiGSECurriculumSyllabus[]
+
+  @@map("regulasi_gse")
+}
+
+model Kompetensi {
+  id         String @id @default(uuid())
+  kompetensi String @db.VarChar(50)
+
+  // Tidak ada durasi di sini, durasi dipindahkan ke pivot table
+  kompetensiSyllabus KompetensiCurriculumSyllabus[]
+
+  @@map("kompetensi")
+}
+
+model RegulasiGSECurriculumSyllabus {
+  id             String @id @default(uuid())
+  durasi_teori   Int
+  durasi_praktek Int
+  curriculumId   String
+  regulasiGSEId  String
+
+  curriculum  CurriculumSyllabus @relation(fields: [curriculumId], references: [id])
+  regulasiGSE RegulasiGSE        @relation(fields: [regulasiGSEId], references: [id])
+
+  @@map("regulasi_gse_curriculum_syllabus")
+}
+
+model KompetensiCurriculumSyllabus {
+  id             String @id @default(uuid())
+  durasi_teori   Int
+  durasi_praktek Int
+  curriculumId   String
+  kompetensiId   String
+
+  curriculum CurriculumSyllabus @relation(fields: [curriculumId], references: [id])
+  kompetensi Kompetensi         @relation(fields: [kompetensiId], references: [id])
+
+  @@map("kompetensi_curriculum_syllabus")
 }

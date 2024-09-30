@@ -14,13 +14,13 @@ export interface Kompetensi {
 }
 
 export interface RegulasiGSECurriculumSyllabus {
-    regulasiGSEId: string;
+    reg_gse: string;
     durasi_teori: number;
     durasi_praktek: number;
 }
 
 export interface KompetensiCurriculumSyllabus {
-    kompetensiId: string;
+    kompetensi: string;
     durasi_teori: number;
     durasi_praktek: number;
 }
