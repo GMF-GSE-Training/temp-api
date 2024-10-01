@@ -43,7 +43,7 @@ export class MailerService {
 
         try {
             const result = await transport.sendMail(options);
-            console.log('RESULT: ', result)
+            console.log('RESULT: ', result);
             return result
         } catch (e) {
             console.log(e);

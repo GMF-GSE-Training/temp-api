@@ -50,7 +50,9 @@ export class ParticipantService {
             }
         }
 
-        data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
+        if(data.perusahaan) {
+            data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
+        }
 
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 

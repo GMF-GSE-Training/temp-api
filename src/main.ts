@@ -39,7 +39,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(port, host);
+  await app.listen(port);
 
   console.log(`Application is running on: http://${localIp}:${port}`);
 }

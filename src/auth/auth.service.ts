@@ -123,7 +123,7 @@ export class AuthService {
 
         this.participantService.createParticipant(createParticipant, userRegister);
 
-        const verificationLink = `http://192.168.1.12:3000/auth/verify-email?token=${token}`;
+        const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}`;
 
         const email: SendEmail = {
             from: {
@@ -139,6 +139,8 @@ export class AuthService {
         };
 
         await this.mailerService.sendEmail(email);
+
+        console.log("LOGGING EMAIL : ", email)
         
         return this.toAuthResponse(result);
     }
@@ -283,7 +285,7 @@ export class AuthService {
         const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
     
         // Kirim email reset password
-        const resetPasswordLink = `http://192.168.1.14:3000/auth/verify-reset-password/${resetToken}`;
+        const resetPasswordLink = `http://${this.configService.get<string>('HOST')}:3000/auth/verify-reset-password/${resetToken}`;
         await this.mailerService.sendEmail({
             from: {
                 name: this.configService.get<string>('APP_NAME'),
