@@ -12,7 +12,6 @@ export class CurriculumSyllabusService {
     ) { }
 
     async createCurriculumSyllabus(request: CreateCurriculumSyllabus): Promise<string> {
-        console.log(request);
         const { curriculum_syllabus } = request;
 
         await this.prismaService.curriculumSyllabus.createMany({
@@ -48,16 +47,12 @@ export class CurriculumSyllabusService {
             return total + item.durasi_teori;
         }, 0);
 
-        console.log(totalDurasiTeoriKompetensi);
-
         // Menghitung total durasi_praktek dari semua item di curriculum_syllabus
         const totalDurasiPraktekKompetensi = curriculum_syllabus
             .filter(item => item.type.toLocaleLowerCase() === 'kompetensi')
             .reduce((total, item) => {
             return total + item.durasi_praktek;
         }, 0);
-
-        console.log(totalDurasiPraktekKompetensi);
 
         await this.prismaService.capability.update({
             where: {

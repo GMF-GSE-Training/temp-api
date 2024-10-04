@@ -139,8 +139,6 @@ export class AuthService {
         };
 
         await this.mailerService.sendEmail(email);
-
-        console.log("LOGGING EMAIL : ", email)
         
         return this.toAuthResponse(result);
     }
@@ -162,8 +160,6 @@ export class AuthService {
                 }
             });
         }
-
-        console.log("User : ", user);
 
         if(!user || !user.emailVerified) {
             throw new HttpException('Akun belum diverifikasi atau data login salah', 401);
@@ -220,56 +216,7 @@ export class AuthService {
         }
     }
 
-    // async updateCurrent(user: User, req: UpdateUserRequest): Promise<AuthResponse> {
-    //     if(req.roleId) {
-    //         const userCurrent = await this.prismaService.user.findUnique({
-    //             where: {
-    //                 id: user.id,
-    //             },
-    //             include: {
-    //                 role: true,
-    //             },
-    //         });
-    
-    //         if(!userCurrent) {
-    //             throw new HttpException('User not found', 404);
-    //         }
-    
-    //         const restrictedRoles = ['user', 'lcu', 'supervisor'];
-    //         if (restrictedRoles.includes(userCurrent.role.role.toLowerCase())) {
-    //             throw new HttpException('Forbidden: You are not allowed to update your role', 403);
-    //         }
-    //     }
-
-    //     const updateRequest: UpdateUserRequest = this.validationService.validate(AuthValidation.UPDATE, req);
-
-    //     for (const key of Object.keys(updateRequest)) {
-    //         if (updateRequest[key] !== undefined) {
-    //             if (key === 'password') {
-    //                 user.password = await bcrypt.hash(updateRequest.password, 10);
-    //             } else {
-    //                 (user as any)[key] = updateRequest[key];
-    //             }
-    //         }
-    //     }   
-
-    //     const authSelectedFields = this.authSelectedFields();
-
-    //     const result = await this.prismaService.user.update({
-    //         where: {
-    //             id: user.id,
-    //         },
-    //         data: user,
-    //         select: authSelectedFields,
-    //     });
-
-    //     return this.toAuthResponse({
-    //         ...result,
-    //     });
-    // }
-
     async requestPasswordReset(email: string): Promise<string> {
-        console.log(email);
         // Cek apakah email ada di database
         const user = await this.prismaService.user.findFirst({
             where: {

@@ -15,7 +15,6 @@ export class CapabilityController {
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
     async create(@Body() request: CreateCapability): Promise<WebResponse<any>> {
-        console.log(request);
         const result = await this.capabilityService.createCapability(request);
         return buildResponse(HttpStatus.OK, result);
     }

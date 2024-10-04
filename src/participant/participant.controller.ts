@@ -186,7 +186,6 @@ export class ParticipantController {
     @Roles('super admin', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getParticipantByNik(@Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        console.log(user)
         const result = await this.participantService.getParticipantByNik(user);
         return buildResponse(HttpStatus.OK, result);
     }

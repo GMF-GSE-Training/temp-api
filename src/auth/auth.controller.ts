@@ -29,7 +29,6 @@ export class AuthController {
     async verifyEmail(@Query('token') token: string, @Query('callback') callbackUrl: string, @Res() res: Response): Promise<any> {
         try {
             const payload = this.jwtService.verify(token);
-            console.log(payload)
             await this.prismaService.user.update({
                 where: { id: payload.sub },
                 data: { 
@@ -78,14 +77,6 @@ export class AuthController {
         return buildResponse(HttpStatus.OK, result);
     }
 
-    // @UseGuards(AuthGuard)
-    // @Patch('/current')
-    // @HttpCode(200)
-    // async update(@Req() userCurrent: CurrentUserRequest, @Body() req: UpdateUserRequest): Promise<WebResponse<AuthResponse>> {
-    //     const result = await this.authService.updateCurrent(userCurrent.user, req);
-    //     return buildResponse(HttpStatus.OK, result);
-    // }
-
     @Post('request-reset-password')
     async requestResetPassword(@Body('email') email: string): Promise<WebResponse<string>> {
         const result = await this.authService.requestPasswordReset(email);
@@ -106,7 +97,6 @@ export class AuthController {
 
     @Post('reset-password')
     async resetPassword(@Body() req: ResetPassword): Promise<WebResponse<boolean>> {
-        console.log(req);
         await this.authService.resetPassword(req);
         return buildResponse(HttpStatus.OK, true);
     }

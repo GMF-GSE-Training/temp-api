@@ -264,8 +264,6 @@ export class ParticipantService {
             },
         });
 
-        console.log("LOGGING 265 : ", result.nik)
-
         if(req.nik || req.dinas) {
             const updateUser: { nik?: string; dinas?: string } = {};
 
