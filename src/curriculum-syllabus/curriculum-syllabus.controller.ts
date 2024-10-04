@@ -15,33 +15,16 @@ export class CurriculumSyllabusController {
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
     async create(@Body() request: CreateCurriculumSyllabus): Promise<WebResponse<any>> {
-        console.log(request);
         const result = await this.curriculumSyllabusService.createCurriculumSyllabus(request);
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('/:curriculumSyllabusId')
+    @Get('/:capabilityId')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('curriculumSyllabusId', ParseUUIDPipe) curriculumSyllabusId: string) {
-        const result = await this.curriculumSyllabusService.getCurriculumSyllabus(curriculumSyllabusId);
+    async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string) {
+        const result = await this.curriculumSyllabusService.getCurriculumSyllabusByCapabilityId(capabilityId);
         return buildResponse(HttpStatus.OK, result);
-    }
-
-    @Get('/list/result')
-    @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
-    @UseGuards(AuthGuard, RoleGuard)
-    async list(
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ) {
-        const query: ListRequest = { 
-            page: page || 1,
-            size: size || 10,
-        };
-        const result = await this.curriculumSyllabusService.listCurriculumSyllabus(query);
-        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 }

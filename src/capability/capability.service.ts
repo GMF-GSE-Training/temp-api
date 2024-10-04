@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CapabilityResponse, CreateCapability, ListCapabilityResponse } from "src/model/capability.model";
+import { CreateCapability } from "src/model/capability.model";
 import { CapabilityValidation } from "./capability.validation";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
@@ -12,7 +12,7 @@ export class CapabilityService {
         private readonly validationService: ValidationService,
     ) { }
 
-    async createCapability(request: CreateCapability): Promise<CapabilityResponse> {
+    async createCapability(request: CreateCapability): Promise<any> {
         const createCapabilityRequest = this.validationService.validate(CapabilityValidation.CREATE, request);
 
         const capability = await this.prismaService.capability.create({
@@ -23,77 +23,23 @@ export class CapabilityService {
     }
 
     async getCapability(capabilityId: string): Promise<any> {
-        const capability = await this.prismaService.capability.findUnique({
+        const result = await this.prismaService.capability.findUnique({
             where: {
                 id: capabilityId,
             }
         });
 
-        if(!capability) {
+        if(!result) {
             throw new HttpException('Capability Not Found', 404);
         }
-
-        const result = await this.prismaService.capability.findMany({
-            select: {
-                id: true,
-                kode_rating: true,
-                kode_training: true,
-                nama_training: true,
-                curriculums: {
-                    select: {
-                        regulasiGSEs: {
-                            select: {
-                                id: true,
-                                durasi_praktek: true,
-                                durasi_teori: true,
-                            },
-                        },
-                        kompetensis: {
-                            select: {
-                                id: true,
-                                durasi_praktek: true,
-                                durasi_teori: true,
-                            },
-                        },
-                        total_durasi: true
-                    }
-                }
-            }
-        });    
 
         return result;
     }
 
-    async listCapability(request: ListRequest): Promise<{ data: ListCapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        let capability: ListCapabilityResponse[];
+    async listCapability(request: ListRequest): Promise<{ data: any[], actions: ActionAccessRights, paging: Paging }> {
+        let capability: any[];
 
-        capability = await this.prismaService.capability.findMany({
-            select: {
-                id: true,
-                kode_rating: true,
-                kode_training: true,
-                nama_training: true,
-                curriculums: {
-                    select: {
-                        regulasiGSEs: {
-                            select: {
-                                id: true,
-                                durasi_praktek: true,
-                                durasi_teori: true,
-                            },
-                        },
-                        kompetensis: {
-                            select: {
-                                id: true,
-                                durasi_praktek: true,
-                                durasi_teori: true,
-                            },
-                        },
-                        total_durasi: true
-                    }
-                }
-            }
-        });    
+        capability = await this.prismaService.capability.findMany();    
 
         const totalCapability = capability.length;
         const totalPage = Math.ceil(totalCapability / request.size);
@@ -111,7 +57,7 @@ export class CapabilityService {
             actions:{
                 canEdit: true,
                 canDelete: true,
-                canView: true,
+                canView: false,
             },
             paging: {
                 current_page: request.page,

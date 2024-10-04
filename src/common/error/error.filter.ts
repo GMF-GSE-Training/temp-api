@@ -43,7 +43,7 @@ export class ErrorFilter implements ExceptionFilter {
                 code: statusCode,
                 status: HttpStatus[statusCode],
                 errors: {
-                    message: 'NIK sudah digunakan',
+                    message: 'Data sudah ada atau duplikat',
                     details: exception.message,
                 },
             };

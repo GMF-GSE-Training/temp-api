@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { CapabilityService } from "./capability.service";
-import { CapabilityResponse, CreateCapability, ListCapabilityResponse } from "src/model/capability.model";
+import { CreateCapability } from "src/model/capability.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { Roles } from "src/common/decorator/role.decorator";
 import { AuthGuard } from "src/common/guard/auth.guard";
@@ -14,7 +14,7 @@ export class CapabilityController {
     @HttpCode(200)
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
-    async create(@Body() request: CreateCapability): Promise<WebResponse<CapabilityResponse>> {
+    async create(@Body() request: CreateCapability): Promise<WebResponse<any>> {
         console.log(request);
         const result = await this.capabilityService.createCapability(request);
         return buildResponse(HttpStatus.OK, result);
@@ -36,7 +36,7 @@ export class CapabilityController {
     async list(
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<ListCapabilityResponse[]>> {
+    ): Promise<WebResponse<any[]>> {
         const query: ListRequest = { 
             page: page || 1,
             size: size || 10,
