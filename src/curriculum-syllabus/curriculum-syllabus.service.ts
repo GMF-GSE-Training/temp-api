@@ -78,6 +78,15 @@ export class CurriculumSyllabusService {
         const curriculumSyllabus = await this.prismaService.curriculumSyllabus.findMany({
             where: {
                 capabilityId: capabilityId,
+            },
+            include: {
+                capability: {
+                    select: {
+                        id: true,
+                        kode_rating: true,
+                        nama_training: true,
+                    }
+                },
             }
         });
 

@@ -100,3 +100,23 @@ model CurriculumSyllabus {
 
   @@map("curriculum_syllabus")
 }
+
+model Cot {
+  id                            String    @id @default(uuid())
+  capabilityId                  String
+  kode_cot                      String    @db.VarChar(20)
+  tanggal_mulai                 DateTime
+  tanggal_selesai               DateTime
+  lokasi_training               String    @db.VarChar(50)
+  instruktur_regulasi_gse       String    @db.VarChar(50)
+  instruktur_teori_regulasi_gse String    @db.VarChar(50)
+  instruktur_praktek1           String    @db.VarChar(50)
+  instruktur_praktek2           String    @db.VarChar(50)
+  status                        Boolean
+}
+
+model participants_cot {
+  id            String @id @default(uuid())
+  participantId String
+  cotId         String
+}
