@@ -78,17 +78,6 @@ export class AuthService {
             select: authSelectedFields,
         });
 
-        // Buat participant berdasarkan data user
-        // await this.prismaService.participant.create({
-        //     data: {
-        //         no_pegawai: user.no_pegawai,
-        //         nama: user.name,
-        //         nik: user.nik,
-        //         email: user.email,
-        //         dinas: user.dinas,
-        //     },
-        // });
-
         const token = await this.jwtService.signAsync({ sub: user.id }, {
             expiresIn: '1d',
         });
