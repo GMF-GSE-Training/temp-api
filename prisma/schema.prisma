@@ -25,14 +25,14 @@ model User {
   dinas         String? @db.VarChar(50)
   emailVerified Boolean @default(false)
 
-  role Role @relation(fields: [roleId], references: [id])
+  role          Role    @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
 
 model Role {
-  id   String @id @default(uuid())
-  role String @db.VarChar(50)
+  id    String @id @default(uuid())
+  role  String @db.VarChar(50)
 
   users User[]
 
@@ -70,6 +70,8 @@ model Participant {
   qr_code                     Bytes?
   gmf_non_gmf                 String?   @db.VarChar(20)
 
+  cots                        COT[]     @relation("ParticipantsCOT")
+
   @@map("participants")
 }
 
@@ -83,40 +85,38 @@ model Capability {
   total_durasi_teori_kompetensi   Int?
   total_durasi_praktek_kompetensi Int?
 
-  curriculum_syllabus CurriculumSyllabus[]
+  curriculum_syllabus             CurriculumSyllabus[]
 
   @@map("capability")
 }
 
 model CurriculumSyllabus {
-  id              String @id @default(uuid())
+  id              String      @id @default(uuid())
   capabilityId    String
-  nama            String @db.VarChar(50)
+  nama            String      @db.VarChar(50)
   durasi_teori    Int
   durasi_praktek  Int
-  type            String @db.VarChar(20)
+  type            String      @db.VarChar(20)
 
-  capability Capability @relation(fields: [capabilityId], references: [id])
+  capability      Capability  @relation(fields: [capabilityId], references: [id])
 
   @@map("curriculum_syllabus")
 }
 
-model Cot {
-  id                            String    @id @default(uuid())
+model COT {
+  id                            String        @id @default(uuid())
   capabilityId                  String
-  kode_cot                      String    @db.VarChar(20)
+  kode_cot                      String        @db.VarChar(20)
   tanggal_mulai                 DateTime
   tanggal_selesai               DateTime
-  lokasi_training               String    @db.VarChar(50)
-  instruktur_regulasi_gse       String    @db.VarChar(50)
-  instruktur_teori_regulasi_gse String    @db.VarChar(50)
-  instruktur_praktek1           String    @db.VarChar(50)
-  instruktur_praktek2           String    @db.VarChar(50)
+  lokasi_training               String        @db.VarChar(50)
+  instruktur_regulasi_gse       String        @db.VarChar(50)
+  instruktur_teori_regulasi_gse String        @db.VarChar(50)
+  instruktur_praktek1           String        @db.VarChar(50)
+  instruktur_praktek2           String        @db.VarChar(50)
   status                        Boolean
-}
 
-model participants_cot {
-  id            String @id @default(uuid())
-  participantId String
-  cotId         String
+  Participants                  Participant[] @relation("ParticipantsCOT")
+
+  @@map("COT")
 }
