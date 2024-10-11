@@ -21,11 +21,11 @@ model User {
   name            String    @db.VarChar(50)
   password        String    @db.VarChar(100)
   token           String?   @db.VarChar(255)
-  roleId          String
+  role_id         String
   dinas           String?   @db.VarChar(50)
   emailVerified   Boolean   @default(false)
 
-  role            Role      @relation(fields: [roleId], references: [id])
+  role            Role      @relation(fields: [role_id], references: [id])
 
   @@map("users")
 }
@@ -93,20 +93,20 @@ model Capability {
 
 model CurriculumSyllabus {
   id              String      @id @default(uuid())
-  capabilityId    String
+  capability_id   String
   nama            String      @db.VarChar(50)
   durasi_teori    Int
   durasi_praktek  Int
   type            String      @db.VarChar(20)
 
-  capability      Capability  @relation(fields: [capabilityId], references: [id])
+  capability      Capability  @relation(fields: [capability_id], references: [id])
 
   @@map("curriculum_syllabus")
 }
 
 model COT {
   id                              String              @id @default(uuid())
-  capabilityId                    String              @unique
+  capability_id                   String              @unique
   kode_cot                        String              @db.VarChar(20)
   tanggal_mulai                   DateTime
   tanggal_selesai                 DateTime
@@ -117,7 +117,7 @@ model COT {
   instruktur_praktek2             String              @db.VarChar(50)
   status                          Boolean
 
-  Capabillity                     Capability          @relation(fields: [capabilityId], references: [id])
+  Capabillity                     Capability          @relation(fields: [capability_id], references: [id])
   ParticipantsCOT                 ParticipantsCOT[]
 
   @@map("COT")
@@ -125,11 +125,11 @@ model COT {
 
 model ParticipantsCOT {
   id              String        @id @default(uuid())
-  participantId   String
-  cotId           String
+  participant_id  String
+  cot_id          String
 
-  participant     Participant   @relation(fields: [participantId], references: [id])
-  cot             COT           @relation(fields: [cotId], references: [id])
+  participant     Participant   @relation(fields: [participant_id], references: [id])
+  cot             COT           @relation(fields: [cot_id], references: [id])
   Sertifikat      Sertifikat[]
 
   @@map("participants_cot")
@@ -151,7 +151,7 @@ model Signature {
 model Sertifikat {
   id                  String            @id @default(uuid())
   participant_cot_id  String
-  signatureId         String
+  signature_id        String
   no_sertifikat       String            @db.VarChar(50)
   kehadiran           Boolean
   nilai_teori         Float
@@ -159,7 +159,7 @@ model Sertifikat {
   status              Boolean
 
   participantsCOT     ParticipantsCOT   @relation(fields: [participant_cot_id], references: [id])
-  Signature           Signature         @relation(fields: [signatureId], references: [id])
+  Signature           Signature         @relation(fields: [signature_id], references: [id])
 
   @@map("sertifikat")
 }
