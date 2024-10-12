@@ -23,6 +23,7 @@ export class ParticipantService {
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
+        console.log(data)
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
 
@@ -70,12 +71,18 @@ export class ParticipantService {
                 tempatLahir: validatedData.tempatLahir,
                 tanggalLahir: validatedData.tanggalLahir,
                 simA: validatedData.simA,
+                simAFileName: validatedData.simAFileName,
                 simB: validatedData.simB,
+                simBFileName: validatedData.simAFileName,
                 ktp: validatedData.ktp,
+                ktpFileName: validatedData.ktpFileName,
                 foto: validatedData.foto,
+                fotoFileName: validatedData.fotoFileName,
                 suratSehatButaWarna: validatedData.suratSehatButaWarna,
+                suratSehatButaWarnaFileName: validatedData.suratSehatbutaWarnaFileName,
                 expSuratSehatButaWarna: validatedData.expSuratSehatButaWarna,
                 suratBebasNarkoba: validatedData.suratBebasNarkoba,
+                suratBebasNarkobaFileName: validatedData.suratBebasNarkobaFileName,
                 expSuratBebasNarkoba: validatedData.expSuratBebasNarkoba,
                 linkQrCode: '',
                 qrCode: null,
@@ -489,12 +496,12 @@ export class ParticipantService {
             noTelp: participant.noTelp,
             negara: participant.negara,
             tempatLahir: participant.tempatLahir,
-            simAName: participant.simAName,
-            simBName: participant.simBName,
-            ktpName: participant.ktpName,
-            fotoName: participant.fotoName,
-            suratSehatButaWarnaName: participant.suratSehatButaWarnaName,
-            suratBebasNarkobaName: participant.suratBebasNarkobaName,
+            simAFileName: participant.simAFileName,
+            simBFileName: participant.simBFileName,
+            ktpFileName: participant.ktpFileName,
+            fotoFileName: participant.fotoFileName,
+            suratSehatButaWarnaFileName: participant.suratSehatButaWarnaFileName,
+            suratBebasNarkobaFileName: participant.suratBebasNarkobaFileName,
             tanggalLahir: this.formatDate(new Date(participant.tanggalLahir)),
             expSuratSehatButaWarna: this.formatDate(new Date(participant.expSuratSehatButaWarna)),
             expSuratBebasNarkoba: this.formatDate(new Date(participant.expSuratBebasNarkoba)),

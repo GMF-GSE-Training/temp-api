@@ -53,18 +53,18 @@ model Participant {
   tempatLahir                 String?             @db.VarChar(50)
   tanggalLahir                DateTime?           @db.Date
   simA                        Bytes?
-  simAName                    String?             @db.VarChar(255)
+  simAFileName                String?             @db.VarChar(255)
   simB                        Bytes?
-  simBName                    String?             @db.VarChar(255)
+  simBFileName                String?             @db.VarChar(255)
   ktp                         Bytes?
-  ktpName                     String?             @db.VarChar(255)
+  ktpFileName                 String?             @db.VarChar(255)
   foto                        Bytes?
-  fotoName                    String?             @db.VarChar(255)
+  fotoFileName                String?             @db.VarChar(255)
   suratSehatButaWarna         Bytes?
-  suratSehatButaWarnaName     String?             @db.VarChar(255)
+  suratSehatButaWarnaFileName String?             @db.VarChar(255)
   expSuratSehatButaWarna      DateTime?           @db.Date
   suratBebasNarkoba           Bytes?
-  suratBebasNarkobaName       String?             @db.VarChar(255)
+  suratBebasNarkobaFileName   String?             @db.VarChar(255)
   expSuratBebasNarkoba        DateTime?           @db.Date
   linkQrCode                  String?             @db.VarChar(255)
   qrCode                      Bytes?
