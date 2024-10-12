@@ -18,13 +18,4 @@ export class CurriculumSyllabusController {
         const result = await this.curriculumSyllabusService.createCurriculumSyllabus(request);
         return buildResponse(HttpStatus.OK, result);
     }
-
-    @Get('/:capabilityId')
-    @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
-    @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string) {
-        const result = await this.curriculumSyllabusService.getCurriculumSyllabusByCapabilityId(capabilityId);
-        return buildResponse(HttpStatus.OK, result);
-    }
 }
