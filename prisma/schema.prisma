@@ -83,7 +83,8 @@ model Capability {
   totalDurasiTeoriRegGse            Int?
   totalDurasiPraktekRegGse          Int?
   totalDurasiTeoriKompetensi        Int?
-  totalDurasiPraktekKompetensi      Int?                
+  totalDurasiPraktekKompetensi      Int?
+  totalDurasi                       Int?                
 
   curriculumSyllabus                CurriculumSyllabus[]
   COT                               COT?
