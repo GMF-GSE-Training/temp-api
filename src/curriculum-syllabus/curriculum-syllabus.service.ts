@@ -54,6 +54,8 @@ export class CurriculumSyllabusService {
             return total + item.durasiPraktek;
         }, 0);
 
+        const totalDurasi = totalDurasiTeoriRegGse + totalDurasiPraktekRegGse + totalDurasiTeoriKompetensi + totalDurasiPraktekKompetensi;
+
         await this.prismaService.capability.update({
             where: {
                 id: capabilityId
@@ -63,6 +65,7 @@ export class CurriculumSyllabusService {
                 totalDurasiPraktekRegGse: totalDurasiPraktekRegGse,
                 totalDurasiTeoriKompetensi: totalDurasiTeoriKompetensi,
                 totalDurasiPraktekKompetensi: totalDurasiPraktekKompetensi,
+                totalDurasi: totalDurasi,
             }
         });
 
