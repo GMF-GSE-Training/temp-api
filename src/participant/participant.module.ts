@@ -27,7 +27,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
                 const fileExtension = extname(file.originalname).toLowerCase();
 
                 if (!allowedExtensions.includes(fileExtension)) {
-                    return callback(new HttpException(`Invalid file format for ${file.fieldname}. Only PNG, JPG, JPEG, and PDF are allowed.`, 400), false);
+                    return callback(new HttpException(`Format file untuk ${file.fieldname} tidak valid. Hanya file dengan format PNG, JPG, JPEG, dan PDF yang diperbolehkan.`, 400), false);
                 }
                 callback(null, true);
             },
