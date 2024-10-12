@@ -77,9 +77,9 @@ model Participant {
 
 model Capability {
   id                                String                  @id @default(uuid())
-  kodeRating                        String                  @db.VarChar(20) @default("BTT")
-  kodeTraining                      String                  @db.VarChar(50) @default("TCT - 0535")
-  namaTraining                      String                  @db.VarChar(50) @default("Baggage Towing Tractor")
+  kodeRating                        String                  @db.VarChar(20)
+  kodeTraining                      String                  @db.VarChar(50)
+  namaTraining                      String                  @db.VarChar(50)
   totalDurasiTeoriRegGse            Int?
   totalDurasiPraktekRegGse          Int?
   totalDurasiTeoriKompetensi        Int?
