@@ -3,19 +3,19 @@ import * as path from 'path';
 
 export class IdCardModel {
     foto: Buffer;
-    qr_code: Buffer;
+    qrCode: Buffer;
     nama: string;
     perusahaan: string;
-    no_pegawai: string;
+    noPegawai: string;
     negara: string;
     logoBuffer: Buffer;
 
-    constructor(foto: Buffer, qr_code: Buffer, nama: string, perusahaan: string, no_pegawai: string, negara: string) {
+    constructor(foto: Buffer, qrCode: Buffer, nama: string, perusahaan: string, noPegawai: string, negara: string) {
         this.foto = foto;
-        this.qr_code = qr_code;
+        this.qrCode = qrCode;
         this.nama = nama;
         this.perusahaan = perusahaan;
-        this.no_pegawai = no_pegawai;
+        this.noPegawai = noPegawai;
         this.negara = negara;
         this.logoBuffer = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'assets', 'images', 'Logo_GMF_Aero_Asia.png'));
     }
@@ -30,11 +30,11 @@ export class IdCardModel {
 
     async getHtmlTemplate(): Promise<string> {
         const photoBase64 = this.foto.toString('base64');
-        const qrCodeBase64 = this.qr_code.toString('base64');
+        const qrCodeBase64 = this.qrCode.toString('base64');
         const logoBase64 = this.logoBuffer.toString('base64');
 
         const photoType = this.getMediaType(this.foto);
-        const qrCodeType = this.getMediaType(this.qr_code);
+        const qrCodeType = this.getMediaType(this.qrCode);
 
         return `
         <head>
@@ -191,7 +191,7 @@ export class IdCardModel {
                     <div class="details">
                         <p><span>Name</span><span>: ${this.nama}</span></p>
                         <p><span>Company</span><span>: ${this.perusahaan}</span></p>
-                        <p><span>ID Number</span><span>: ${this.no_pegawai}</span></p>
+                        <p><span>ID Number</span><span>: ${this.noPegawai}</span></p>
                         <p><span>Nationality</span><span>: ${this.negara}</span></p>
                     </div>          
                 </div>

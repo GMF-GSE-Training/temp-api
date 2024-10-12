@@ -18,38 +18,38 @@ export class ParticipantController {
     @Roles('super admin', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(FileFieldsInterceptor([
-        { name: 'sim_a', maxCount: 1 },
-        { name: 'sim_b', maxCount: 1 },
+        { name: 'simA', maxCount: 1 },
+        { name: 'simB', maxCount: 1 },
         { name: 'ktp', maxCount: 1 },
         { name: 'foto', maxCount: 1 },
-        { name: 'surat_sehat_buta_warna', maxCount: 1 },
-        { name: 'surat_bebas_narkoba', maxCount: 1 },
+        { name: 'suratSehatButaWarna', maxCount: 1 },
+        { name: 'suratBebasNarkoba', maxCount: 1 },
     ]))
     async create(
         @Req() user: CurrentUserRequest,
         @Body() createParticipantDto: CreateParticipantRequest,
         @UploadedFiles() files: {
-            sim_a?: Express.Multer.File[],
-            sim_b?: Express.Multer.File[],
+            simA?: Express.Multer.File[],
+            simB?: Express.Multer.File[],
             ktp?: Express.Multer.File[],
             foto?: Express.Multer.File[],
-            surat_sehat_buta_warna?: Express.Multer.File[],
-            surat_bebas_narkoba?: Express.Multer.File[],
+            suratSehatButaWarna?: Express.Multer.File[],
+            suratBebasNarkoba?: Express.Multer.File[],
         },
     ): Promise<WebResponse<ParticipantResponse>> {
         let participantData: CreateParticipantRequest;
         try {
             participantData = {
                 ...createParticipantDto,
-                tanggal_lahir: new Date(createParticipantDto.tanggal_lahir),
-                exp_surat_sehat: new Date(createParticipantDto.exp_surat_sehat),
-                exp_bebas_narkoba: new Date(createParticipantDto.exp_bebas_narkoba),
-                sim_a: files.sim_a ? files.sim_a[0].buffer : null,
-                sim_b: files.sim_b ? files.sim_b[0].buffer : null,
+                tanggalLahir: new Date(createParticipantDto.tanggalLahir),
+                expSuratSehatButaWarna: new Date(createParticipantDto.expSuratSehatButaWarna),
+                expSuratBebasNarkoba: new Date(createParticipantDto.expSuratBebasNarkoba),
+                simA: files.simA ? files.simA[0].buffer : null,
+                simB: files.simB ? files.simB[0].buffer : null,
                 ktp: files.ktp ? files.ktp[0].buffer : null,
                 foto: files.foto ? files.foto[0].buffer : null,
-                surat_sehat_buta_warna: files.surat_sehat_buta_warna ? files.surat_sehat_buta_warna[0].buffer : null,
-                surat_bebas_narkoba: files.surat_bebas_narkoba ? files.surat_bebas_narkoba[0].buffer : null,
+                suratSehatButaWarna: files.suratSehatButaWarna ? files.suratSehatButaWarna[0].buffer : null,
+                suratBebasNarkoba: files.suratBebasNarkoba ? files.suratBebasNarkoba[0].buffer : null,
             };
         } catch(error) {
             throw new HttpException('Semua file/image tidak boleh kosong', 400);
@@ -65,37 +65,37 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(
         FileFieldsInterceptor([
-        { name: 'sim_a', maxCount: 1 },
-        { name: 'sim_b', maxCount: 1 },
+        { name: 'simA', maxCount: 1 },
+        { name: 'simB', maxCount: 1 },
         { name: 'ktp', maxCount: 1 },
         { name: 'foto', maxCount: 1 },
-        { name: 'surat_sehat_buta_warna', maxCount: 1 },
-        { name: 'surat_bebas_narkoba', maxCount: 1 },
+        { name: 'suratSehatButaWarna', maxCount: 1 },
+        { name: 'suratBebasNarkoba', maxCount: 1 },
     ]))
     async update(
         @Req() user: CurrentUserRequest,
         @Param('participantId', ParseUUIDPipe) participantId: string,
-        @Body() req: Omit<UpdateParticipantRequest, 'sim_a' | 'sim_b' | 'ktp' | 'foto' | 'surat_sehat_buta_warna' | 'surat_bebas_narkoba'>,
+        @Body() req: Omit<UpdateParticipantRequest, 'simA' | 'simB' | 'ktp' | 'foto' | 'suratSehatButaWarna' | 'suratBebasNarkoba'>,
         @UploadedFiles() files: {
-            sim_a?: Express.Multer.File[],
-            sim_b?: Express.Multer.File[],
+            simA?: Express.Multer.File[],
+            simB?: Express.Multer.File[],
             ktp?: Express.Multer.File[],
             foto?: Express.Multer.File[],
-            surat_sehat_buta_warna?: Express.Multer.File[],
-            surat_bebas_narkoba?: Express.Multer.File[],
+            suratSehatButaWarna?: Express.Multer.File[],
+            suratBebasNarkoba?: Express.Multer.File[],
         }
     ): Promise<WebResponse<ParticipantResponse>> {
         const participantData = {
             ...req,
-            tanggal_lahir: req.tanggal_lahir ? new Date(req.tanggal_lahir) : undefined,
-            exp_surat_sehat: req.exp_surat_sehat ? new Date(req.exp_surat_sehat) : undefined,
-            exp_bebas_narkoba: req.exp_bebas_narkoba ? new Date(req.exp_bebas_narkoba) : undefined,
-            sim_a: files?.sim_a?.[0]?.buffer || undefined,
-            sim_b: files?.sim_b?.[0]?.buffer || undefined,
+            tanggalLahir: req.tanggalLahir ? new Date(req.tanggalLahir) : undefined,
+            expSuratSehatButaWarna: req.expSuratSehatButaWarna ? new Date(req.expSuratSehatButaWarna) : undefined,
+            expSuratBebasNarkoba: req.expSuratBebasNarkoba ? new Date(req.expSuratBebasNarkoba) : undefined,
+            simA: files?.simA?.[0]?.buffer || undefined,
+            simB: files?.simB?.[0]?.buffer || undefined,
             ktp: files?.ktp?.[0]?.buffer || undefined,
             foto: files?.foto?.[0]?.buffer || undefined,
-            surat_sehat_buta_warna: files?.surat_sehat_buta_warna?.[0]?.buffer || undefined,
-            surat_bebas_narkoba: files?.surat_bebas_narkoba?.[0]?.buffer || undefined,
+            suratSehatButaWarna: files?.suratSehatButaWarna?.[0]?.buffer || undefined,
+            suratBebasNarkoba: files?.suratBebasNarkoba?.[0]?.buffer || undefined,
         };
 
         const participant = await this.participantService.updateParticipant(participantId, participantData, user);
@@ -107,7 +107,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSimA(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_a', user);
+        const fileBuffer = await this.participantService.streamFile(participantId, 'simA', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
@@ -117,7 +117,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSimB(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'sim_b', user);
+        const fileBuffer = await this.participantService.streamFile(participantId, 'simB', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
@@ -147,7 +147,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSuratSehat(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_sehat_buta_warna', user);
+        const fileBuffer = await this.participantService.streamFile(participantId, 'suratSehatButaWarna', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
@@ -157,7 +157,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'surat_bebas_narkoba', user);
+        const fileBuffer = await this.participantService.streamFile(participantId, 'suratBebasNarkoba', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }

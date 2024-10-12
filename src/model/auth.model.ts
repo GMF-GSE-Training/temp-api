@@ -1,5 +1,5 @@
 export interface RegisterUserRequest {
-    no_pegawai?: string;
+    noPegawai?: string;
     nik: string;
     email: string;
     name: string;
@@ -16,7 +16,7 @@ export interface LoginUserRequest {
 export interface CurrentUserRequest {
     user: {
         id: string,
-        no_pegawai: string,
+        noPegawai: string,
         email: string,
         name: string,
         nik: string,
@@ -33,7 +33,7 @@ export interface ResetPassword {
 
 export interface AuthResponse {
     id: string;
-    no_pegawai?: string;
+    noPegawai?: string;
     email?: string;
     name: string;
     dinas?: string;

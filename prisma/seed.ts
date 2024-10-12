@@ -46,14 +46,14 @@ async function seedDatabase(prismaService: PrismaClient) {
 
     const dinasList = ['T1', 'T2', 'T3', 'T4', 'T5'];
 
-    const sim_a = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'SIM_A.png'));
-    const sim_b = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'SIM_B.jpg'));
+    const simA = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'SIM_A.png'));
+    const simB = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'SIM_B.jpg'));
     const ktp = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'ktp.png'));
     const foto = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'foto.png'));
-    const surat_sehat_buta_warna = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'surat_ket_sehat.png'));
-    const surat_bebas_narkoba = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'surat_bebas_narkoba.png'));
+    const suratSehatButaWarna = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'surat_ket_sehat.png'));
+    const suratBebasNarkoba = fs.readFileSync(path.join(__dirname, '..', 'assets', 'image', 'suratBebasNarkoba.png'));
     const qrCodeBase64 = await QRCode.toDataURL('http://localhost:4200/participant/view');
-    const qr_code = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+    const qrCode = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
     for (let i = 1; i <= 15; i++) {
         const email = `participant${i}@example.com`;
@@ -65,27 +65,27 @@ async function seedDatabase(prismaService: PrismaClient) {
         if(!existingParticipant) {
             await prismaService.participant.create({
                 data: {
-                no_pegawai: `P${i.toString().padStart(3, '0')}`,
+                noPegawai: `P${i.toString().padStart(3, '0')}`,
                 nama: `Participant ${i}`,
                 nik: `NIK${i.toString().padStart(4, '0')}`,
                 dinas: dinas,
                 bidang: `Bidang ${i}`,
                 perusahaan: i % 2 === 0 ? `Perusahaan ${i}` : null,
                 email: `participant${i}@example.com`,
-                no_telp: `0812345678${i.toString().padStart(2, '0')}`,
+                noTelp: `0812345678${i.toString().padStart(2, '0')}`,
                 negara: `Negara ${i}`,
-                tempat_lahir: `Tempat Lahir ${i}`,
-                tanggal_lahir: new Date(1990, i % 12, i),
-                sim_a,
-                sim_b,
+                tempatLahir: `Tempat Lahir ${i}`,
+                tanggalLahir: new Date(1990, i % 12, i),
+                simA,
+                simB,
                 ktp,
                 foto,
-                surat_sehat_buta_warna,
-                exp_surat_sehat: new Date(2025, 11, 31),
-                surat_bebas_narkoba,
-                exp_bebas_narkoba: new Date(2025, 11, 31),
-                gmf_non_gmf: i % 2 === 0 ? 'GMF' : 'Non GMF',
-                qr_code,
+                suratSehatButaWarna,
+                expSuratSehatButaWarna: new Date(2025, 11, 31),
+                suratBebasNarkoba,
+                expSuratBebasNarkoba: new Date(2025, 11, 31),
+                gmfNonGmf: i % 2 === 0 ? 'GMF' : 'Non GMF',
+                qrCode,
                 },
             });
             console.log(`Participant ${i} created successfully.`);
@@ -103,7 +103,7 @@ async function seedDatabase(prismaService: PrismaClient) {
         if (!existingUser) {
             await prismaService.user.create({
                 data: {
-                    no_pegawai: `SA${i.toString().padStart(3, '0')}`,
+                    noPegawai: `SA${i.toString().padStart(3, '0')}`,
                     email,
                     name: `Super Admin ${i}`,
                     password: superAdminHashedPassword,
@@ -124,7 +124,7 @@ async function seedDatabase(prismaService: PrismaClient) {
         if (!existingUser) {
             await prismaService.user.create({
                 data: {
-                    no_pegawai: `SP${i.toString().padStart(3, '0')}`,
+                    noPegawai: `SP${i.toString().padStart(3, '0')}`,
                     email,
                     name: `Supervisor ${i}`,
                     password: supervisorHashedPassword,
@@ -145,7 +145,7 @@ async function seedDatabase(prismaService: PrismaClient) {
         if (!existingUser) {
             await prismaService.user.create({
                 data: {
-                    no_pegawai: `LCU${i.toString().padStart(3, '0')}`,
+                    noPegawai: `LCU${i.toString().padStart(3, '0')}`,
                     email,
                     name: `LCU ${i}`,
                     password: lcuHashedPassword,
@@ -167,7 +167,7 @@ async function seedDatabase(prismaService: PrismaClient) {
         if (!existingUser) {
             await prismaService.user.create({
                 data: {
-                    no_pegawai: `User${i.toString().padStart(3, '0')}`,
+                    noPegawai: `User${i.toString().padStart(3, '0')}`,
                     nik: `NIK${i.toString().padStart(4, '0')}`,
                     email,
                     name: `Participant ${i}`,

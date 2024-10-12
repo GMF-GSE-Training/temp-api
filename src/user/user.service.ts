@@ -90,7 +90,7 @@ export class UserService {
 
         const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
 
-        await this.checkUserExists(createRequest.no_pegawai, createRequest.email);
+        await this.checkUserExists(createRequest.noPegawai, createRequest.email);
 
         createRequest.password = await bcrypt.hash(createRequest.password, 10);
 
@@ -213,7 +213,7 @@ export class UserService {
 
         const result: UserResponse = {
             id: deleteUser.id,
-            no_pegawai: deleteUser.no_pegawai,
+            noPegawai: deleteUser.noPegawai,
             email: deleteUser.email,
             name: deleteUser.name,
             dinas: deleteUser.dinas,
@@ -270,8 +270,8 @@ export class UserService {
             data: paginatedUsers.map(user => this.toUserResponse(user, userRole)),
             actions: actions,
             paging: {
-                current_page: listRequest.page,
-                total_page: totalPage,
+                currentPage: listRequest.page,
+                totalPage: totalPage,
                 size: listRequest.size,
             },
         };
@@ -297,7 +297,7 @@ export class UserService {
             const query = searchRequest.searchQuery.toLowerCase();
             if (userRole === 'super admin' || userRole === 'supervisor') {
                 filteredUsers = users.filter(user => 
-                    user.no_pegawai?.toLowerCase().includes(query) ||
+                    user.noPegawai?.toLowerCase().includes(query) ||
                     user.email.toLowerCase().includes(query) ||
                     user.name.toLowerCase().includes(query) ||
                     user.role?.role.toLowerCase().includes(query) ||
@@ -305,7 +305,7 @@ export class UserService {
                 );
             } else {
                 filteredUsers = users.filter(user => 
-                    user.no_pegawai?.toLowerCase().includes(query) ||
+                    user.noPegawai?.toLowerCase().includes(query) ||
                     user.email.toLowerCase().includes(query) ||
                     user.name.toLowerCase().includes(query)
                 );
@@ -332,18 +332,18 @@ export class UserService {
             })),
             actions: actions,
             paging: {
-                current_page: searchRequest.page,
-                total_page: totalPage,
+                currentPage: searchRequest.page,
+                totalPage: totalPage,
                 size: searchRequest.size,
             },
         };
     }
 
-    async checkUserExists(no_pegawai: string, email: string) {
-        if (no_pegawai) {
+    async checkUserExists(noPegawai: string, email: string) {
+        if (noPegawai) {
             const totalUserwithSameNoPegawai = await this.prismaService.user.count({
                 where: {
-                    no_pegawai: no_pegawai,
+                    noPegawai: noPegawai,
                 }
             });
     
@@ -379,7 +379,7 @@ export class UserService {
     userSelectFields()  {
         return {
             id: true,
-            no_pegawai: true,
+            noPegawai: true,
             email: true,
             name: true,
             dinas: true,

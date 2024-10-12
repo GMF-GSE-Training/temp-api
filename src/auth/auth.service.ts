@@ -58,7 +58,7 @@ export class AuthService {
                 throw new HttpException('Email tidak sesuai dengan data peserta', 400);
             }
     
-            if (participant.no_pegawai && registerRequest.no_pegawai !== participant.no_pegawai) {
+            if (participant.noPegawai && registerRequest.noPegawai !== participant.noPegawai) {
                 throw new HttpException('No Pegawai tidak sesuai dengan data peserta', 400);
             }
     
@@ -67,7 +67,7 @@ export class AuthService {
             }
         }
 
-        await this.checkUserExists(registerRequest.no_pegawai, registerRequest.email);
+        await this.checkUserExists(registerRequest.noPegawai, registerRequest.email);
 
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
@@ -97,7 +97,7 @@ export class AuthService {
         }
 
         const createParticipant = {
-            no_pegawai: user.no_pegawai,
+            noPegawai: user.noPegawai,
             nama: user.name,
             nik: user.nik,
             email: user.email,
@@ -145,7 +145,7 @@ export class AuthService {
         } else {
             user = await this.prismaService.user.findFirst({
                 where: {
-                    no_pegawai: loginRequest.identifier
+                    noPegawai: loginRequest.identifier
                 }
             });
         }
@@ -157,7 +157,7 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
 
         if(!isPasswordValid) {
-            throw new HttpException('no_pegawai or email or password is invalid', 401);
+            throw new HttpException('noPegawai or email or password is invalid', 401);
         }
 
         const payload = { sub: user.id };
@@ -291,11 +291,11 @@ export class AuthService {
         });
     }
 
-    async checkUserExists(no_pegawai: string, email: string) {
-        if (no_pegawai) {
+    async checkUserExists(noPegawai: string, email: string) {
+        if (noPegawai) {
             const totalUserwithSameNoPegawai = await this.prismaService.user.count({
                 where: {
-                    no_pegawai: no_pegawai,
+                    noPegawai: noPegawai,
                 }
             });
     
@@ -318,7 +318,7 @@ export class AuthService {
     authSelectedFields() {
         return {
             id: true,
-            no_pegawai: true,
+            noPegawai: true,
             email: true,
             name: true,
             nik: true,
@@ -331,7 +331,7 @@ export class AuthService {
     toAuthResponse(user: AuthResponse): AuthResponse {
         return {
             id: user.id,
-            no_pegawai: user.no_pegawai,
+            noPegawai: user.noPegawai,
             email: user.email,
             name: user.name,
             dinas: user.dinas,

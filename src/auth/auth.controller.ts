@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../common/guard/auth.guard";
-import { UpdateUserRequest } from "../model/user.model";
 import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";

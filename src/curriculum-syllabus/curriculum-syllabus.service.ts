@@ -12,46 +12,46 @@ export class CurriculumSyllabusService {
     ) { }
 
     async createCurriculumSyllabus(request: CreateCurriculumSyllabus): Promise<string> {
-        const { curriculum_syllabus } = request;
+        const { curriculumSyllabus } = request;
 
         await this.prismaService.curriculumSyllabus.createMany({
-            data: curriculum_syllabus.map((curriculum_syllabus) => ({
-                capabilityId: curriculum_syllabus.capabilityId,
-                nama: curriculum_syllabus.nama,
-                durasi_teori: curriculum_syllabus.durasi_teori,
-                durasi_praktek: curriculum_syllabus.durasi_praktek,
-                type: curriculum_syllabus.type,
+            data: curriculumSyllabus.map((curriculumSyllabus) => ({
+                capabilityId: curriculumSyllabus.capabilityId,
+                nama: curriculumSyllabus.nama,
+                durasiTeori: curriculumSyllabus.durasiTeori,
+                durasiPraktek: curriculumSyllabus.durasiPraktek,
+                type: curriculumSyllabus.type,
             })) 
         });
 
-        const capabilityId = curriculum_syllabus[0].capabilityId;
+        const capabilityId = curriculumSyllabus[0].capabilityId;
 
-        // Menghitung total durasi_teori dari semua item di curriculum_syllabus
-        const totalDurasiTeoriRegGse = curriculum_syllabus
+        // Menghitung total durasiTeori dari semua item di curriculumSyllabus
+        const totalDurasiTeoriRegGse = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'regulasi gse')
             .reduce((total, item) => {
-            return total + item.durasi_teori;
+            return total + item.durasiTeori;
         }, 0);
 
-        // Menghitung total durasi_praktek dari semua item di curriculum_syllabus
-        const totalDurasiPraktekRegGse = curriculum_syllabus
+        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
+        const totalDurasiPraktekRegGse = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'regulasi gse')
             .reduce((total, item) => {
-            return total + item.durasi_praktek;
+            return total + item.durasiPraktek;
         }, 0);
 
-        // Menghitung total durasi_praktek dari semua item di curriculum_syllabus
-        const totalDurasiTeoriKompetensi = curriculum_syllabus
+        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
+        const totalDurasiTeoriKompetensi = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'kompetensi')
             .reduce((total, item) => {
-            return total + item.durasi_teori;
+            return total + item.durasiTeori;
         }, 0);
 
-        // Menghitung total durasi_praktek dari semua item di curriculum_syllabus
-        const totalDurasiPraktekKompetensi = curriculum_syllabus
+        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
+        const totalDurasiPraktekKompetensi = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'kompetensi')
             .reduce((total, item) => {
-            return total + item.durasi_praktek;
+            return total + item.durasiPraktek;
         }, 0);
 
         await this.prismaService.capability.update({
@@ -59,10 +59,10 @@ export class CurriculumSyllabusService {
                 id: capabilityId
             },
             data: {
-                total_durasi_teori_reg_gse: totalDurasiTeoriRegGse,
-                total_durasi_praktek_reg_gse: totalDurasiPraktekRegGse,
-                total_durasi_teori_kompetensi: totalDurasiTeoriKompetensi,
-                total_durasi_praktek_kompetensi: totalDurasiPraktekKompetensi,
+                totalDurasiTeoriRegGse: totalDurasiTeoriRegGse,
+                totalDurasiPraktekRegGse: totalDurasiPraktekRegGse,
+                totalDurasiTeoriKompetensi: totalDurasiTeoriKompetensi,
+                totalDurasiPraktekKompetensi: totalDurasiPraktekKompetensi,
             }
         });
 
@@ -78,8 +78,8 @@ export class CurriculumSyllabusService {
                 capability: {
                     select: {
                         id: true,
-                        kode_rating: true,
-                        nama_training: true,
+                        kodeRating: true,
+                        namaTraining: true,
                     }
                 },
             }
@@ -116,8 +116,8 @@ export class CurriculumSyllabusService {
                 canView: true,
             },
             paging: {
-                current_page: request.page,
-                total_page: totalPage,
+                currentPage: request.page,
+                totalPage: totalPage,
                 size: request.size,
             },
         };

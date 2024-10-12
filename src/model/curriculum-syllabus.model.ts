@@ -1,9 +1,9 @@
 export interface CreateCurriculumSyllabus {
-    curriculum_syllabus: {
+    curriculumSyllabus: {
         capabilityId: string;
         nama: string;
-        durasi_teori: number;
-        durasi_praktek: number;
+        durasiTeori: number;
+        durasiPraktek: number;
         type: string;
     }[];
 }

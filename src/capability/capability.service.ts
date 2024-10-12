@@ -60,8 +60,8 @@ export class CapabilityService {
                 canView: false,
             },
             paging: {
-                current_page: request.page,
-                total_page: totalPage,
+                currentPage: request.page,
+                totalPage: totalPage,
                 size: request.size,
             },
         };

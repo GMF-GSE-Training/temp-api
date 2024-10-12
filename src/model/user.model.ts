@@ -1,5 +1,5 @@
 export interface CreateUserRequest {
-    no_pegawai?: string;
+    noPegawai?: string;
     nik?: string;
     email: string;
     name: string;
@@ -9,7 +9,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-    no_pegawai?: string;
+    noPegawai?: string;
     nik?: string;
     email?: string;
     name?: string;
@@ -20,7 +20,7 @@ export interface UpdateUserRequest {
 
 export interface UserList {
     id: string;
-    no_pegawai?: string;
+    noPegawai?: string;
     email: string;
     name: string;
     dinas?: string;
@@ -29,7 +29,7 @@ export interface UserList {
 
 export interface UserResponse {
     id: string;
-    no_pegawai?: string;
+    noPegawai?: string;
     email: string;
     nik?: string;
     name: string;

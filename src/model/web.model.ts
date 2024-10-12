@@ -16,8 +16,8 @@ export interface ActionAccessRights {
 }
 
 export interface Paging  {
-    total_page: number;
-    current_page: number;
+    totalPage: number;
+    currentPage: number;
     size: number;
 }
 

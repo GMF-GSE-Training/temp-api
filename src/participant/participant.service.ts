@@ -51,39 +51,39 @@ export class ParticipantService {
         }
 
         if(data.perusahaan) {
-            data.gmf_non_gmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
+            data.gmfNonGmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
         }
 
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
 
         const participant = await this.prismaService.participant.create({
             data: {
-                no_pegawai: validatedData.no_pegawai,
+                noPegawai: validatedData.noPegawai,
                 nama: validatedData.nama,
                 nik: validatedData.nik,
                 dinas: validatedData.dinas,
                 bidang: validatedData.bidang,
                 perusahaan: validatedData.perusahaan,
                 email: validatedData.email,
-                no_telp: validatedData.no_telp,
+                noTelp: validatedData.noTelp,
                 negara: validatedData.negara,
-                tempat_lahir: validatedData.tempat_lahir,
-                tanggal_lahir: validatedData.tanggal_lahir,
-                sim_a: validatedData.sim_a,
-                sim_b: validatedData.sim_b,
+                tempatLahir: validatedData.tempatLahir,
+                tanggalLahir: validatedData.tanggalLahir,
+                simA: validatedData.simA,
+                simB: validatedData.simB,
                 ktp: validatedData.ktp,
                 foto: validatedData.foto,
-                surat_sehat_buta_warna: validatedData.surat_sehat_buta_warna,
-                exp_surat_sehat: validatedData.exp_surat_sehat,
-                surat_bebas_narkoba: validatedData.surat_bebas_narkoba,
-                exp_bebas_narkoba: validatedData.exp_bebas_narkoba,
-                link_qr_code: '',
-                qr_code: null,
-                gmf_non_gmf: validatedData.gmf_non_gmf,
+                suratSehatButaWarna: validatedData.suratSehatButaWarna,
+                expSuratSehatButaWarna: validatedData.expSuratSehatButaWarna,
+                suratBebasNarkoba: validatedData.suratBebasNarkoba,
+                expSuratBebasNarkoba: validatedData.expSuratBebasNarkoba,
+                linkQrCode: '',
+                qrCode: null,
+                gmfNonGmf: validatedData.gmfNonGmf,
             },
         });
 
-        // Modifikasi link_qr_code dengan ID peserta
+        // Modifikasi linkQrCode dengan ID peserta
         const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
 
         // Generate QR code
@@ -94,8 +94,8 @@ export class ParticipantService {
         const result = await this.prismaService.participant.update({
             where: { id: participant.id },
             data: {
-                link_qr_code: link,
-                qr_code: qrCodeBuffer,
+                linkQrCode: link,
+                qrCode: qrCodeBuffer,
             },
         });
 
@@ -178,7 +178,7 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const idCardModel = new IdCardModel(participant.foto, participant.qr_code, participant.nama, participant.perusahaan, participant.no_pegawai, participant.negara);
+        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
 
         const htmlContent = idCardModel.getHtmlTemplate();
 
@@ -200,7 +200,7 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const idCardModel = new IdCardModel(participant.foto, participant.qr_code, participant.nama, participant.perusahaan, participant.no_pegawai, participant.negara);
+        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
 
         const htmlContent = idCardModel.getHtmlTemplate();
     
@@ -244,11 +244,11 @@ export class ParticipantService {
             }
         }
 
-        // updateRequest.no_pegawai === "null" ? updateRequest.no_pegawai = null : updateRequest.no_pegawai;
+        // updateRequest.noPegawai === "null" ? updateRequest.noPegawai = null : updateRequest.noPegawai;
         // updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
         // updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
-        // Modifikasi link_qr_code dengan ID peserta
+        // Modifikasi linkQrCode dengan ID peserta
         const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
 
         // Generate QR code
@@ -259,8 +259,8 @@ export class ParticipantService {
             where: { id: participantId },
             data: {
                 ...updateRequest,
-                link_qr_code: link,
-                qr_code: qrCodeBuffer,
+                linkQrCode: link,
+                qrCode: qrCodeBuffer,
             },
         });
 
@@ -337,21 +337,21 @@ export class ParticipantService {
 
         const participantSelectFields = {
             id: true,
-            no_pegawai: true,
+            noPegawai: true,
             nama: true,
             nik: true,
             dinas: true,
             bidang: true,
             perusahaan: true,
             email: true,
-            no_telp: true,
+            noTelp: true,
             negara: true,
-            tempat_lahir: true,
-            tanggal_lahir: true,
-            exp_surat_sehat: true,
-            exp_bebas_narkoba: true,
-            gmf_non_gmf: true,
-            link_qr_code: true,
+            tempatLahir: true,
+            tanggalLahir: true,
+            expSuratSehatButaWarna: true,
+            expSuratBebasNarkoba: true,
+            gmfNonGmf: true,
+            linkQrCode: true,
         }
 
         if (userRole === 'super admin') {
@@ -396,8 +396,8 @@ export class ParticipantService {
             data: paginatedUsers.map(participant => this.toParticipantResponse(participant)),
             actions: actions,
             paging: {
-                current_page: listRequest.page,
-                total_page: totalPage,
+                currentPage: listRequest.page,
+                totalPage: totalPage,
                 size: listRequest.size,
             },
         };
@@ -411,10 +411,10 @@ export class ParticipantService {
         
         const participantSelectFields = {
             id: true,
-            no_pegawai: true,
+            noPegawai: true,
             nama: true,
             email: true,
-            no_telp: true,
+            noTelp: true,
             dinas: true,
             bidang: true,
             perusahaan: true,
@@ -433,20 +433,20 @@ export class ParticipantService {
             const query = searchRequest.searchQuery.toLowerCase();
             if (userRole === 'super admin' || userRole === 'supervisor') {
                 whereClause.OR = [
-                    { no_pegawai: { contains: query, mode: 'insensitive' } },
+                    { noPegawai: { contains: query, mode: 'insensitive' } },
                     { nama: { contains: query, mode: 'insensitive' } },
                     { email: { contains: query, mode: 'insensitive' } },
-                    { no_telp: { contains: query, mode: 'insensitive' } },
+                    { noTelp: { contains: query, mode: 'insensitive' } },
                     { dinas: { contains: query, mode: 'insensitive' } },
                     { bidang: { contains: query, mode: 'insensitive' } },
                     { perusahaan: { contains: query, mode: 'insensitive' } },
                 ];
             } else {
                 whereClause.OR = [
-                    { no_pegawai: { contains: query, mode: 'insensitive' } },
+                    { noPegawai: { contains: query, mode: 'insensitive' } },
                     { nama: { contains: query, mode: 'insensitive' } },
                     { email: { contains: query, mode: 'insensitive' } },
-                    { no_telp: { contains: query, mode: 'insensitive' } },
+                    { noTelp: { contains: query, mode: 'insensitive' } },
                     { bidang: { contains: query, mode: 'insensitive' } },
                 ];
             }
@@ -474,18 +474,18 @@ export class ParticipantService {
         return {
             data: participants.map(participant => ({
                 id: participant.id,
-                no_pegawai: participant.no_pegawai,
+                noPegawai: participant.noPegawai,
                 nama: participant.nama,
                 email: participant.email,
-                no_telp: participant.no_telp,
+                noTelp: participant.noTelp,
                 dinas: participant.dinas,
                 bidang: participant.bidang,
                 perusahaan: participant.perusahaan
             })),
             actions: actions,
             paging: {
-                current_page: searchRequest.page,
-                total_page: totalPage,
+                currentPage: searchRequest.page,
+                totalPage: totalPage,
                 size: searchRequest.size,
             },
         };
@@ -494,27 +494,27 @@ export class ParticipantService {
     toParticipantResponse(participant: ParticipantList): ParticipantResponse {
         return {
             id: participant.id,
-            no_pegawai: participant.no_pegawai,
+            noPegawai: participant.noPegawai,
             nama: participant.nama,
             nik: participant.nik,
             dinas: participant.dinas,
             bidang: participant.bidang,
             perusahaan: participant.perusahaan,
             email: participant.email,
-            no_telp: participant.no_telp,
+            noTelp: participant.noTelp,
             negara: participant.negara,
-            tempat_lahir: participant.tempat_lahir,
-            sim_a_name: participant.sim_a_name,
-            sim_b_name: participant.sim_b_name,
-            ktp_name: participant.ktp_name,
-            foto_name: participant.foto_name,
-            surat_sehat_buta_warna_name: participant.surat_sehat_buta_warna_name,
-            surat_bebas_narkoba_name: participant.surat_bebas_narkoba_name,
-            tanggal_lahir: this.formatDate(new Date(participant.tanggal_lahir)),
-            exp_surat_sehat: this.formatDate(new Date(participant.exp_surat_sehat)),
-            exp_bebas_narkoba: this.formatDate(new Date(participant.exp_bebas_narkoba)),
-            gmf_non_gmf: participant.gmf_non_gmf,
-            link_qr_code: participant.link_qr_code,
+            tempatLahir: participant.tempatLahir,
+            simAName: participant.simAName,
+            simBName: participant.simBName,
+            ktpName: participant.ktpName,
+            fotoName: participant.fotoName,
+            suratSehatButaWarnaName: participant.suratSehatButaWarnaName,
+            suratBebasNarkobaName: participant.suratBebasNarkobaName,
+            tanggalLahir: this.formatDate(new Date(participant.tanggalLahir)),
+            expSuratSehatButaWarna: this.formatDate(new Date(participant.expSuratSehatButaWarna)),
+            expSuratBebasNarkoba: this.formatDate(new Date(participant.expSuratBebasNarkoba)),
+            gmfNonGmf: participant.gmfNonGmf,
+            linkQrCode: participant.linkQrCode,
         };
     }
 

@@ -15,17 +15,17 @@ datasource db {
 
 model User {
   id              String    @id @default(uuid())
-  no_pegawai      String?   @db.VarChar(20)
+  noPegawai       String?   @db.VarChar(20)
   email           String    @db.VarChar(50)
   nik             String?   @unique @db.VarChar(50)
   name            String    @db.VarChar(50)
   password        String    @db.VarChar(100)
   token           String?   @db.VarChar(255)
-  role_id         String
+  roleId          String
   dinas           String?   @db.VarChar(50)
   emailVerified   Boolean   @default(false)
 
-  role            Role      @relation(fields: [role_id], references: [id])
+  role            Role      @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
@@ -41,34 +41,34 @@ model Role {
 
 model Participant {
   id                          String              @id @default(uuid())
-  no_pegawai                  String?             @db.VarChar(20)
+  noPegawai                   String?             @db.VarChar(20)
   nama                        String              @db.VarChar(50)
   nik                         String              @unique @db.VarChar(50)
   dinas                       String?             @db.VarChar(50)
   bidang                      String?             @db.VarChar(50)
   perusahaan                  String?             @db.VarChar(50)
   email                       String              @db.VarChar(50)
-  no_telp                     String?             @db.VarChar(50)
+  noTelp                      String?             @db.VarChar(50)
   negara                      String?             @db.VarChar(50)
-  tempat_lahir                String?             @db.VarChar(50)
-  tanggal_lahir               DateTime?           @db.Date
-  sim_a                       Bytes?
-  sim_a_name                  String?             @db.VarChar(255)
-  sim_b                       Bytes?
-  sim_b_name                  String?             @db.VarChar(255)
+  tempatLahir                 String?             @db.VarChar(50)
+  tanggalLahir                DateTime?           @db.Date
+  simA                        Bytes?
+  simAName                    String?             @db.VarChar(255)
+  simB                        Bytes?
+  simBName                    String?             @db.VarChar(255)
   ktp                         Bytes?
-  ktp_name                    String?             @db.VarChar(255)
+  ktpName                     String?             @db.VarChar(255)
   foto                        Bytes?
-  foto_name                   String?             @db.VarChar(255)
-  surat_sehat_buta_warna      Bytes?
-  surat_sehat_buta_warna_name String?             @db.VarChar(255)
-  exp_surat_sehat             DateTime?           @db.Date
-  surat_bebas_narkoba         Bytes?
-  surat_bebas_narkoba_name    String?             @db.VarChar(255)
-  exp_bebas_narkoba           DateTime?           @db.Date
-  link_qr_code                String?             @db.VarChar(255)
-  qr_code                     Bytes?
-  gmf_non_gmf                 String?             @db.VarChar(20)
+  fotoName                    String?             @db.VarChar(255)
+  suratSehatButaWarna         Bytes?
+  suratSehatButaWarnaName     String?             @db.VarChar(255)
+  expSuratSehatButaWarna      DateTime?           @db.Date
+  suratBebasNarkoba           Bytes?
+  suratBebasNarkobaName       String?             @db.VarChar(255)
+  expSuratBebasNarkoba        DateTime?           @db.Date
+  linkQrCode                  String?             @db.VarChar(255)
+  qrCode                      Bytes?
+  gmfNonGmf                   String?             @db.VarChar(20)
 
   ParticipantsCOT             ParticipantsCOT[]
 
@@ -77,15 +77,15 @@ model Participant {
 
 model Capability {
   id                                String                  @id @default(uuid())
-  kode_rating                       String                  @db.VarChar(20)
-  kode_training                     String                  @db.VarChar(50)
-  nama_training                     String                  @db.VarChar(50)
-  total_durasi_teori_reg_gse        Int?
-  total_durasi_praktek_reg_gse      Int?
-  total_durasi_teori_kompetensi     Int?
-  total_durasi_praktek_kompetensi   Int?                
+  kodeRating                        String                  @db.VarChar(20) @default("BTT")
+  kodeTraining                      String                  @db.VarChar(50) @default("TCT - 0535")
+  namaTraining                      String                  @db.VarChar(50) @default("Baggage Towing Tractor")
+  totalDurasiTeoriRegGse            Int?
+  totalDurasiPraktekRegGse          Int?
+  totalDurasiTeoriKompetensi        Int?
+  totalDurasiPraktekKompetensi      Int?                
 
-  curriculum_syllabus               CurriculumSyllabus[]
+  curriculumSyllabus                CurriculumSyllabus[]
   COT                               COT?
 
   @@map("capability")
@@ -93,31 +93,31 @@ model Capability {
 
 model CurriculumSyllabus {
   id              String      @id @default(uuid())
-  capability_id   String
+  capabilityId    String
   nama            String      @db.VarChar(50)
-  durasi_teori    Int
-  durasi_praktek  Int
+  durasiTeori     Int
+  durasiPraktek   Int
   type            String      @db.VarChar(20)
 
-  capability      Capability  @relation(fields: [capability_id], references: [id])
+  capability      Capability  @relation(fields: [capabilityId], references: [id])
 
-  @@map("curriculum_syllabus")
+  @@map("curriculumSyllabus")
 }
 
 model COT {
   id                              String              @id @default(uuid())
-  capability_id                   String              @unique
-  kode_cot                        String              @db.VarChar(20)
-  tanggal_mulai                   DateTime
-  tanggal_selesai                 DateTime
-  lokasi_training                 String              @db.VarChar(50)
-  instruktur_regulasi_gse         String              @db.VarChar(50)
-  instruktur_teori_regulasi_gse   String              @db.VarChar(50)
-  instruktur_praktek1             String              @db.VarChar(50)
-  instruktur_praktek2             String              @db.VarChar(50)
-  status                          Boolean
+  capabilityId                    String              @unique
+  kodeCot                         String              @db.VarChar(20)
+  tanggalMulai                    DateTime
+  tanggalSelesai                  DateTime
+  lokasiTraining                  String              @db.VarChar(50)
+  instrukturRegulasiGse           String              @db.VarChar(50)
+  instrukturTeoriRegulasiGse      String              @db.VarChar(50)
+  instrukturPraktek1              String              @db.VarChar(50)
+  instrukturPraktek2              String              @db.VarChar(50)
+  status                          Boolean             @default(false)
 
-  Capabillity                     Capability          @relation(fields: [capability_id], references: [id])
+  Capabillity                     Capability          @relation(fields: [capabilityId], references: [id])
   ParticipantsCOT                 ParticipantsCOT[]
 
   @@map("COT")
@@ -125,23 +125,23 @@ model COT {
 
 model ParticipantsCOT {
   id              String        @id @default(uuid())
-  participant_id  String
-  cot_id          String
+  participantId   String
+  cotId           String
 
-  participant     Participant   @relation(fields: [participant_id], references: [id])
-  cot             COT           @relation(fields: [cot_id], references: [id])
+  participant     Participant   @relation(fields: [participantId], references: [id])
+  cot             COT           @relation(fields: [cotId], references: [id])
   Sertifikat      Sertifikat[]
 
-  @@map("participants_cot")
+  @@map("participantsCot")
 }
 
 model Signature {
   id          String        @id @default(uuid())
-  no_pegawai  String        @db.VarChar(20)
+  noPegawai   String        @db.VarChar(20)
   role        String        @db.VarChar(50)
   name        String        @db.VarChar(50)
-  e_sign      Bytes
-  status      Boolean
+  eSign       Bytes
+  status      Boolean       @default(false)
 
   Sertifikat  Sertifikat[]
 
@@ -150,16 +150,16 @@ model Signature {
 
 model Sertifikat {
   id                  String            @id @default(uuid())
-  participant_cot_id  String
-  signature_id        String
-  no_sertifikat       String            @db.VarChar(50)
+  participantCotId    String
+  signatureId         String
+  noSertifikat        String            @db.VarChar(50)
   kehadiran           Boolean
-  nilai_teori         Float
-  nilai_praktek       Float
-  status              Boolean
+  nilaiTeori          Float
+  nilaiPraktek        Float
+  status              Boolean           @default(true)
 
-  participantsCOT     ParticipantsCOT   @relation(fields: [participant_cot_id], references: [id])
-  Signature           Signature         @relation(fields: [signature_id], references: [id])
+  participantsCOT     ParticipantsCOT   @relation(fields: [participantCotId], references: [id])
+  Signature           Signature         @relation(fields: [signatureId], references: [id])
 
   @@map("sertifikat")
 }
