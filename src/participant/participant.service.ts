@@ -129,6 +129,9 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
+        console.log(participant);
+        console.log(fileName);
+
         if (!participant || !participant[fileName]) {
             throw new HttpException('File tidak ditemukan', 404);
         }

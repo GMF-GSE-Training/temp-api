@@ -167,7 +167,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getQrCode(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const fileBuffer = await this.participantService.streamFile(participantId, 'qr_code', user);
+        const fileBuffer = await this.participantService.streamFile(participantId, 'qrCode', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
     }
