@@ -6,6 +6,7 @@ import { Logger } from 'winston';
 import { CreateRoleRequest, RoleResponse, UpdateRoleRequest } from "src/model/role.model";
 import { RoleValidation } from "./role.validation";
 import { Role } from "@prisma/client";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Injectable()
 export class RoleService {
@@ -49,7 +50,7 @@ export class RoleService {
         return role;
     }
 
-    async getAll(): Promise<RoleResponse[]> {
+    async getAllRole(user: CurrentUserRequest): Promise<RoleResponse[]> {
         const roles = await this.prismaService.role.findMany();
 
         if(!roles) {

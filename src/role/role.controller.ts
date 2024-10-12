@@ -5,6 +5,7 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { RoleGuard } from "../common/guard/role.guard";
 import { CreateRoleRequest, RoleResponse, UpdateRoleRequest } from "../model/role.model";
 import { buildResponse, WebResponse } from "../model/web.model";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller("/roles")
 export class RoleController {
@@ -30,10 +31,10 @@ export class RoleController {
 
     @Get()
     @HttpCode(200)
-    @Roles('super admin', 'supervisor')
+    @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getAllRoles(): Promise<WebResponse<RoleResponse[]>> {
-        const result = await this.roleService.getAll();
+    async getAllRoles(user: CurrentUserRequest): Promise<WebResponse<RoleResponse[]>> {
+        const result = await this.roleService.getAllRole(user);
         return buildResponse(HttpStatus.OK, result);
     }
 
