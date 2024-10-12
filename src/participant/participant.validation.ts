@@ -15,7 +15,7 @@ export class ParticipantValidation {
         tanggalLahir: z.date().optional(),
         simA: z.instanceof(Buffer).optional(),
         simAFileName: z.string().optional(),
-        simB: z.instanceof(Buffer).optional(),
+        simB: z.instanceof(Buffer).optional().nullable(),
         simBFileName: z.string().optional(),
         ktp: z.instanceof(Buffer).optional(),
         ktpFileName: z.string().optional(),

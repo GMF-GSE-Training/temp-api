@@ -34,14 +34,16 @@ export class ParticipantService {
             }
         }
 
-        const nikIsAlreadyExists = await this.prismaService.participant.findUnique({
-            where: {
-                nik: data.nik,
+        if(data.nik) {
+            const nikIsAlreadyExists = await this.prismaService.participant.count({
+                where: {
+                    nik: data.nik,
+                }
+            });
+    
+            if(nikIsAlreadyExists) {
+                throw new HttpException('NIK sudah ada di data peserta', 400);
             }
-        });
-
-        if(nikIsAlreadyExists) {
-            throw new HttpException('NIK sudah ada di data peserta', 400);
         }
 
         if(userRole === 'user') {
