@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CreateCapability } from "src/model/capability.model";
+import { CapabilityResponse, CreateCapability } from "src/model/capability.model";
 import { CapabilityValidation } from "./capability.validation";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
@@ -12,31 +12,47 @@ export class CapabilityService {
         private readonly validationService: ValidationService,
     ) { }
 
-    async createCapability(request: CreateCapability): Promise<any> {
+    async createCapability(request: CreateCapability): Promise<CapabilityResponse> {
         const createCapabilityRequest = this.validationService.validate(CapabilityValidation.CREATE, request);
 
         const capability = await this.prismaService.capability.create({
             data: createCapabilityRequest,
         });
 
-        return capability;
-    }
-
-    async getCapability(capabilityId: string): Promise<any> {
-        const result = await this.prismaService.capability.findUnique({
-            where: {
-                id: capabilityId,
-            }
-        });
-
-        if(!result) {
-            throw new HttpException('Capability Not Found', 404);
-        }
+        const {
+            totalDurasiTeoriRegGse, 
+            totalDurasiPraktekRegGse, 
+            totalDurasiPraktekKompetensi, 
+            totalDurasiTeoriKompetensi, 
+            totalDurasi,
+            ...result
+        } = capability;
 
         return result;
     }
 
-    async listCapability(request: ListRequest): Promise<{ data: any[], actions: ActionAccessRights, paging: Paging }> {
+    async getCapability(capabilityId: string): Promise<CapabilityResponse> {
+        const capability = await this.prismaService.capability.findUnique({
+            where: {
+                id: capabilityId,
+            },
+            select: {
+                id: true,
+                kodeRating: true,
+                kodeTraining: true,
+                namaTraining: true,
+                curriculumSyllabus: true,
+            },
+        });
+
+        if(!capability) {
+            throw new HttpException('Capability Not Found', 404);
+        }
+
+        return capability;
+    }
+
+    async listCapability(request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
         let capability: any[];
 
         capability = await this.prismaService.capability.findMany();    
