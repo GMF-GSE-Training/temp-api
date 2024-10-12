@@ -14,7 +14,7 @@ export class CurriculumSyllabusController {
     @HttpCode(200)
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
-    async create(@Body() request: CreateCurriculumSyllabus): Promise<WebResponse<any>> {
+    async create(@Body() request: CreateCurriculumSyllabus): Promise<WebResponse<string>> {
         const result = await this.curriculumSyllabusService.createCurriculumSyllabus(request);
         return buildResponse(HttpStatus.OK, result);
     }
