@@ -23,7 +23,6 @@ export class ParticipantService {
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        console.log(data)
         const userWithRole = await this.userWithRole(user.user.id);
         const userRole = userWithRole.role.role.toLowerCase();
 
@@ -128,9 +127,6 @@ export class ParticipantService {
         if(userRole === 'lcu') {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
-
-        console.log(participant);
-        console.log(fileName);
 
         if (!participant || !participant[fileName]) {
             throw new HttpException('File tidak ditemukan', 404);
