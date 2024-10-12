@@ -7,7 +7,7 @@ import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
 import * as puppeteer from 'puppeteer';
-import { IdCardModel } from "../model/id_card.model";
+import { IdCardModel } from "../model/id-card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
