@@ -209,17 +209,6 @@ export class ParticipantService {
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
-        // if(req.nik) {
-        //     const nikIsAlreadyExists = await this.prismaService.participant.count({
-        //         where: {
-        //             nik: req.nik,
-        //         }
-        //     });
-
-        //     if(nikIsAlreadyExists > 1) {
-        //         throw new HttpException('NIK sudah ada di data peserta', 400);
-        //     }
-        // }
 
         const participant = await this.prismaService.participant.findUnique({
             where: {
@@ -243,10 +232,6 @@ export class ParticipantService {
                 throw new HttpException('Anda tidak bisa mengubah email pada endpoint ini', 400);
             }
         }
-
-        // updateRequest.noPegawai === "null" ? updateRequest.noPegawai = null : updateRequest.noPegawai;
-        // updateRequest.dinas === "null" ? updateRequest.dinas = null : updateRequest.dinas;
-        // updateRequest.bidang === "null" ? updateRequest.bidang = null : updateRequest.bidang;
 
         // Modifikasi linkQrCode dengan ID peserta
         const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
