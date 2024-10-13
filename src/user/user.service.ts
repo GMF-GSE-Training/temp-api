@@ -110,6 +110,7 @@ export class UserService {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
         const findUser = await this.findUser(userId);
+
         if(!findUser) {
             throw new HttpException('User tidak ditemukan', 404);
         }
@@ -152,6 +153,29 @@ export class UserService {
             data: updateRequest,
             select: userSelectFields,
         });
+
+        if (req.noPegawai || req.nik || req.dinas) {
+            const updateParticipant = {
+                noPegawai: req.noPegawai || undefined,
+                nik: req.nik || undefined,
+                dinas: req.dinas || undefined,
+            };
+        
+            const participant = await this.prismaService.participant.findFirst({
+                where: {
+                    nik: findUser.nik,
+                },
+            });
+
+            if (participant) {
+                await this.prismaService.participant.update({
+                    where: {
+                        id: participant.id,
+                    },
+                    data: updateParticipant,
+                });
+            }
+        }
         
         const result: UserResponse = {
             ...updateUser,

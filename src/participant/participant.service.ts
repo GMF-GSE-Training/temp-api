@@ -216,6 +216,8 @@ export class ParticipantService {
     }
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
+        req.gmfNonGmf = req.perusahaan.toLowerCase().includes('gmf') || req.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
+
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
 
         const participant = await this.prismaService.participant.findUnique({
@@ -247,41 +249,40 @@ export class ParticipantService {
         // Generate QR code
         const qrCodeBase64 = await QRCode.toDataURL(link);
         const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+        console.log(req.perusahaan)
+
+        const updateRequestWithNulls = this.transformEmptyStringsToNull(updateRequest);
 
         const result = await this.prismaService.participant.update({
             where: { id: participantId },
             data: {
-                ...updateRequest,
+                ...updateRequestWithNulls,
                 linkQrCode: link,
                 qrCode: qrCodeBuffer,
             },
         });
 
-        if(req.nik || req.dinas) {
-            const updateUser: { nik?: string; dinas?: string } = {};
+        const updateUser = {
+            noPegawai: req.noPegawai,
+            nik: req.nik,
+            dinas: req.dinas,
+        };
 
-            if (req.nik) {
-                updateUser.nik = req.nik;
-            }
+        const updateUserWithNulls = this.transformEmptyStringsToNull(updateUser);
 
-            if (req.dinas || req.dinas != '') {
-                updateUser.dinas = req.dinas;
-            }
-
-            const user = await this.prismaService.user.findFirst({
+        const userUpdate = await this.prismaService.user.findFirst({
+            where: {
+                nik: participant.nik,
+            },
+        });
+    
+        if(userUpdate) {
+            await this.prismaService.user.update({
                 where: {
-                    nik: participant.nik,
+                    id: userUpdate.id,
                 },
+                data: updateUserWithNulls,
             });
-
-            if(user) {
-                await this.prismaService.user.update({
-                    where: {
-                        id: user.id,
-                    },
-                    data: updateUser,
-                });
-            }
         }
 
         return this.toParticipantResponse(result);
@@ -561,4 +562,10 @@ export class ParticipantService {
             }
         }
     }
+
+    transformEmptyStringsToNull(obj: any): any {
+        return Object.fromEntries(
+            Object.entries(obj).map(([key, value]) => [key, value === '' ? null : value])
+        );
+    }    
 }
