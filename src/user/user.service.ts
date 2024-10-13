@@ -65,6 +65,10 @@ export class UserService {
             }
         });
 
+        if(!role) {
+            throw new HttpException('Role tidak valid', 400);
+        }
+
         const roleRequest = role.role.toLowerCase();
 
         if (roleRequest === 'user') {
@@ -420,6 +424,7 @@ export class UserService {
                 role: true
             }
         });
+
         return userRequest;
     }
 
