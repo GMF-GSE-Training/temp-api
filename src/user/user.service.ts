@@ -154,6 +154,8 @@ export class UserService {
             select: userSelectFields,
         });
 
+        console.log("Update User : ", updateUser);
+
         const updateParticipant = {
             noPegawai: req.noPegawai,
             nik: req.nik,
@@ -167,16 +169,20 @@ export class UserService {
                 nik: findUser.nik,
             },
         });
-    
+
+        console.log("Participant : ", participantUpdate);
+
         if(participantUpdate) {
+            console.log(participantUpdate)
             await this.prismaService.participant.update({
                 where: {
                     id: participantUpdate.id,
                 },
                 data: updateParticipantWithNulls,
             });
+            console.log("Update Participant: ", updateParticipant);
         }
-        
+
         const result: UserResponse = {
             ...updateUser,
         }
@@ -205,8 +211,6 @@ export class UserService {
                 id: userId,
             }
         });
-
-        console.log(deleteUser);
 
         const result: UserResponse = {
             id: deleteUser.id,
@@ -377,6 +381,7 @@ export class UserService {
         return {
             id: true,
             noPegawai: true,
+            nik: true,
             email: true,
             name: true,
             dinas: true,
