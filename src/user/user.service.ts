@@ -162,25 +162,25 @@ export class UserService {
             dinas: req.dinas,
         };
 
-        const updateParticipantWithNulls = this.transformEmptyStringsToNull(updateParticipant);
+        if(findUser.nik) {
+            const updateParticipantWithNulls = this.transformEmptyStringsToNull(updateParticipant);
 
-        const participantUpdate = await this.prismaService.participant.findFirst({
-            where: {
-                nik: findUser.nik,
-            },
-        });
-
-        console.log("Participant : ", participantUpdate);
-
-        if(participantUpdate) {
-            console.log(participantUpdate)
-            await this.prismaService.participant.update({
+            const participantUpdate = await this.prismaService.participant.findFirst({
                 where: {
-                    id: participantUpdate.id,
+                    nik: findUser.nik,
                 },
-                data: updateParticipantWithNulls,
             });
-            console.log("Update Participant: ", updateParticipant);
+
+            if(participantUpdate) {
+                console.log(participantUpdate)
+                await this.prismaService.participant.update({
+                    where: {
+                        id: participantUpdate.id,
+                    },
+                    data: updateParticipantWithNulls,
+                });
+                console.log("Update Participant: ", updateParticipant);
+            }
         }
 
         const result: UserResponse = {
