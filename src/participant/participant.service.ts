@@ -563,9 +563,9 @@ export class ParticipantService {
         }
     }
 
-    transformEmptyStringsToNull(obj: any): any {
+    private transformEmptyStringsToNull(obj: any): any {
         return Object.fromEntries(
             Object.entries(obj).map(([key, value]) => [key, value === '' ? null : value])
         );
-    }    
+    }
 }

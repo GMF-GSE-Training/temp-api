@@ -154,27 +154,27 @@ export class UserService {
             select: userSelectFields,
         });
 
-        if (req.noPegawai || req.nik || req.dinas) {
-            const updateParticipant = {
-                noPegawai: req.noPegawai || undefined,
-                nik: req.nik || undefined,
-                dinas: req.dinas || undefined,
-            };
-        
-            const participant = await this.prismaService.participant.findFirst({
-                where: {
-                    nik: findUser.nik,
-                },
-            });
+        const updateParticipant = {
+            noPegawai: req.noPegawai,
+            nik: req.nik,
+            dinas: req.dinas,
+        };
 
-            if (participant) {
-                await this.prismaService.participant.update({
-                    where: {
-                        id: participant.id,
-                    },
-                    data: updateParticipant,
-                });
-            }
+        const updateParticipantWithNulls = this.transformEmptyStringsToNull(updateParticipant);
+
+        const participantUpdate = await this.prismaService.participant.findFirst({
+            where: {
+                nik: findUser.nik,
+            },
+        });
+    
+        if(participantUpdate) {
+            await this.prismaService.participant.update({
+                where: {
+                    id: participantUpdate.id,
+                },
+                data: updateParticipantWithNulls,
+            });
         }
         
         const result: UserResponse = {
@@ -482,4 +482,10 @@ export class UserService {
             }
         }
     }
+
+    private transformEmptyStringsToNull(obj: any): any {
+        return Object.fromEntries(
+            Object.entries(obj).map(([key, value]) => [key, value === '' ? null : value])
+        );
+    }  
 }
