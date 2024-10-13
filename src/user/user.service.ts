@@ -156,13 +156,13 @@ export class UserService {
 
         console.log("Update User : ", updateUser);
 
-        const updateParticipant = {
-            noPegawai: req.noPegawai,
-            nik: req.nik,
-            dinas: req.dinas,
-        };
-
         if(findUser.nik) {
+            const updateParticipant = {
+                noPegawai: req.noPegawai,
+                nik: req.nik,
+                dinas: req.dinas,
+            };
+
             const updateParticipantWithNulls = this.transformEmptyStringsToNull(updateParticipant);
 
             const participantUpdate = await this.prismaService.participant.findFirst({

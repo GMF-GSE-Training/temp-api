@@ -262,27 +262,29 @@ export class ParticipantService {
             },
         });
 
-        const updateUser = {
-            noPegawai: req.noPegawai,
-            nik: req.nik,
-            dinas: req.dinas,
-        };
-
-        const updateUserWithNulls = this.transformEmptyStringsToNull(updateUser);
-
-        const userUpdate = await this.prismaService.user.findFirst({
-            where: {
-                nik: participant.nik,
-            },
-        });
+        if(participant.nik) {
+            const updateUser = {
+                noPegawai: req.noPegawai,
+                nik: req.nik,
+                dinas: req.dinas,
+            };
     
-        if(userUpdate) {
-            await this.prismaService.user.update({
+            const updateUserWithNulls = this.transformEmptyStringsToNull(updateUser);
+    
+            const userUpdate = await this.prismaService.user.findFirst({
                 where: {
-                    id: userUpdate.id,
+                    nik: participant.nik,
                 },
-                data: updateUserWithNulls,
             });
+        
+            if(userUpdate) {
+                await this.prismaService.user.update({
+                    where: {
+                        id: userUpdate.id,
+                    },
+                    data: updateUserWithNulls,
+                });
+            }
         }
 
         return this.toParticipantResponse(result);
