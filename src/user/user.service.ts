@@ -28,37 +28,6 @@ export class UserService {
 
         const roleUser = await this.findRoleUser();
 
-        // const roleLCU = await this.prismaService.role.findFirst({
-        //     where: {
-        //         role: {
-        //             equals: "lcu",
-        //             mode: "insensitive",
-        //         }
-        //     }
-        // });
-
-        // const roleSupervisor = await this.prismaService.role.findFirst({
-        //     where: {
-        //         role: {
-        //             equals: "supervisor",
-        //             mode: "insensitive",
-        //         }
-        //     }
-        // });
-
-        // if (req.roleId === roleUser.id) {
-        //     this.validateNikForUser(req);
-        //     await this.validateParticipantNik(req.nik);
-        // } else if (req.roleId === roleLCU.id) {
-        //     this.validateNikForNonUserRoles(req.nik);
-        //     this.validateDinas(req.dinas);
-        // } else if(req.roleId === roleSupervisor.id) {
-            
-        // } else {
-        //     this.validateNikForNonUserRoles(req.nik);
-        //     this.validateDinasForAdminOrSupervisor(req.dinas);
-        // }
-
         const role = await this.prismaService.role.findUnique({
             where: {
                 id: req.roleId
