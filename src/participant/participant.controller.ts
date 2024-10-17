@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ListParticipantResponse, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
@@ -194,15 +194,10 @@ export class ParticipantController {
     @Roles('super admin', 'lcu', 'supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async getIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {
+    async getIdCard(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<string> {
         try {
-            const idCardView = await this.participantService.getIdCard(participantId);
-
-            res.set({
-                'Content-Type': 'text/html',
-            });
-
-            res.send(idCardView);
+            const result = await this.participantService.getIdCard(participantId);
+            return result;
         } catch (error) {
             throw new HttpException(error.message, error.status || 500);
         }
@@ -212,17 +207,11 @@ export class ParticipantController {
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async downloadIdCard(@Param('participantId', ParseUUIDPipe) participantId: string, @Res() res: Response): Promise<void> {
+    async downloadIdCard(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<StreamableFile> {
         try {
             const pdfBuffer = await this.participantService.downloadIdCard(participantId);
-
-            res.set({
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': 'inline; filename="id-card.pdf"',
-                'Content-Length': pdfBuffer.length,
-            });
-
-            res.send(pdfBuffer);
+            const stream = new StreamableFile(pdfBuffer); // Create a StreamableFile instance from the buffer
+            return stream;
         } catch (error) {
             throw new HttpException(error.message, error.status || 500);
         }

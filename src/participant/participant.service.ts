@@ -186,6 +186,10 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
+        if (!participant.foto || !participant.perusahaan || !participant.negara || !participant.qrCode) {
+            throw new HttpException('ID Card tidak bisa diunduh, lengkapi data terlebih dahulu', 400);
+        }
+
         const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
 
         const htmlContent = idCardModel.getHtmlTemplate();
@@ -195,6 +199,8 @@ export class ParticipantService {
         await page.setContent(await htmlContent, { waitUntil: 'networkidle0' });
     
         const pdfBuffer = await page.pdf({ format: 'A4' });
+
+        await browser.close(); // Don't forget to close the browser after generating PDF
     
         return Buffer.from(pdfBuffer);
     }
@@ -206,6 +212,10 @@ export class ParticipantService {
 
         if (!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        if (!participant.foto || !participant.perusahaan || !participant.negara || !participant.qrCode) {
+            throw new HttpException('ID Card tidak bisa dilihat, lengkapi data terlebih dahulu', 400);
         }
 
         const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
