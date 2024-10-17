@@ -132,6 +132,12 @@ export class UserService {
             }
         }
 
+        if(userRole !== 'super admin') {
+            if(req.email) {
+                throw new HttpException('Anda tidak bisa mengubah email pengguna', 400);
+            }
+        }
+
         const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
 
         for (const key of Object.keys(updateRequest)) {

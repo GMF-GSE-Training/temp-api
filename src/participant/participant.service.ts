@@ -247,9 +247,11 @@ export class ParticipantService {
             if(req.nik !== user.user.nik) {
                 throw new HttpException('NIK tidak sama dengan data pengguna', 400);
             }
+        }
 
+        if(userRole !== 'super admin') {
             if(req.email) {
-                throw new HttpException('Anda tidak bisa mengubah email pada endpoint ini', 400);
+                throw new HttpException('Anda tidak bisa mengubah email participant', 400);
             }
         }
 
