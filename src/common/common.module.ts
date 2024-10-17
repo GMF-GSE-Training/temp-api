@@ -7,6 +7,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthGuard } from './guard/auth.guard';
+import { RoleGuard } from './guard/role.guard';
 
 @Global()
 @Module({
@@ -35,11 +37,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             provide: APP_FILTER,
             useClass: ErrorFilter,
         },
+        AuthGuard,
+        RoleGuard,
     ],
     exports: [
         PrismaService,
         ValidationService,
-    ]
+        JwtModule,
+    ],
 })
 export class CommonModule {
 

@@ -29,12 +29,12 @@ export class IdCardModel {
     }
 
     async getHtmlTemplate(): Promise<string> {
-        const photoBase64 = this.foto.toString('base64');
-        const qrCodeBase64 = this.qrCode.toString('base64');
+        const photoBase64 = this.foto ? this.foto.toString('base64') : '';
+        const qrCodeBase64 = this.qrCode ? this.qrCode.toString('base64') : '';
         const logoBase64 = this.logoBuffer.toString('base64');
 
-        const photoType = this.getMediaType(this.foto);
-        const qrCodeType = this.getMediaType(this.qrCode);
+        const photoType = this.foto ? this.getMediaType(this.foto) : '';
+        const qrCodeType = this.qrCode ? this.getMediaType(this.qrCode) : '';
 
         return `
         <head>
