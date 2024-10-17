@@ -1,12 +1,16 @@
 import { z, ZodType } from "zod";
 
+const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
 export class AuthValidation {
     static readonly REGISTER: ZodType = z.object({
         noPegawai: z.string().max(20).optional(),
         nik: z.string().min(1).max(50),
         email: z.string().min(1).max(50).email(),
         name: z.string().min(1).max(50),    
-        password: z.string().min(1).max(100),
+        password: z.string().min(8).max(100).refine((val) => passwordRegex.test(val), {
+            message: "Password harus memiliki minimal satu huruf besar dan satu angka"
+        }),
         dinas: z.string().max(20).optional(),
         roleId: z.string().min(1),
     });
