@@ -7,3 +7,14 @@ export interface CreateCurriculumSyllabus {
         type: string;
     }[];
 }
+
+export interface UpdateCurriculumSyllabus {
+    curriculumSyllabus?: {
+        id: string;
+        capabilityId?: string;
+        nama?: string;
+        durasiTeori?: number;
+        durasiPraktek?: number;
+        type?: string;
+    }[];
+}
