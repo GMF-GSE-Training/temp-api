@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CapabilityService } from "./capability.service";
-import { CreateCapability } from "src/model/capability.model";
+import { CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { Roles } from "src/common/decorator/role.decorator";
 import { AuthGuard } from "src/common/guard/auth.guard";
@@ -25,6 +25,16 @@ export class CapabilityController {
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string) {
         const result = await this.capabilityService.getCapability(capabilityId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Patch('/:capabilityId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async update(@Param('capabilityId', ParseUUIDPipe) capabilityId: string, @Body() req: UpdateCapability): Promise<WebResponse<string>> {
+        console.log(req);
+        const result  = await this.capabilityService.updateCapability(capabilityId, req);
         return buildResponse(HttpStatus.OK, result);
     }
 

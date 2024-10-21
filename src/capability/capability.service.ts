@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CapabilityResponse, CreateCapability } from "src/model/capability.model";
+import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { CapabilityValidation } from "./capability.validation";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
@@ -50,6 +50,30 @@ export class CapabilityService {
         }
 
         return capability;
+    }
+
+    async updateCapability(capabilityId: string, req: UpdateCapability): Promise<string> {
+        const updateCapabilityRequest = this.validationService.validate(CapabilityValidation.UPDATE, req);
+        console.log(req);
+
+        const capability = await this.prismaService.capability.findUnique({
+            where: {
+                id: capabilityId,
+            }
+        });
+
+        if(!capability) {
+            throw new HttpException('Capability tidak ditemukan', 404);
+        }
+
+        await this.prismaService.capability.update({
+            where: {
+                id: capability.id
+            },
+            data: updateCapabilityRequest
+        });
+
+        return 'Capability berhasil diperbarui';
     }
 
     async listCapability(request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
