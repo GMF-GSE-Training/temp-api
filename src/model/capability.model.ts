@@ -8,6 +8,7 @@ export interface CapabilityResponse {
     id: string;
     kodeRating: string;
     kodeTraining: string;
+    namaTraining: string;
     totalDurasiTeoriRegGse?: string;
     totalDurasiPraktekRegGse?: string;
     totalDurasiTeoriKompetensi?: string;
