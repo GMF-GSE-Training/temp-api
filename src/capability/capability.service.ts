@@ -15,6 +15,20 @@ export class CapabilityService {
     async createCapability(request: CreateCapability): Promise<CapabilityResponse> {
         const createCapabilityRequest = this.validationService.validate(CapabilityValidation.CREATE, request);
 
+        const capabilityCount = await this.prismaService.capability.count({
+            where: {
+                OR: [
+                    { kodeRating: createCapabilityRequest.kodeRating },
+                    { kodeTraining: createCapabilityRequest.kodeTraining },
+                    { namaTraining: createCapabilityRequest.namaTraining },
+                ]
+            }
+        });
+
+        if(capabilityCount > 0) {
+            throw new HttpException('Capability sudah ada', 400);
+        }
+
         const capability = await this.prismaService.capability.create({
             data: createCapabilityRequest,
         });
