@@ -3,7 +3,8 @@ import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
 import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { CapabilityValidation } from "./capability.validation";
-import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Injectable()
 export class CapabilityService {
@@ -139,5 +140,75 @@ export class CapabilityService {
                 size: request.size,
             },
         };
+    }
+
+    async searchCapability(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
+        const searchRequest = this.validationService.validate(CapabilityValidation.SEARCH, request);
+
+        const capability = await this.prismaService.capability.findMany();
+        const query = searchRequest.searchQuery.toLowerCase();
+
+        let filteredCapability = capability;
+        if(searchRequest.searchQuery) {
+            filteredCapability = capability.filter(capability => 
+                capability.kodeRating.toLowerCase().includes(query) ||
+                capability.kodeTraining.toLowerCase().includes(query) ||
+                capability.namaTraining.toLowerCase().includes(query)
+            );
+        }
+
+        const totalCapability = filteredCapability.length;
+        const totalPage = Math.ceil(totalCapability / searchRequest.size);
+        const paginatedCapability = filteredCapability.slice(
+            (searchRequest.page - 1) * searchRequest.size,
+            searchRequest.page * searchRequest.size
+        );
+
+        if(paginatedCapability.length === 0) {
+            throw new HttpException('Data capability tidak ditemukan', 404);
+        }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+        const actions = this.validateActions(userRole);
+
+        return {
+            data: paginatedCapability.map(capability => capability),
+            actions: actions,
+            paging: {
+                currentPage: searchRequest.page,
+                totalPage: totalPage,
+                size: searchRequest.size,
+            }
+        }
+    }
+
+    private async userWithRole(userId: string) {
+        const userRequest = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                role: true
+            }
+        });
+
+        return userRequest;
+    }
+
+    private validateActions(userRole: string): ActionAccessRights {
+        if(userRole === 'super admin' || userRole === 'lcu') {
+            return {
+                canEdit: true,
+                canDelete: true,
+                canView: true,
+            }
+        } else {
+            return {
+                canEdit: false,
+                canDelete: false,
+                canView: true,
+            }
+        }
     }
 }

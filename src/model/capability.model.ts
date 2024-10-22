@@ -15,10 +15,10 @@ export interface CapabilityResponse {
     kodeRating: string;
     kodeTraining: string;
     namaTraining: string;
-    totalDurasiTeoriRegGse?: string;
-    totalDurasiPraktekRegGse?: string;
-    totalDurasiTeoriKompetensi?: string;
-    totalDurasiPraktekKompetensi?: string;
-    TotalDurasi?: string;
+    totalDurasiTeoriRegGse?: number;
+    totalDurasiPraktekRegGse?: number;
+    totalDurasiTeoriKompetensi?: number;
+    totalDurasiPraktekKompetensi?: number;
+    TotalDurasi?: number;
     curriculumSyllabus?: Object[];
 }
