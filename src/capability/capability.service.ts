@@ -90,6 +90,26 @@ export class CapabilityService {
         return 'Capability berhasil diperbarui';
     }
 
+    async deleteCapability(capabilityId: string): Promise<string> {
+        let capability = await this.prismaService.capability.findUnique({
+            where: {
+                id: capabilityId
+            }
+        });
+
+        if(!capability) {
+            throw new HttpException('Capability tidak ditemukan', 404);
+        }
+
+        await this.prismaService.capability.delete({
+            where: {
+                id: capabilityId
+            }
+        });
+
+        return 'Capability berhasil dihapus';
+    }
+
     async listCapability(request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
         let capability: any[];
 

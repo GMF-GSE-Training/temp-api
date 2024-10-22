@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CapabilityService } from "./capability.service";
 import { CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
@@ -35,6 +35,15 @@ export class CapabilityController {
     async update(@Param('capabilityId', ParseUUIDPipe) capabilityId: string, @Body() req: UpdateCapability): Promise<WebResponse<string>> {
         console.log(req);
         const result  = await this.capabilityService.updateCapability(capabilityId, req);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Delete('/:capabilityId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async delete(@Param('capabilityId', ParseUUIDPipe) capabilityId: string): Promise<WebResponse<string>> {
+        const result = await this.capabilityService.deleteCapability(capabilityId);
         return buildResponse(HttpStatus.OK, result);
     }
 
