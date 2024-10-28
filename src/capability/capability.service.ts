@@ -102,10 +102,16 @@ export class CapabilityService {
             throw new HttpException('Capability tidak ditemukan', 404);
         }
 
+        await this.prismaService.curriculumSyllabus.deleteMany({
+            where: {
+                capabilityId: capabilityId
+            }
+        });
+
         await this.prismaService.capability.delete({
             where: {
                 id: capabilityId
-            }
+            },
         });
 
         return 'Capability berhasil dihapus';
