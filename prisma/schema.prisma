@@ -40,37 +40,37 @@ model Role {
 }
 
 model Participant {
-  id                          String              @id @default(uuid())
-  noPegawai                   String?             @unique @db.VarChar(20)
-  nama                        String              @db.VarChar(50)
-  nik                         String              @unique @db.VarChar(50)
-  dinas                       String?             @db.VarChar(50)
-  bidang                      String?             @db.VarChar(50)
-  perusahaan                  String?             @db.VarChar(50)
-  email                       String              @db.VarChar(50)
-  noTelp                      String?             @db.VarChar(50)
-  negara                      String?             @db.VarChar(50)
-  tempatLahir                 String?             @db.VarChar(50)
-  tanggalLahir                DateTime?           @db.Date
-  simA                        Bytes?
-  simAFileName                String?             @db.VarChar(255)
-  simB                        Bytes?
-  simBFileName                String?             @db.VarChar(255)
-  ktp                         Bytes?
-  ktpFileName                 String?             @db.VarChar(255)
-  foto                        Bytes?
-  fotoFileName                String?             @db.VarChar(255)
-  suratSehatButaWarna         Bytes?
-  suratSehatButaWarnaFileName String?             @db.VarChar(255)
-  expSuratSehatButaWarna      DateTime?           @db.Date
-  suratBebasNarkoba           Bytes?
-  suratBebasNarkobaFileName   String?             @db.VarChar(255)
-  expSuratBebasNarkoba        DateTime?           @db.Date
-  linkQrCode                  String?             @db.VarChar(255)
-  qrCode                      Bytes?
-  gmfNonGmf                   String?             @db.VarChar(20)
+  id                            String              @id @default(uuid())
+  noPegawai                     String?             @unique @db.VarChar(20)
+  nama                          String              @db.VarChar(50)
+  nik                           String              @unique @db.VarChar(50)
+  dinas                         String?             @db.VarChar(50)
+  bidang                        String?             @db.VarChar(50)
+  perusahaan                    String?             @db.VarChar(50)
+  email                         String              @db.VarChar(50)
+  noTelp                        String?             @db.VarChar(50)
+  negara                        String?             @db.VarChar(50)
+  tempatLahir                   String?             @db.VarChar(50)
+  tanggalLahir                  DateTime?           @db.Date
+  simA                          Bytes?
+  simAFileName                  String?             @db.VarChar(255)
+  simB                          Bytes?
+  simBFileName                  String?             @db.VarChar(255)
+  ktp                           Bytes?
+  ktpFileName                   String?             @db.VarChar(255)
+  foto                          Bytes?
+  fotoFileName                  String?             @db.VarChar(255)
+  suratSehatButaWarna           Bytes?
+  suratSehatButaWarnaFileName   String?             @db.VarChar(255)
+  tglKeluarSuratSehatButaWarna  DateTime?           @db.Date
+  suratBebasNarkoba             Bytes?
+  suratBebasNarkobaFileName     String?             @db.VarChar(255)
+  tglKeluarSuratBebasNarkoba    DateTime?           @db.Date
+  linkQrCode                    String?             @db.VarChar(255)
+  qrCode                        Bytes?
+  gmfNonGmf                     String?             @db.VarChar(20)
 
-  ParticipantsCOT             ParticipantsCOT[]
+  ParticipantsCOT               ParticipantsCOT[]
 
   @@map("participants")
 }

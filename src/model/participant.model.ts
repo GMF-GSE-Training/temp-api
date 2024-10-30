@@ -20,10 +20,10 @@ export interface CreateParticipantRequest {
     fotoFileName?: string;
     suratSehatButaWarna?: Buffer;
     suratSehatbutaWarnaFileName?: string;
-    expSuratSehatButaWarna?: Date;
+    tglKeluarSuratSehatButaWarna?: Date;
     suratBebasNarkoba?: Buffer;
     suratBebasNarkobaFileName?: string;
-    expSuratBebasNarkoba?: Date;
+    tglKeluarSuratBebasNarkoba?: Date;
     gmfNonGmf?: string;
 }
 
@@ -49,10 +49,10 @@ export interface UpdateParticipantRequest {
     fotoFileName?: string;
     suratSehatButaWarna?: Buffer;
     suratSehatbutaWarnaFileName?: string;
-    expSuratSehatButaWarna?: Date;
+    tglKeluarSuratSehatButaWarna?: Date;
     suratBebasNarkoba?: Buffer;
     suratBebasNarkobaFileName?: string;
-    expSuratBebasNarkoba?: Date;
+    tglKeluarSuratBebasNarkoba?: Date;
     gmfNonGmf?: string;
     linkQrCode?: string;
 }
@@ -76,8 +76,8 @@ export interface ParticipantList {
     fotoFileName?: string;
     suratSehatButaWarnaFileName?: string;
     suratBebasNarkobaFileName?: string;
-    expSuratSehatButaWarna: Date;
-    expSuratBebasNarkoba: Date;
+    tglKeluarSuratSehatButaWarna: Date;
+    tglKeluarSuratBebasNarkoba: Date;
     gmfNonGmf: string;
     linkQrCode: string;
 }
@@ -110,8 +110,8 @@ export interface ParticipantResponse {
     fotoFileName?: string;
     suratSehatButaWarnaFileName?: string;
     suratBebasNarkobaFileName?: string;
-    expSuratSehatButaWarna: string;
-    expSuratBebasNarkoba: string;
+    tglKeluarSuratSehatButaWarna: string;
+    tglKeluarSuratBebasNarkoba: string;
     gmfNonGmf: string;
     linkQrCode: string;
 }

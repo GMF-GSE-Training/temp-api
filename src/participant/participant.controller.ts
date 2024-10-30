@@ -42,8 +42,8 @@ export class ParticipantController {
             participantData = {
                 ...createParticipantDto,
                 tanggalLahir: new Date(createParticipantDto.tanggalLahir),
-                expSuratSehatButaWarna: new Date(createParticipantDto.expSuratSehatButaWarna),
-                expSuratBebasNarkoba: new Date(createParticipantDto.expSuratBebasNarkoba),
+                tglKeluarSuratSehatButaWarna: new Date(createParticipantDto.tglKeluarSuratSehatButaWarna),
+                tglKeluarSuratBebasNarkoba: new Date(createParticipantDto.tglKeluarSuratBebasNarkoba),
                 simA: files.simA ? files.simA[0].buffer : null,
                 simB: files.simB ? files.simB[0].buffer : null,
                 ktp: files.ktp ? files.ktp[0].buffer : null,
@@ -88,8 +88,8 @@ export class ParticipantController {
         const participantData = {
             ...req,
             tanggalLahir: req.tanggalLahir ? new Date(req.tanggalLahir) : undefined,
-            expSuratSehatButaWarna: req.expSuratSehatButaWarna ? new Date(req.expSuratSehatButaWarna) : undefined,
-            expSuratBebasNarkoba: req.expSuratBebasNarkoba ? new Date(req.expSuratBebasNarkoba) : undefined,
+            tglKeluarSuratSehatButaWarna: req.tglKeluarSuratSehatButaWarna ? new Date(req.tglKeluarSuratSehatButaWarna) : undefined,
+            tglKeluarSuratBebasNarkoba: req.tglKeluarSuratBebasNarkoba ? new Date(req.tglKeluarSuratBebasNarkoba) : undefined,
             simA: files?.simA?.[0]?.buffer || undefined,
             simB: files?.simB?.[0]?.buffer || undefined,
             ktp: files?.ktp?.[0]?.buffer || undefined,
