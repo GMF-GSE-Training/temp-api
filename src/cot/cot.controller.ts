@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { CotResponse, CreateCOT } from "src/model/cot.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { CotService } from "./cot.service";
@@ -16,6 +16,15 @@ export class CotController {
     @UseGuards(AuthGuard, RoleGuard)
     async create(@Body() request: CreateCOT): Promise<WebResponse<string>> {
         const result = await this.cotService.createCot(request);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:cotId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async get(@Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<CotResponse>> {
+        const result = await this.cotService.getCot(cotId);
         return buildResponse(HttpStatus.OK, result);
     }
 

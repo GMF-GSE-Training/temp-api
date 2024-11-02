@@ -36,6 +36,25 @@ export class CotService {
         return 'Cot berhasil dibuat';
     }
 
+    async getCot(cotId: string): Promise<CotResponse> {
+        const cot = await this.prismaService.cOT.findUnique({
+            where: {
+                id: cotId
+            },
+            include: {
+                Capabillity: true
+            }
+        });
+
+        if(!cot) {
+            throw new HttpException('COT tidak ditemukan', 404);
+        }
+
+        console.log(cot);
+
+        return cot;
+    }
+
     async listCot(request: ListRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
         const cot = await this.prismaService.cOT.findMany({
             include: {
