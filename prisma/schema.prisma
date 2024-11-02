@@ -14,18 +14,20 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  noPegawai       String?   @unique @db.VarChar(20)
-  email           String    @db.VarChar(50)
-  nik             String?   @unique @db.VarChar(50)
-  name            String    @db.VarChar(50)
-  password        String    @db.VarChar(100)
-  token           String?   @db.VarChar(255)
+  id              String        @id @default(uuid())
+  participantId   String?       @unique
+  noPegawai       String?       @unique @db.VarChar(20)
+  email           String        @db.VarChar(50)
+  nik             String?       @unique @db.VarChar(50)
+  name            String        @db.VarChar(50)
+  password        String        @db.VarChar(100)
+  token           String?       @db.VarChar(255)
   roleId          String
-  dinas           String?   @db.VarChar(50)
-  emailVerified   Boolean   @default(false)
+  dinas           String?       @db.VarChar(50)
+  emailVerified   Boolean       @default(false)
 
-  role            Role      @relation(fields: [roleId], references: [id])
+  role            Role          @relation(fields: [roleId], references: [id])
+  participant     Participant?  @relation(fields: [participantId], references: [id])
 
   @@map("users")
 }
@@ -71,9 +73,10 @@ model Participant {
   gmfNonGmf                     String?             @db.VarChar(20)
 
   ParticipantsCOT               ParticipantsCOT[]
+  User                          User?
 
   @@map("participants")
-}
+} 
 
 model Capability {
   id                                String                  @id @default(uuid())
@@ -112,8 +115,8 @@ model COT {
   tanggalMulai                    DateTime
   tanggalSelesai                  DateTime
   lokasiTraining                  String              @db.VarChar(50)
-  instrukturRegulasiGse           String              @db.VarChar(50)
   instrukturTeoriRegulasiGse      String              @db.VarChar(50)
+  instrukturTeoriKompetensi       String              @db.VarChar(50)
   instrukturPraktek1              String              @db.VarChar(50)
   instrukturPraktek2              String              @db.VarChar(50)
   status                          Boolean             @default(false)
