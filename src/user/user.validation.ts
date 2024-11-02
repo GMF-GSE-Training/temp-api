@@ -2,6 +2,7 @@ import { z, ZodType } from "zod";
 
 export class UserValidation {
     static readonly CREATE: ZodType = z.object({
+        participantId: z.string().min(1).max(255),
         noPegawai: z.string().max(20).optional().nullable(),
         nik: z.string().max(50).optional().nullable(),
         email: z.string().min(1).max(50).email(),

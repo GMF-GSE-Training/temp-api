@@ -160,23 +160,6 @@ export class ParticipantService {
         return this.toParticipantResponse(participant);
     }
 
-    async getParticipantByNik(user: CurrentUserRequest): Promise<string> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                nik: user.user.nik,
-            },
-            select: {
-                id: true,
-            }
-        });
-
-        if(!participant) {
-            throw new HttpException('Data peserta tidak ditemukan', 404);
-        }
-
-        return participant.id;
-    }
-
     async downloadIdCard(participantId: string): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
             where: { id: participantId },
@@ -283,9 +266,9 @@ export class ParticipantService {
     
             const updateUserWithNulls = this.transformEmptyStringsToNull(updateUser);
     
-            const userUpdate = await this.prismaService.user.findFirst({
+            const userUpdate = await this.prismaService.user.findUnique({
                 where: {
-                    nik: participant.nik,
+                    participantId: participant.id,
                 },
             });
         
@@ -322,7 +305,7 @@ export class ParticipantService {
         if(findUser) {
             await this.prismaService.user.delete({
                 where: {
-                    nik: participant.nik,
+                    participantId: participant.id,
                 }
             });
         }

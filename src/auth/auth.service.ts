@@ -22,10 +22,10 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
         private readonly configService: ConfigService,
-        private participantService: ParticipantService,
+        private readonly participantService: ParticipantService,
     ) {}
 
-    async register(req: RegisterUserRequest): Promise<AuthResponse> {
+    async register(req: RegisterUserRequest): Promise<string> {
         if(req.roleId) {
             throw new HttpException('Anda tidak berhak menentukan role', 403);
         }
@@ -65,6 +65,7 @@ export class AuthService {
             if (participant.dinas && registerRequest.dinas !== participant.dinas) {
                 throw new HttpException('Dinas tidak sesuai dengan data peserta', 400);
             }
+            req.participantId = participant.id;
         }
 
         await this.checkUserExists(registerRequest.noPegawai, registerRequest.email);
@@ -78,6 +79,22 @@ export class AuthService {
             select: authSelectedFields,
         });
 
+        const createParticipantData = {
+            noPegawai: req.noPegawai,
+            nama: req.name,
+            nik: req.nik,
+            email: req.email,
+            dinas: req.dinas,
+        };
+
+        const userRegister: CurrentUserRequest = {
+            user: {
+                ...user
+            }
+        };
+
+        const createParticipant = await this.participantService.createParticipant(createParticipantData, userRegister);
+
         const token = await this.jwtService.signAsync({ sub: user.id }, {
             expiresIn: '1d',
         });
@@ -87,30 +104,11 @@ export class AuthService {
                 id: user.id 
             },
             data: { 
+                participantId: createParticipant.id,
                 token 
             },
             select: authSelectedFields,
         });
-
-        const result = {
-            ...user,
-        }
-
-        const createParticipant = {
-            noPegawai: user.noPegawai,
-            nama: user.name,
-            nik: user.nik,
-            email: user.email,
-            dinas: user.dinas,
-        };
-
-        const userRegister: CurrentUserRequest = {
-            user: {
-                ...user,
-            }
-        };
-
-        this.participantService.createParticipant(createParticipant, userRegister);
 
         const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}`;
 
@@ -129,7 +127,7 @@ export class AuthService {
 
         await this.mailerService.sendEmail(email);
         
-        return this.toAuthResponse(result);
+        return 'Register berhasil';
     }
     
     async login(req: LoginUserRequest): Promise<AuthResponse> {
@@ -197,6 +195,7 @@ export class AuthService {
 
         return {
             id: user.id,
+            participantId: user.participantId,
             name: user.name,
             role: {
                 id: user.role.id,
@@ -274,7 +273,7 @@ export class AuthService {
         }
     }
 
-    async logout(user: CurrentUserRequest): Promise<AuthResponse> {
+    async logout(user: CurrentUserRequest): Promise<string> {
         const authSelectedFields = this.authSelectedFields();
         const result = await this.prismaService.user.update({
             where: {
@@ -286,9 +285,7 @@ export class AuthService {
             select: authSelectedFields,
         });
 
-        return this.toAuthResponse({
-            ...result,
-        });
+        return 'Logout berhasil';
     }
 
     async checkUserExists(noPegawai: string, email: string) {
@@ -318,6 +315,7 @@ export class AuthService {
     authSelectedFields() {
         return {
             id: true,
+            participantId: true,
             noPegawai: true,
             email: true,
             name: true,
@@ -325,18 +323,24 @@ export class AuthService {
             dinas: true,
             roleId: true,
             token: true,
+            role: true,
         }
     }
 
     toAuthResponse(user: AuthResponse): AuthResponse {
         return {
             id: user.id,
+            participantId: user.participantId,
             noPegawai: user.noPegawai,
             email: user.email,
             name: user.name,
             dinas: user.dinas,
             roleId: user.roleId,
             token: user.token,
+            role: {
+                id: user.role.id,
+                role: user.role.role
+            }
         };
     }
 }

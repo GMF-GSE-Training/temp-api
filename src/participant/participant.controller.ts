@@ -98,6 +98,8 @@ export class ParticipantController {
             suratBebasNarkoba: files?.suratBebasNarkoba?.[0]?.buffer || undefined,
         };
 
+        console.log(participantData);
+
         const participant = await this.participantService.updateParticipant(participantId, participantData, user);
         return buildResponse(HttpStatus.OK, participant);
     }
@@ -178,15 +180,6 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
         const result = await this.participantService.getParticipant(participantId, user);
-        return buildResponse(HttpStatus.OK, result);
-    }
-
-    @Get('/get/profile')
-    @HttpCode(200)
-    @Roles('super admin', 'user')
-    @UseGuards(AuthGuard, RoleGuard)
-    async getParticipantByNik(@Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const result = await this.participantService.getParticipantByNik(user);
         return buildResponse(HttpStatus.OK, result);
     }
 

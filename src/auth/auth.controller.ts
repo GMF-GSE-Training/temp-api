@@ -19,7 +19,7 @@ export class AuthController {
 
     @Post('/register')
     @HttpCode(200)
-    async register(@Body() req: RegisterUserRequest): Promise<WebResponse<AuthResponse>> {
+    async register(@Body() req: RegisterUserRequest): Promise<WebResponse<string>> {
         const result = await this.authService.register(req);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -103,8 +103,8 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
-    async logout(@Req() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<boolean>> {
-        await this.authService.logout(req);
+    async logout(@Req() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
+        const result = await this.authService.logout(req);
         res.cookie('access_token', '', {
             httpOnly: true,
             // secure: this.configService.get<string>('NODE_ENV') === 'production', 
@@ -112,6 +112,6 @@ export class AuthController {
             sameSite: 'none',
             expires: new Date(0) // or you can use maxAge: 0
         });
-        return buildResponse(HttpStatus.OK, true);
+        return buildResponse(HttpStatus.OK, result);
     }
 }

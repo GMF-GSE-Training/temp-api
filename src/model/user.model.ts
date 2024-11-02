@@ -1,4 +1,5 @@
 export interface CreateUserRequest {
+    participantId: string;
     noPegawai?: string;
     nik?: string;
     email: string;
@@ -29,6 +30,7 @@ export interface UserList {
 
 export interface UserResponse {
     id: string;
+    participantId?: string;
     noPegawai?: string;
     email: string;
     nik?: string;
