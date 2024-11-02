@@ -1,8 +1,9 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CreateCOT } from "src/model/cot.model";
+import { CotResponse, CreateCOT } from "src/model/cot.model";
 import { CotValidation } from "./cot.validation";
+import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
 @Injectable()
 export class CotService {
@@ -33,5 +34,38 @@ export class CotService {
         });
 
         return 'Cot berhasil dibuat';
+    }
+
+    async listCot(request: ListRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
+        const cot = await this.prismaService.cOT.findMany({
+            include: {
+                Capabillity: true
+            }
+        });
+
+        const totalCot = cot.length;
+        const totalPage = Math.ceil(totalCot / request.size);
+        const paginateCot = cot.slice(
+            (request.page - 1) * request.size,
+            request.page * request.size
+        );
+
+        if (paginateCot.length === 0) {
+            throw new HttpException("Data tidak ditemukan", 404);
+        }
+
+        return {
+            data: paginateCot,
+            actions:{
+                canEdit: true,
+                canDelete: true,
+                canView: true,
+            },
+            paging: {
+                currentPage: request.page,
+                totalPage: totalPage,
+                size: request.size,
+            },
+        };
     }
 }

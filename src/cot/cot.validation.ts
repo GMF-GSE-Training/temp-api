@@ -13,4 +13,9 @@ export class CotValidation {
         instrukturPraktek2: z.string().min(1).max(50),
         status: z.boolean().optional(),
     });
+
+    static readonly LIST: ZodType = z.object({
+        page: z.number().positive().optional(),
+        size: z.number().positive().optional(),
+    });
 }

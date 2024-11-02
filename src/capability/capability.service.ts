@@ -118,9 +118,7 @@ export class CapabilityService {
     }
 
     async listCapability(request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        let capability: any[];
-
-        capability = await this.prismaService.capability.findMany();    
+        const capability = await this.prismaService.capability.findMany();    
 
         const totalCapability = capability.length;
         const totalPage = Math.ceil(totalCapability / request.size);

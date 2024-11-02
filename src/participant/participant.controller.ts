@@ -6,7 +6,6 @@ import { AuthGuard } from "../common/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../common/guard/role.guard";
 import { Roles } from "../common/decorator/role.decorator";
-import { Response } from "express";
 import { CurrentUserRequest } from "src/model/auth.model";
 
 @Controller('/participants')
