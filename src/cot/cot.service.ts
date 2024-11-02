@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CotResponse, CreateCOT } from "src/model/cot.model";
+import { CotResponse, CreateCOT, UpdateCot } from "src/model/cot.model";
 import { CotValidation } from "./cot.validation";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 
@@ -50,9 +50,29 @@ export class CotService {
             throw new HttpException('COT tidak ditemukan', 404);
         }
 
-        console.log(cot);
-
         return cot;
+    }
+
+    async updateCot(cotId: string, request: UpdateCot): Promise<string> {
+        const updateCotRequest = this.validationService.validate(CotValidation.UPDATE, request);
+        const cot = await this.prismaService.cOT.findUnique({
+            where: {
+                id: cotId
+            }
+        });
+
+        if(!cot) {
+            throw new HttpException('COT tidak ditemukan', 404);
+        }
+
+        await this.prismaService.cOT.update({
+            where: {
+                id: cotId
+            },
+            data: updateCotRequest
+        });
+
+        return 'COT berhasil diperbarui';
     }
 
     async listCot(request: ListRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {

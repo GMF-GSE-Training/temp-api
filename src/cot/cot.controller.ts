@@ -1,5 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common";
-import { CotResponse, CreateCOT } from "src/model/cot.model";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { CotResponse, CreateCOT, UpdateCot } from "src/model/cot.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { CotService } from "./cot.service";
 import { Roles } from "src/common/decorator/role.decorator";
@@ -25,6 +25,17 @@ export class CotController {
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<CotResponse>> {
         const result = await this.cotService.getCot(cotId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Patch('/:cotId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async update(@Param('cotId', ParseUUIDPipe) cotId: string, @Body() request: UpdateCot): Promise<WebResponse<string>> {
+        request.tanggalMulai =  request.tanggalMulai ? new Date(request.tanggalMulai) : undefined;
+        request.tanggalSelesai =  request.tanggalSelesai ? new Date(request.tanggalSelesai) : undefined;
+        const result = await this.cotService.updateCot(cotId, request);
         return buildResponse(HttpStatus.OK, result);
     }
 
