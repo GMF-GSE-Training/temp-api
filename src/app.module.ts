@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from './mailer/mailer.module';
 import { CapabilityModule } from './capability/capability.module';
 import { CurriculumSyllabusModule } from './curriculum-syllabus/curriculum-syllabus.module';
+import { CotModule } from './cot/cot.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CurriculumSyllabusModule } from './curriculum-syllabus/curriculum-sylla
     MailerModule,
     CapabilityModule,
     CurriculumSyllabusModule,
+    CotModule,
   ],
   controllers: [],
   providers: [],
