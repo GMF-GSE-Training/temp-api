@@ -128,12 +128,12 @@ model COT {
 }
 
 model ParticipantsCOT {
-  id              String        @id @default(uuid())
-  participantId   String
+  id              String         @id @default(uuid())
+  participantId   String?
   cotId           String
 
-  participant     Participant   @relation(fields: [participantId], references: [id])
-  cot             COT           @relation(fields: [cotId], references: [id])
+  participant     Participant?   @relation(fields: [participantId], references: [id])
+  cot             COT            @relation(fields: [cotId], references: [id])
   Sertifikat      Sertifikat[]
 
   @@map("participantsCot")

@@ -30,9 +30,18 @@ export class CotService {
             throw new HttpException('COT sudah ada', 404);
         }
 
-        await this.prismaService.cOT.create({
+        const createCot = await this.prismaService.cOT.create({
             data: createCotRequest
         });
+
+        if(createCot) {
+            await this.prismaService.participantsCOT.create({
+                data: {
+                    cotId: createCot.id,
+                    participantId: undefined // karena belum ada participant
+                }
+            });
+        };
 
         return 'Cot berhasil dibuat';
     }
@@ -76,11 +85,115 @@ export class CotService {
         return 'COT berhasil diperbarui';
     }
 
+    async addParticipantToCot(cotId: string, participantIds: string[]): Promise<string> {
+        if (!Array.isArray(participantIds) || participantIds.length === 0) {
+            throw new HttpException('Request format tidak valid. participantIds harus berupa array.', 400);
+        }
+    
+        const cot = await this.prismaService.cOT.findUnique({
+            where: { id: cotId },
+        });
+    
+        if (!cot) {
+            throw new HttpException('COT tidak ditemukan', 404);
+        }
+    
+        const participants = await this.prismaService.participant.findMany({
+            where: {
+                id: { in: participantIds },
+            },
+        });
+    
+        if (participants.length !== participantIds.length) {
+            throw new HttpException('Beberapa participant tidak ditemukan', 404);
+        }
+    
+        const existingParticipants = await this.prismaService.participantsCOT.findMany({
+            where: {
+                cotId,
+                participantId: { in: participantIds },
+            },
+        });
+    
+        const existingParticipantIds = existingParticipants.map(p => p.participantId);
+        const newParticipantIds = participantIds.filter(id => !existingParticipantIds.includes(id));
+    
+        if (newParticipantIds.length === 0) {
+            throw new HttpException('Semua participant sudah terdaftar di COT ini', 400);
+        }
+    
+        const participantData = newParticipantIds.map(participantId => ({
+            participantId,
+            cotId,
+        }));
+    
+        await this.prismaService.participantsCOT.createMany({
+            data: participantData,
+        });
+    
+        return `${newParticipantIds.length} participant berhasil ditambahkan`;
+    }    
+
+    async getParticipantsCot(cotId: string, request: ListRequest): Promise<{ data: any, actions: ActionAccessRights, paging: Paging }> {
+        const participantCot = await this.prismaService.participantsCOT.findMany({
+            where: {
+                cotId: cotId
+            },
+            include: {
+                cot: {
+                    include: {
+                        Capability: {
+                            select: {
+                                kodeRating: true,
+                                namaTraining: true
+                            }
+                        }
+                    }
+                },
+                participant: {
+                    select: {
+                        noPegawai: true,
+                        nama: true,
+                        dinas: true
+                    }
+                }
+            }
+        });
+
+        // Transform the data structure
+        const transformedData = {
+            cotId: cotId,
+            cot: participantCot.length > 0 ? participantCot[0].cot : null,
+            participantId: participantCot.length > 0 ? participantCot[0].participantId : null,
+            participant: participantCot.map(item => item.participant),
+        };
+
+        // Calculate pagination
+        const totalParticipants = 1; // Since we're returning a single object now
+        const totalPage = Math.ceil(totalParticipants / request.size);
+
+        // We don't need to slice the data anymore since we're returning a single object
+        return {
+            data: transformedData,
+            actions: {
+                canEdit: false,
+                canDelete: true,
+                canView: true,
+                canPrint: true,
+            },
+            paging: {
+                currentPage: request.page,
+                totalPage: totalPage,
+                size: request.size,
+            },
+        };
+    }
+
     async deleteCot(cotId: string): Promise<string> {
         const cot = await this.prismaService.cOT.findUnique({
             where : {
                 id: cotId
-            }
+            },
         });
 
         if(!cot) {

@@ -40,6 +40,29 @@ export class CotController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Post('participant-cot/:cotId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async addParticipantToCot(@Param('cotId', ParseUUIDPipe) cotId: string, @Body('participantIds') participantIds: string[]): Promise<WebResponse<string>> {
+        const result = await this.cotService.addParticipantToCot(cotId, participantIds);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/participant-cot/:cotId')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getParticipantCot(
+        @Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<any>> {
+        const query: ListRequest = { 
+            page: 1,
+            size: 10,
+        };
+        const result = await this.cotService.getParticipantsCot(cotId, query);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
+    }
+
     @Delete('/:cotId')
     @HttpCode(200)
     @Roles('super admin')

@@ -10,9 +10,10 @@ export class WebResponse<T> {
 }
 
 export interface ActionAccessRights {
-    canEdit: boolean;
-    canDelete: boolean;
-    canView: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+    canView?: boolean;
+    canPrint?: boolean;
 }
 
 export interface Paging  {
