@@ -121,7 +121,7 @@ model COT {
   instrukturPraktek2              String              @db.VarChar(50)
   status                          Boolean             @default(false)
 
-  Capabillity                     Capability          @relation(fields: [capabilityId], references: [id])
+  Capability                      Capability          @relation(fields: [capabilityId], references: [id])
   ParticipantsCOT                 ParticipantsCOT[]
 
   @@map("COT")

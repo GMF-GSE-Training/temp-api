@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CotResponse, CreateCOT, UpdateCot } from "src/model/cot.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { CotService } from "./cot.service";
@@ -36,6 +36,15 @@ export class CotController {
         request.tanggalMulai =  request.tanggalMulai ? new Date(request.tanggalMulai) : undefined;
         request.tanggalSelesai =  request.tanggalSelesai ? new Date(request.tanggalSelesai) : undefined;
         const result = await this.cotService.updateCot(cotId, request);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Delete('/:cotId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async delete(@Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<string>> {
+        const result = await this.cotService.deleteCot(cotId);
         return buildResponse(HttpStatus.OK, result);
     }
 

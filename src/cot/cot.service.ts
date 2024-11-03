@@ -42,7 +42,7 @@ export class CotService {
                 id: cotId
             },
             include: {
-                Capabillity: true
+                Capability: true
             }
         });
 
@@ -75,10 +75,29 @@ export class CotService {
         return 'COT berhasil diperbarui';
     }
 
+    async deleteCot(cotId: string): Promise<string> {
+        const cot = await this.prismaService.cOT.findUnique({
+            where : {
+                id: cotId
+            }
+        });
+
+        if(!cot) {
+            throw new HttpException('COT tidak ditemukan', 404);
+        }
+
+        await this.prismaService.cOT.delete({
+            where: {
+                id: cot.id
+            }
+        });
+        return 'Berhasil menghapus COT';
+    }
+
     async listCot(request: ListRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
         const cot = await this.prismaService.cOT.findMany({
             include: {
-                Capabillity: true
+                Capability: true
             }
         });
 

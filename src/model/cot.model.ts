@@ -1,3 +1,5 @@
+import { Capability } from "@prisma/client";
+
 export interface CreateCOT {
     kodeCot: string;
     capabilityId: string;
@@ -35,5 +37,5 @@ export interface CotResponse {
     instrukturPraktek1: string;
     instrukturPraktek2: string;
     status: boolean;
-    capability?: Object;
+    Capability?: Capability;
 }
