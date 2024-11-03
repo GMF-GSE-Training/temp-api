@@ -3,7 +3,8 @@ import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
 import { CotResponse, CreateCOT, UpdateCot } from "src/model/cot.model";
 import { CotValidation } from "./cot.validation";
-import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { CurrentUserRequest } from "src/model/auth.model";
 
 @Injectable()
 export class CotService {
@@ -125,5 +126,79 @@ export class CotService {
                 size: request.size,
             },
         };
+    }
+
+    async searchCot(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
+        const searchRequest = this.validationService.validate(CotValidation.SEARCH, request);
+
+        const cot = await this.prismaService.cOT.findMany({
+            include: {
+                Capability: true
+            }
+        });
+        const query = searchRequest.searchQuery.toLowerCase();
+
+        let filteredCot = cot;
+        if(searchRequest.searchQuery) {
+            filteredCot = cot.filter(cot => 
+                cot.kodeCot.toLowerCase().includes(query) ||
+                cot.Capability.kodeTraining.toLowerCase().includes(query) ||
+                cot.Capability.namaTraining.toLowerCase().includes(query)
+            );
+        }
+
+        const tottalCot = filteredCot.length;
+        const totalPage = Math.ceil(tottalCot / searchRequest.size);
+        const paginatedCot = filteredCot.slice(
+            (searchRequest.page - 1) * searchRequest.size,
+            searchRequest.page * searchRequest.size
+        );
+
+        if(paginatedCot.length === 0) {
+            throw new HttpException('COT tidak ditemukan', 404);
+        }
+
+        const userWithRole = await this.userWithRole(user.user.id);
+        const userRole = userWithRole.role.role.toLowerCase();
+        const actions = this.validateActions(userRole);
+
+        return {
+            data: paginatedCot.map(cot => cot),
+            actions: actions,
+            paging: {
+                currentPage: searchRequest.page,
+                totalPage: totalPage,
+                size: searchRequest.size,
+            }
+        }
+    }
+
+    private async userWithRole(userId: string) {
+        const userRequest = await this.prismaService.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                role: true
+            }
+        });
+
+        return userRequest;
+    }
+
+    private validateActions(userRole: string): ActionAccessRights {
+        if(userRole === 'super admin' || userRole === 'lcu') {
+            return {
+                canEdit: true,
+                canDelete: true,
+                canView: true,
+            }
+        } else {
+            return {
+                canEdit: false,
+                canDelete: false,
+                canView: true,
+            }
+        }
     }
 }

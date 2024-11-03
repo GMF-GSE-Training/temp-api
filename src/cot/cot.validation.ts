@@ -31,4 +31,10 @@ export class CotValidation {
         page: z.number().positive().optional(),
         size: z.number().positive().optional(),
     });
+
+    static readonly SEARCH: ZodType = z.object({
+        searchQuery: z.string().min(1),
+        page: z.number().min(1).positive(),
+        size: z.number().min(1).positive(),
+    });
 }
