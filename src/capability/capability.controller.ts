@@ -22,7 +22,7 @@ export class CapabilityController {
 
     @Get('/:capabilityId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string) {
         const result = await this.capabilityService.getCapability(capabilityId);
