@@ -1,10 +1,10 @@
-import { Body, Controller, HttpCode, HttpException, HttpStatus, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, ParseIntPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Roles } from "src/common/decorator/role.decorator";
 import { AuthGuard } from "src/common/guard/auth.guard";
 import { RoleGuard } from "src/common/guard/role.guard";
-import { CreateESign } from "src/model/e-sign.model";
-import { buildResponse, WebResponse } from "src/model/web.model";
+import { CreateESign, ESignResponse } from "src/model/e-sign.model";
+import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { ESignService } from "./e-sign.service";
 
 @Controller('e-sign')
@@ -38,5 +38,21 @@ export class ESignController {
         
         const result = await this.eSignService.createESign(eSign);
         return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/list/result')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    async list(
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+    ): Promise<WebResponse<ESignResponse[]>> {
+        const query: ListRequest = { 
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.eSignService.listESign(query);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 }
