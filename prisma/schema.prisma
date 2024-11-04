@@ -140,12 +140,13 @@ model ParticipantsCOT {
 }
 
 model Signature {
-  id          String        @id @default(uuid())
-  noPegawai   String        @db.VarChar(20)
-  role        String        @db.VarChar(50)
-  name        String        @db.VarChar(50)
-  eSign       Bytes
-  status      Boolean       @default(false)
+  id            String        @id @default(uuid())
+  noPegawai     String        @db.VarChar(20)
+  role          String        @db.VarChar(50)
+  name          String        @db.VarChar(50)
+  eSign         Bytes
+  eSignFileName String?       @db.VarChar(255)
+  status        Boolean       @default(false)
 
   Sertifikat  Sertifikat[]
 

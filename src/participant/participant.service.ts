@@ -19,7 +19,7 @@ export class ParticipantService {
         private readonly prismaService: PrismaService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private readonly validationService: ValidationService,
-        private readonly configService: ConfigService,
+        private readonly configService: ConfigService,  
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {

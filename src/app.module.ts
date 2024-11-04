@@ -9,6 +9,7 @@ import { MailerModule } from './mailer/mailer.module';
 import { CapabilityModule } from './capability/capability.module';
 import { CurriculumSyllabusModule } from './curriculum-syllabus/curriculum-syllabus.module';
 import { CotModule } from './cot/cot.module';
+import { ESignModule } from './e-sign/e-sign.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CotModule } from './cot/cot.module';
     CapabilityModule,
     CurriculumSyllabusModule,
     CotModule,
+    ESignModule,
   ],
   controllers: [],
   providers: [],
