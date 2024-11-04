@@ -296,24 +296,30 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
 
-        const findUser = await this.prismaService.user.findUnique({
+        const findUser = await this.prismaService.user.findFirst({
             where: {
-                nik: participant.nik,
+                participantId: participant.id,
             }
         });
 
         if(findUser) {
             await this.prismaService.user.delete({
                 where: {
-                    participantId: participant.id,
+                    id: findUser.id,
                 }
             });
         }
 
+        await this.prismaService.participantsCOT.deleteMany({
+            where: {
+                participantId: participantId,
+            },
+        });
+
         const result = await this.prismaService.participant.delete({
             where: {
                 id: participantId,
-            }
+            },
         });
 
         return this.toParticipantResponse(result);

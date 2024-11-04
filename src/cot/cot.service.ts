@@ -85,6 +85,61 @@ export class CotService {
         return 'COT berhasil diperbarui';
     }
 
+    async getUnregisteredParticipants(cotId: string, request: ListRequest): Promise<{ data: any[], paging: Paging }> {
+        // Ambil total count terpisah
+        const totalParticipants = await this.prismaService.participant.count({
+            where: {
+                NOT: {
+                    ParticipantsCOT: {
+                        some: {
+                            cotId: cotId
+                        }
+                    }
+                }
+            }
+        });
+    
+        // Ambil data dengan skip dan take
+        const participants = await this.prismaService.participant.findMany({
+            where: {
+                NOT: {
+                    ParticipantsCOT: {
+                        some: {
+                            cotId: cotId
+                        }
+                    }
+                }
+            },
+            select: {
+                id: true,
+                noPegawai: true,
+                nama: true,
+                dinas: true,
+                bidang: true,
+                perusahaan: true
+            },
+            skip: (request.page - 1) * request.size,
+            take: request.size
+        });
+    
+        const totalPage = Math.ceil(totalParticipants / request.size);
+    
+        if (participants.length === 0) {
+            throw new HttpException("Data tidak ditemukan", 404);
+        }
+
+        console.log(participants)
+    
+        return {
+            data: participants,
+            paging: {
+                currentPage: request.page,
+                totalPage: totalPage,
+                size: request.size,
+            },
+        };
+    }
+
     async addParticipantToCot(cotId: string, participantIds: string[]): Promise<string> {
         if (!Array.isArray(participantIds) || participantIds.length === 0) {
             throw new HttpException('Request format tidak valid. participantIds harus berupa array.', 400);
@@ -103,23 +158,27 @@ export class CotService {
                 id: { in: participantIds },
             },
         });
-    
-        if (participants.length !== participantIds.length) {
-            throw new HttpException('Beberapa participant tidak ditemukan', 404);
+
+        const validParticipantIds = participants.map(p => p.id);
+        console.log(validParticipantIds)
+
+        // Filter hanya ID yang valid
+        if (validParticipantIds.length === 0) {
+            throw new HttpException('Tidak ada participant yang valid ditemukan', 404);
         }
-    
+
         const existingParticipants = await this.prismaService.participantsCOT.findMany({
             where: {
                 cotId,
-                participantId: { in: participantIds },
+                participantId: { in: validParticipantIds },
             },
         });
     
         const existingParticipantIds = existingParticipants.map(p => p.participantId);
-        const newParticipantIds = participantIds.filter(id => !existingParticipantIds.includes(id));
+        const newParticipantIds = validParticipantIds.filter(id => !existingParticipantIds.includes(id));
     
         if (newParticipantIds.length === 0) {
-            throw new HttpException('Semua participant sudah terdaftar di COT ini', 400);
+            throw new HttpException('Semua participant yang valid sudah terdaftar di COT ini', 400);
         }
     
         const participantData = newParticipantIds.map(participantId => ({
@@ -132,14 +191,14 @@ export class CotService {
         });
     
         return `${newParticipantIds.length} participant berhasil ditambahkan`;
-    }    
+    }
 
-    async getParticipantsCot(cotId: string, request: ListRequest): Promise<{ data: any, actions: ActionAccessRights, paging: Paging }> {
+    async getParticipantsCot(cotId: string, request: ListRequest): Promise<any> {
         const participantCot = await this.prismaService.participantsCOT.findMany({
             where: {
                 cotId: cotId
             },
-            include: {
+            select: {
                 cot: {
                     include: {
                         Capability: {
@@ -152,41 +211,64 @@ export class CotService {
                 },
                 participant: {
                     select: {
+                        id: true,
                         noPegawai: true,
                         nama: true,
                         dinas: true
                     }
-                }
+                },
             }
         });
 
-        // Transform the data structure
-        const transformedData = {
-            cotId: cotId,
-            cot: participantCot.length > 0 ? participantCot[0].cot : null,
-            participantId: participantCot.length > 0 ? participantCot[0].participantId : null,
-            participant: participantCot.map(item => item.participant),
-        };
+        // Transformasi data untuk `cot`
+        const transformedCot = participantCot.length > 0 ? participantCot[0].cot : null;
 
-        // Calculate pagination
-        const totalParticipants = 1; // Since we're returning a single object now
+        // Ambil data `participant` dan hitung total
+        const totalParticipants = participantCot.length;
         const totalPage = Math.ceil(totalParticipants / request.size);
 
-        // We don't need to slice the data anymore since we're returning a single object
+        // Slice data `participant` berdasarkan `page` dan `size`
+        const startIndex = (request.page - 1) * request.size;
+        const endIndex = startIndex + request.size;
+        const paginatedParticipants = participantCot.slice(startIndex, endIndex).map(item => item.participant);
+
         return {
-            data: transformedData,
-            actions: {
-                canEdit: false,
-                canDelete: true,
-                canView: true,
-                canPrint: true,
-            },
-            paging: {
-                currentPage: request.page,
-                totalPage: totalPage,
-                size: request.size,
-            },
+            data: {
+                cotId: cotId,
+                cot: transformedCot,
+                participant: paginatedParticipants,
+                actions: {
+                    canEdit: false,
+                    canDelete: true,
+                    canView: true,
+                    canPrint: true,
+                },
+                paging: {
+                    currentPage: request.page,
+                    totalPage: totalPage,
+                    size: request.size,
+                    totalItems: totalParticipants,
+                },
+            }
         };
+    }
+
+    async deleteParticipantFromCot(participantId: string, cotId: string): Promise<string> {
+        const deletedParticipant = await this.prismaService.participantsCOT.deleteMany({
+            where: {
+                AND: [
+                    { participantId: { not: null, equals: participantId } },
+                    { cotId: cotId }
+                ]
+            }
+        });
+
+        // Jika tidak ada data yang dihapus
+        if (deletedParticipant.count === 0) {
+            throw new HttpException('Participant tidak ditemukan dalam COT tersebut', 404);
+        }
+
+        return 'Participant berhasil dihapus dari COT';
     }
 
     async deleteCot(cotId: string): Promise<string> {
@@ -199,6 +281,12 @@ export class CotService {
         if(!cot) {
             throw new HttpException('COT tidak ditemukan', 404);
         }
+
+        await this.prismaService.participantsCOT.deleteMany({
+            where: {
+                cotId: cot.id
+            }
+        });
 
         await this.prismaService.cOT.delete({
             where: {

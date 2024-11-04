@@ -23,7 +23,7 @@ export class UserService {
             throw new HttpException('Role tidak boleh kosong', 404);
         }
 
-        const participant = await this.prismaService.participant.findUnique({
+        const participant = await this.prismaService.participant.findFirst({
             where: {
                 id: req.participantId
             }

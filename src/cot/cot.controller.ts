@@ -40,6 +40,24 @@ export class CotController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Get('/participant-cot/:cotId/unregistered/result')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getUnregisteredParticipants(
+        @Param('cotId', ParseUUIDPipe) cotId: string,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+    ): Promise<WebResponse<any[]>> {
+        const query: ListRequest = { 
+            page: page || 1,
+            size: size || 10,
+        };
+        const result = await this.cotService.getUnregisteredParticipants(cotId, query);
+        console.log(result)
+        return buildResponse(HttpStatus.OK, result.data, null, null, result.paging);
+    }
+
     @Post('participant-cot/:cotId')
     @HttpCode(200)
     @Roles('super admin')
@@ -54,13 +72,25 @@ export class CotController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async getParticipantCot(
-        @Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<any>> {
+        @Param('cotId', ParseUUIDPipe) cotId: string,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+    ): Promise<WebResponse<any>> {
         const query: ListRequest = { 
-            page: 1,
-            size: 10,
+            page: page || 1,
+            size: size || 10,
         };
         const result = await this.cotService.getParticipantsCot(cotId, query);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
+    }
+
+    @Delete('/participant-cot/:cotId/:participantId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async deleteParticipantFromCot(@Param('cotId', ParseUUIDPipe) cotId: string, @Param('participantId', ParseUUIDPipe) participantId: string): Promise<WebResponse<string>> {
+        const result = await this.cotService.deleteParticipantFromCot(participantId, cotId);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Delete('/:cotId')
