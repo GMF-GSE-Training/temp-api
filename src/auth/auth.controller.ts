@@ -7,6 +7,7 @@ import { Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ConfigService } from "@nestjs/config";
+import * as os from 'os';
 
 @Controller('/auth')
 export class AuthController {
@@ -25,15 +26,26 @@ export class AuthController {
     }
 
     @Get('/verify-email')
-    async verifyEmail(@Query('token') token: string, @Query('callback') callbackUrl: string, @Res() res: Response): Promise<any> {
+    async verifyEmail(@Query('token') token: string, @Query('callback') callbackUrl: string, @Res() res: Response): Promise<void> {
         try {
-            const payload = this.jwtService.verify(token);
-            await this.prismaService.user.update({
-                where: { id: payload.sub },
-                data: { 
-                    emailVerified: true,
-                },
-            });
+            await this.authService.verifyEmail(token);
+
+            // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+            const networkInterfaces = os.networkInterfaces();
+            let localIp = 'localhost'; // Default fallback
+
+            // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+            for (const interfaceName in networkInterfaces) {
+                const addresses = networkInterfaces[interfaceName];
+                if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                    break;
+                    }
+                }
+                }
+            }
 
             res.cookie('access_token', token, {
                 httpOnly: true,
@@ -44,7 +56,7 @@ export class AuthController {
                 maxAge: 1000 * 60 * 60 * 24,
             });
 
-            const redirectUrl = callbackUrl || `${this.configService.get<string>('FRONTEND_URL')}/home`;
+            const redirectUrl = callbackUrl || `http://${localIp}:4200/home`;
 
             return res.redirect(redirectUrl);
         } catch (error) {
@@ -86,8 +98,25 @@ export class AuthController {
     async verifyResetPassword(@Param('token') token: string, @Res() res: Response): Promise<WebResponse<boolean>> {
         const isValid = await this.authService.verifyResetPasswordToken(token);
         if (isValid) {
+            // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+            const networkInterfaces = os.networkInterfaces();
+            let localIp = 'localhost'; // Default fallback
+            
+            // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+            for (const interfaceName in networkInterfaces) {
+                const addresses = networkInterfaces[interfaceName];
+                if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                    break;
+                    }
+                }
+                }
+            }
+
             // Redirect ke frontend untuk memasukkan password baru
-            res.redirect(`${this.configService.get<string>('FRONTEND_URL')}/reset/${token}`);
+            res.redirect(`http://${localIp}:4200}/reset/${token}`);
             return buildResponse(HttpStatus.OK, isValid);
         } else {
             throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);

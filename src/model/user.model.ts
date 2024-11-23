@@ -1,6 +1,6 @@
 export interface CreateUserRequest {
-    participantId: string;
-    noPegawai?: string;
+    participantId?: string;
+    idNumber?: string;
     nik?: string;
     email: string;
     name: string;
@@ -10,7 +10,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-    noPegawai?: string;
+    idNumber?: string;
     nik?: string;
     email?: string;
     name?: string;
@@ -21,7 +21,7 @@ export interface UpdateUserRequest {
 
 export interface UserList {
     id: string;
-    noPegawai?: string;
+    idNumber?: string;
     email: string;
     name: string;
     dinas?: string;
@@ -31,7 +31,7 @@ export interface UserList {
 export interface UserResponse {
     id: string;
     participantId?: string;
-    noPegawai?: string;
+    idNumber?: string;
     email: string;
     nik?: string;
     name: string;
@@ -39,6 +39,6 @@ export interface UserResponse {
     roleId: string;
     role?: {
         id: string,
-        role: string;
+        name: string;
     }
 }

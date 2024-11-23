@@ -14,13 +14,13 @@ export class ESignService {
 
     async createESign(request: CreateESign): Promise<string> {
         const eSignRequest = this.validationService.validate(ESignValidation.CREATE, request);
-        const totalESingwithSameNoPegawai = await this.prismaService.signature.count({
+        const totalESingwithSameIdNumber = await this.prismaService.signature.count({
             where: {
-                noPegawai: eSignRequest.noPegawai,
+                idNumber: eSignRequest.idNumber,
             }
         });
 
-        if (totalESingwithSameNoPegawai != 0) {
+        if (totalESingwithSameIdNumber != 0) {
             throw new HttpException("No pegawai sudah digunakan", 400);
         }
 
@@ -31,10 +31,61 @@ export class ESignService {
         return 'E-Sign berhasil ditambahkan';
     }
 
+    async getESign(eSignId: string): Promise<any> {
+        const eSign = await this.prismaService.signature.findUnique({
+            where: {
+                id: eSignId,
+            },
+            select: {
+                id: true,
+                idNumber: true,
+                role: true,
+                name: true,
+                signFileName: true,
+                status: true,
+            }
+        });
+
+        if(!eSign) {
+            throw new HttpException('E-Sign tidak ditemukan', 404);
+        }
+
+        return eSign;
+    }
+
+    async streamFile(eSignId: string): Promise<Buffer> {
+        const eSign = await this.prismaService.signature.findUnique({
+            where: {
+                id: eSignId,
+            }
+        });
+
+        if (!eSign || !eSign.eSign) {
+            throw new HttpException('File E-Sign tidak ditemukan', 404);
+        }
+
+        return eSign.eSign;
+    }
+
+    async deleteESign(eSignId: string): Promise<string> {
+        const eSign = await this.prismaService.signature.findUnique({
+            where: {
+                id: eSignId,
+            }
+        });
+
+        if(!eSign) {
+            throw new HttpException('E-Sign tidak ditemukan', 404);
+        }
+
+        return 'E-Sign berhadil dihapus';
+    }
+
     async listESign(request: ListRequest): Promise<{ data: ESignResponse[], actions: ActionAccessRights, paging: Paging }> {
         const eSign = await this.prismaService.signature.findMany({
             select: {
-                noPegawai: true,
+                id: true,
+                idNumber: true,
                 role: true,
                 name: true,
                 status: true
@@ -47,10 +98,6 @@ export class ESignService {
             (request.page - 1) * request.size,
             request.page * request.size
         );
-
-        if (paginateESign.length === 0) {
-            throw new HttpException("Data tidak ditemukan", 404);
-        }
 
         return {
             data: paginateESign,

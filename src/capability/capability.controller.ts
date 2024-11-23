@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { CapabilityService } from "./capability.service";
-import { CreateCapability, UpdateCapability } from "src/model/capability.model";
+import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "src/model/web.model";
 import { Roles } from "src/common/decorator/role.decorator";
 import { AuthGuard } from "src/common/guard/auth.guard";
@@ -15,7 +15,7 @@ export class CapabilityController {
     @HttpCode(200)
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
-    async create(@Body() request: CreateCapability): Promise<WebResponse<any>> {
+    async create(@Body() request: CreateCapability): Promise<WebResponse<CapabilityResponse>> {
         const result = await this.capabilityService.createCapability(request);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -24,7 +24,7 @@ export class CapabilityController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string) {
+    async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string): Promise<WebResponse<CapabilityResponse>> {
         const result = await this.capabilityService.getCapability(capabilityId);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -34,7 +34,6 @@ export class CapabilityController {
     @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
     async update(@Param('capabilityId', ParseUUIDPipe) capabilityId: string, @Body() req: UpdateCapability): Promise<WebResponse<string>> {
-        console.log(req);
         const result  = await this.capabilityService.updateCapability(capabilityId, req);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -48,19 +47,29 @@ export class CapabilityController {
         return buildResponse(HttpStatus.OK, result);
     }
 
+    @Get()
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getAll(): Promise<WebResponse<CapabilityResponse[]>> {
+        const result = await this.capabilityService.getAllCapability();
+        return buildResponse(HttpStatus.OK, result);
+    }
+
     @Get('/list/result')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
+        @Req() user: CurrentUserRequest,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<any[]>> {
+    ): Promise<WebResponse<CapabilityResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,
             size: size || 10,
         };
-        const result = await this.capabilityService.listCapability(query);
+        const result = await this.capabilityService.listCapability(user, query);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
@@ -73,7 +82,7 @@ export class CapabilityController {
         @Query('q') q: string,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<any[]>> {
+    ): Promise<WebResponse<CapabilityResponse[]>> {
         const query: SearchRequest = {
             searchQuery: q,
             page: page || 1,

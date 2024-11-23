@@ -1,8 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
-import { CreateCurriculumSyllabus, UpdateCurriculumSyllabus } from "src/model/curriculum-syllabus.model";
-import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
+import { CreateCurriculumSyllabus, UpdateCurriculumSyllabus } from "src/model/curriculum-syllabus.model"
 import { CurriculumSyllabusValidation } from "./curriculum-syllabus.validation";
 
 @Injectable()
@@ -19,55 +18,55 @@ export class CurriculumSyllabusService {
         await this.prismaService.curriculumSyllabus.createMany({
             data: curriculumSyllabus.map((curriculumSyllabus) => ({
                 capabilityId: curriculumSyllabus.capabilityId,
-                nama: curriculumSyllabus.nama,
-                durasiTeori: curriculumSyllabus.durasiTeori,
-                durasiPraktek: curriculumSyllabus.durasiPraktek,
+                name: curriculumSyllabus.name,
+                theoryDuration: curriculumSyllabus.theoryDuration,
+                practiceDuration: curriculumSyllabus.practiceDuration,
                 type: curriculumSyllabus.type,
             })) 
         });
 
         const capabilityId = curriculumSyllabus[0].capabilityId;
 
-        // Menghitung total durasiTeori dari semua item di curriculumSyllabus
-        const totalDurasiTeoriRegGse = curriculumSyllabus
+        // Menghitung total theoryDuration dari semua item di curriculumSyllabus
+        const totalTheoryDurationRegGse = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'regulasi gse')
             .reduce((total, item) => {
-            return total + item.durasiTeori;
+            return total + item.theoryDuration;
         }, 0);
 
-        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
-        const totalDurasiPraktekRegGse = curriculumSyllabus
+        // Menghitung total practiceDuration dari semua item di curriculumSyllabus
+        const totalPracticeDurationRegGse = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'regulasi gse')
             .reduce((total, item) => {
-            return total + item.durasiPraktek;
+            return total + item.practiceDuration;
         }, 0);
 
-        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
-        const totalDurasiTeoriKompetensi = curriculumSyllabus
+        // Menghitung total practiceDuration dari semua item di curriculumSyllabus
+        const totalTheoryDurationCompetency = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'kompetensi')
             .reduce((total, item) => {
-            return total + item.durasiTeori;
+            return total + item.theoryDuration;
         }, 0);
 
-        // Menghitung total durasiPraktek dari semua item di curriculumSyllabus
-        const totalDurasiPraktekKompetensi = curriculumSyllabus
+        // Menghitung total practiceDuration dari semua item di curriculumSyllabus
+        const totalPracticeDurationCompetency = curriculumSyllabus
             .filter(item => item.type.toLocaleLowerCase() === 'kompetensi')
             .reduce((total, item) => {
-            return total + item.durasiPraktek;
+            return total + item.practiceDuration;
         }, 0);
 
-        const totalDurasi = totalDurasiTeoriRegGse + totalDurasiPraktekRegGse + totalDurasiTeoriKompetensi + totalDurasiPraktekKompetensi;
+        const totalDuration = totalTheoryDurationRegGse + totalPracticeDurationRegGse + totalTheoryDurationCompetency + totalPracticeDurationCompetency;
 
         await this.prismaService.capability.update({
             where: {
                 id: capabilityId
             },
             data: {
-                totalDurasiTeoriRegGse: totalDurasiTeoriRegGse,
-                totalDurasiPraktekRegGse: totalDurasiPraktekRegGse,
-                totalDurasiTeoriKompetensi: totalDurasiTeoriKompetensi,
-                totalDurasiPraktekKompetensi: totalDurasiPraktekKompetensi,
-                totalDurasi: totalDurasi,
+                totalTheoryDurationRegGse: totalTheoryDurationRegGse,
+                totalPracticeDurationRegGse: totalPracticeDurationRegGse,
+                totalTheoryDurationCompetency: totalTheoryDurationCompetency,
+                totalPracticeDurationCompetency: totalPracticeDurationCompetency,
+                totalDuration: totalDuration,
             }
         });
 
@@ -116,9 +115,9 @@ export class CurriculumSyllabusService {
                 },
                 data: {
                 capabilityId,
-                nama: syllabus.nama,
-                durasiTeori: syllabus.durasiTeori,
-                durasiPraktek: syllabus.durasiPraktek,
+                name: syllabus.name,
+                theoryDuration: syllabus.theoryDuration,
+                practiceDuration: syllabus.practiceDuration,
                 type: syllabus.type,
                 },
             });
@@ -127,9 +126,9 @@ export class CurriculumSyllabusService {
             await this.prismaService.curriculumSyllabus.create({
                 data: {
                 capabilityId,
-                nama: syllabus.nama,
-                durasiTeori: syllabus.durasiTeori,
-                durasiPraktek: syllabus.durasiPraktek,
+                name: syllabus.name,
+                theoryDuration: syllabus.theoryDuration,
+                practiceDuration: syllabus.practiceDuration,
                 type: syllabus.type,
                 },
             });
@@ -137,33 +136,33 @@ export class CurriculumSyllabusService {
         }
 
         // Hitung total durasi dan perbarui capability
-        const totalDurasiTeoriRegGse = curriculumSyllabus
+        const totalTheoryDurationRegGse = curriculumSyllabus
             .filter(item => item.type.toLowerCase() === 'regulasi gse')
-            .reduce((total, item) => total + item.durasiTeori, 0);
+            .reduce((total, item) => total + item.theoryDuration, 0);
 
-        const totalDurasiPraktekRegGse = curriculumSyllabus
+        const totalPracticeDurationRegGse = curriculumSyllabus
             .filter(item => item.type.toLowerCase() === 'regulasi gse')
-            .reduce((total, item) => total + item.durasiPraktek, 0);
+            .reduce((total, item) => total + item.practiceDuration, 0);
 
-        const totalDurasiTeoriKompetensi = curriculumSyllabus
+        const totalTheoryDurationCompetency = curriculumSyllabus
             .filter(item => item.type.toLowerCase() === 'kompetensi')
-            .reduce((total, item) => total + item.durasiTeori, 0);
+            .reduce((total, item) => total + item.theoryDuration, 0);
 
-        const totalDurasiPraktekKompetensi = curriculumSyllabus
+        const totalPracticeDurationCompetency = curriculumSyllabus
             .filter(item => item.type.toLowerCase() === 'kompetensi')
-            .reduce((total, item) => total + item.durasiPraktek, 0);
+            .reduce((total, item) => total + item.practiceDuration, 0);
 
-        const totalDurasi = totalDurasiTeoriRegGse + totalDurasiPraktekRegGse + totalDurasiTeoriKompetensi + totalDurasiPraktekKompetensi;
+        const totalDuration = totalTheoryDurationRegGse + totalPracticeDurationRegGse + totalTheoryDurationCompetency + totalPracticeDurationCompetency;
 
         // Update Capability dengan total durasi
         await this.prismaService.capability.update({
             where: { id: capability.id },
             data: {
-            totalDurasiTeoriRegGse,
-            totalDurasiPraktekRegGse,
-            totalDurasiTeoriKompetensi,
-            totalDurasiPraktekKompetensi,
-            totalDurasi,
+            totalTheoryDurationRegGse,
+            totalPracticeDurationRegGse,
+            totalTheoryDurationCompetency,
+            totalPracticeDurationCompetency,
+            totalDuration,
             },
         });
 

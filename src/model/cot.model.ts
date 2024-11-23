@@ -1,41 +1,36 @@
-import { Capability } from "@prisma/client";
-
-export interface CreateCOT {
-    kodeCot: string;
+export interface CreateCot {
     capabilityId: string;
-    tanggalMulai: Date;
-    tanggalSelesai: Date;
-    lokasiTraining: string;
-    instrukturTeoriRegulasiGse: string;
-    instrukturTeoriKompetensi: string;
-    instrukturPraktek1: string;
-    instrukturPraktek2: string;
-    status?: boolean;
+    startDate: Date;
+    endDate: Date;
+    trainingLocation: string;
+    theoryInstructorRegGse: string;
+    theoryInstructorCompetency: string;
+    practicalInstructor1: string;
+    practicalInstructor2: string;
+    status: string;
 }
 
 export interface UpdateCot {
-    kodeCot?: string;
     capabilityId?: string;
-    tanggalMulai?: Date;
-    tanggalSelesai?: Date;
-    lokasiTraining?: string;
-    instrukturTeoriRegulasiGse?: string;
-    instrukturTeoriKompetensi?: string;
-    instrukturPraktek1?: string;
-    instrukturPraktek2?: string;
-    status?: boolean;
+    startDate?: Date;
+    endDate?: Date;
+    trainingLocation?: string;
+    theoryInstructorRegGse?: string;
+    theoryInstructorCompetency?: string;
+    practicalInstructor1?: string;
+    practicalInstructor2?: string;
+    status?: string;
 }
 
 export interface CotResponse {
-    kodeCot: string;
-    capabilityId: string;
-    tanggalMulai: Date;
-    tanggalSelesai: Date;
-    lokasiTraining: string;
-    instrukturTeoriRegulasiGse: string;
-    instrukturTeoriKompetensi: string;
-    instrukturPraktek1: string;
-    instrukturPraktek2: string;
-    status: boolean;
-    Capability?: Capability;
+    id: string;
+    startDate: Date; 
+    endDate: Date;
+    trainingLocation: string;
+    theoryInstructorRegGse: string;
+    theoryInstructorCompetency: string;
+    practicalInstructor1: string;
+    practicalInstructor2: string;
+    status: string;
+    Capability?: Object;
 }

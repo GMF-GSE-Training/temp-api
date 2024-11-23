@@ -4,9 +4,9 @@ export class CurriculumSyllabusValidation {
     static readonly CREATE: ZodType = z.object({
         curriculumSyllabus: z.array(z.object({
             capabilityId: z.string().min(1),
-            nama: z.string().min(1).max(50),
-            durasiTeori: z.number().min(1).positive(),
-            durasiPraktek: z.number().min(1).positive(),
+            name: z.string().min(1).max(50),
+            theoryDuration: z.number().min(0),
+            practiceDuration: z.number().min(0),
             type: z.string().min(1),
         })),
     });
@@ -14,9 +14,9 @@ export class CurriculumSyllabusValidation {
     static readonly UPDATE: ZodType = z.object({
         curriculumSyllabus: z.array(z.object({
             capabilityId: z.string().min(1).optional(),
-            nama: z.string().min(1).max(50).optional(),
-            durasiTeori: z.number().min(1).positive().optional(),
-            durasiPraktek: z.number().min(1).positive().optional(),
+            name: z.string().min(1).max(50).optional(),
+            theoryDuration: z.number().min(0).optional(),
+            practiceDuration: z.number().min(0).optional(),
             type: z.string().min(1),
         })),
     });

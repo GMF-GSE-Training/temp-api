@@ -2,10 +2,10 @@ import { z, ZodType } from "zod";
 
 export class UserValidation {
     static readonly CREATE: ZodType = z.object({
-        participantId: z.string().min(1).max(255),
-        noPegawai: z.string().max(20).optional().nullable(),
+        participantId: z.string().min(1).max(255).optional().nullable(),
+        idNumber: z.string().max(20).optional().nullable(),
         nik: z.string().max(50).optional().nullable(),
-        email: z.string().min(1).max(50).email(),
+        email: z.string().min(1).max(255).email(),
         name: z.string().min(1).max(50),    
         password: z.string().min(1).max(100),
         dinas: z.string().max(20).optional().nullable(),
@@ -13,9 +13,9 @@ export class UserValidation {
     });
 
     static readonly UPDATE: ZodType = z.object({
-        noPegawai: z.string().min(1).max(20).optional().nullable(),
+        idNumber: z.string().min(1).max(20).optional().nullable(),
         nik: z.string().min(1).max(50).optional().nullable(),
-        email: z.string().min(1).max(50).email().optional(),
+        email: z.string().email().min(1).max(255).optional(),
         name: z.string().min(1).max(50).optional(),    
         password: z.string().min(1).max(100).optional(),
         dinas: z.string().min(1).max(20).optional().nullable(),

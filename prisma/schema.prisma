@@ -16,8 +16,8 @@ datasource db {
 model User {
   id              String        @id @default(uuid())
   participantId   String?       @unique
-  noPegawai       String?       @unique @db.VarChar(20)
-  email           String        @db.VarChar(50)
+  idNumber        String?       @unique @db.VarChar(20)
+  email           String        @db.VarChar(255)
   nik             String?       @unique @db.VarChar(50)
   name            String        @db.VarChar(50)
   password        String        @db.VarChar(100)
@@ -34,7 +34,7 @@ model User {
 
 model Role {
   id    String  @id @default(uuid())
-  role  String  @db.VarChar(50)
+  name  String  @db.VarChar(50)
 
   users User[]
 
@@ -43,17 +43,17 @@ model Role {
 
 model Participant {
   id                            String              @id @default(uuid())
-  noPegawai                     String?             @unique @db.VarChar(20)
-  nama                          String              @db.VarChar(50)
+  idNumber                      String?             @unique @db.VarChar(20)
+  name                          String              @db.VarChar(50)
   nik                           String              @unique @db.VarChar(50)
   dinas                         String?             @db.VarChar(50)
   bidang                        String?             @db.VarChar(50)
-  perusahaan                    String?             @db.VarChar(50)
-  email                         String              @db.VarChar(50)
-  noTelp                        String?             @db.VarChar(50)
-  negara                        String?             @db.VarChar(50)
-  tempatLahir                   String?             @db.VarChar(50)
-  tanggalLahir                  DateTime?           @db.Date
+  company                       String?             @db.VarChar(50)
+  email                         String              @db.VarChar(255)
+  phoneNumber                   String?             @db.VarChar(50)
+  nationality                   String?             @db.VarChar(50)
+  placeOfBirth                  String?             @db.VarChar(50)
+  dateOfBirth                   DateTime?           @db.Date
   simA                          Bytes?
   simAFileName                  String?             @db.VarChar(255)
   simB                          Bytes?
@@ -68,63 +68,72 @@ model Participant {
   suratBebasNarkoba             Bytes?
   suratBebasNarkobaFileName     String?             @db.VarChar(255)
   tglKeluarSuratBebasNarkoba    DateTime?           @db.Date
-  linkQrCode                    String?             @db.VarChar(255)
+  qrCodeLink                    String?             @db.VarChar(255)
   qrCode                        Bytes?
   gmfNonGmf                     String?             @db.VarChar(20)
 
-  ParticipantsCOT               ParticipantsCOT[]
-  User                          User?
+  participantsCots              ParticipantsCOT[]
+  user                          User?
 
   @@map("participants")
 } 
 
 model Capability {
   id                                String                  @id @default(uuid())
-  kodeRating                        String                  @db.VarChar(20)
-  kodeTraining                      String                  @db.VarChar(50)
-  namaTraining                      String                  @db.VarChar(50)
-  totalDurasiTeoriRegGse            Int?
-  totalDurasiPraktekRegGse          Int?
-  totalDurasiTeoriKompetensi        Int?
-  totalDurasiPraktekKompetensi      Int?
-  totalDurasi                       Int?                
+  ratingCode                        String                  @db.VarChar(20)
+  trainingCode                      String                  @db.VarChar(50)
+  trainingName                      String                  @db.VarChar(50)
+  totalTheoryDurationRegGse         Int?
+  totalPracticeDurationRegGse       Int?
+  totalTheoryDurationCompetency     Int?
+  totalPracticeDurationCompetency   Int?
+  totalDuration                     Int?                
 
   curriculumSyllabus                CurriculumSyllabus[]
-  COT                               COT?
+  capabilityCots                    CapabilityCOT[]
 
-  @@map("capability")
+  @@map("capabilities")
 }
 
 model CurriculumSyllabus {
-  id              String      @id @default(uuid())
-  capabilityId    String
-  nama            String      @db.VarChar(50)
-  durasiTeori     Int
-  durasiPraktek   Int
-  type            String      @db.VarChar(20)
+  id                String      @id @default(uuid())
+  capabilityId      String
+  name              String      @db.VarChar(50)
+  theoryDuration    Int
+  practiceDuration  Int
+  type              String      @db.VarChar(20)
 
-  capability      Capability  @relation(fields: [capabilityId], references: [id])
+  capability        Capability    @relation(fields: [capabilityId], references: [id])
 
   @@map("curriculumSyllabus")
 }
 
 model COT {
   id                              String              @id @default(uuid())
-  capabilityId                    String              @unique
-  kodeCot                         String              @db.VarChar(20)
-  tanggalMulai                    DateTime
-  tanggalSelesai                  DateTime
-  lokasiTraining                  String              @db.VarChar(50)
-  instrukturTeoriRegulasiGse      String              @db.VarChar(50)
-  instrukturTeoriKompetensi       String              @db.VarChar(50)
-  instrukturPraktek1              String              @db.VarChar(50)
-  instrukturPraktek2              String              @db.VarChar(50)
-  status                          Boolean             @default(false)
+  startDate                       DateTime
+  endDate                         DateTime
+  trainingLocation                String              @db.VarChar(50)
+  theoryInstructorRegGse          String              @db.VarChar(50)
+  theoryInstructorCompetency      String              @db.VarChar(50)
+  practicalInstructor1            String              @db.VarChar(50)
+  practicalInstructor2            String              @db.VarChar(50)
+  status                          String              @db.VarChar(50)
 
-  Capability                      Capability          @relation(fields: [capabilityId], references: [id])
-  ParticipantsCOT                 ParticipantsCOT[]
+  capabilityCots                  CapabilityCOT[]
+  participantsCots                ParticipantsCOT[]
 
-  @@map("COT")
+  @@map("cots")
+}
+
+model CapabilityCOT {
+  capabilityId                    String
+  cotId                           String
+
+  capability                      Capability           @relation(fields: [capabilityId], references: [id])
+  cot                             COT                  @relation(fields: [cotId], references: [id])
+
+  @@id([capabilityId, cotId])                            // Primary key untuk join table
+  @@map("capabilityCots")
 }
 
 model ParticipantsCOT {
@@ -134,37 +143,37 @@ model ParticipantsCOT {
 
   participant     Participant?   @relation(fields: [participantId], references: [id])
   cot             COT            @relation(fields: [cotId], references: [id])
-  Sertifikat      Sertifikat[]
+  certificates    Certificate[]
 
   @@map("participantsCot")
 }
 
 model Signature {
-  id            String        @id @default(uuid())
-  noPegawai     String        @db.VarChar(20)
-  role          String        @db.VarChar(50)
-  name          String        @db.VarChar(50)
-  eSign         Bytes
-  eSignFileName String?       @db.VarChar(255)
-  status        Boolean       @default(false)
+  id              String        @id @default(uuid())
+  idNumber        String        @db.VarChar(20)
+  role            String        @db.VarChar(50)
+  name            String        @db.VarChar(50)
+  eSign           Bytes
+  signFileName    String?       @db.VarChar(255)
+  status          Boolean       @default(false)
 
-  Sertifikat  Sertifikat[]
+  certificates    Certificate[]
 
-  @@map("signature")
+  @@map("signatures")
 }
 
-model Sertifikat {
+model Certificate {
   id                  String            @id @default(uuid())
   participantCotId    String
   signatureId         String
-  noSertifikat        String            @db.VarChar(50)
-  kehadiran           Boolean
-  nilaiTeori          Float
-  nilaiPraktek        Float
+  certificateNumber   String            @db.VarChar(50)
+  attendance          Boolean
+  theoryScore         Float
+  practiceScore       Float
   status              Boolean           @default(true)
 
-  participantsCOT     ParticipantsCOT   @relation(fields: [participantCotId], references: [id])
+  participantsCot     ParticipantsCOT   @relation(fields: [participantCotId], references: [id])
   Signature           Signature         @relation(fields: [signatureId], references: [id])
 
-  @@map("sertifikat")
+  @@map("certificates")
 }

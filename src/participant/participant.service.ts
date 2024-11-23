@@ -1,7 +1,5 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
-import { WINSTON_MODULE_PROVIDER } from "nest-winston";
-import { Logger } from 'winston';
 import { CreateParticipantRequest, ListParticipantResponse, ParticipantList, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
@@ -12,19 +10,20 @@ import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { ConfigService } from "@nestjs/config";
+import { CoreHelper } from "src/shared/helpers/core.helper";
 
 @Injectable()
 export class ParticipantService {
     constructor(
         private readonly prismaService: PrismaService,
-        @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private readonly validationService: ValidationService,
-        private readonly configService: ConfigService,  
+        private readonly configService: ConfigService,
+        private readonly coreHelper: CoreHelper,
     ) {}
 
     async createParticipant(data: CreateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         if(userRole === 'lcu') {
             if(!data.dinas) {
@@ -35,42 +34,36 @@ export class ParticipantService {
         }
 
         if(data.nik) {
-            const nikIsAlreadyExists = await this.prismaService.participant.count({
-                where: {
-                    nik: data.nik,
-                }
-            });
-    
-            if(nikIsAlreadyExists) {
-                throw new HttpException('NIK sudah ada di data peserta', 400);
-            }
+            await this.coreHelper.ensureUniqueFields('participant', [
+                { field: 'nik', value: data.nik, message: 'NIK sudah ada di data peserta' }
+            ]);
         }
 
-        if(userRole === 'user') {
-            if(data.nik !== user.user.nik) {
-                throw new HttpException('NIK tidak sama dengan data pengguna', 400);
-            }
-        }
+        await this.coreHelper.ensureUniqueFields('participant', [
+            { field: 'email', value: data.email, message: 'Email sudah ada di data peserta' }
+        ]);
 
-        if(data.perusahaan) {
-            data.gmfNonGmf = data.perusahaan.toLowerCase().includes('gmf') || data.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
+        if(data.company) {
+            data.gmfNonGmf = data.company.toLowerCase().includes('gmf') ? 'GMF' : 'Non GMF';
         }
 
         const validatedData = this.validationService.validate(ParticipantValidation.CREATE, data);
+        validatedData.dinas ? validatedData.dinas.toUpperCase() : validatedData.dinas;
+        validatedData.bidang ? validatedData.bidang.toUpperCase() : validatedData.bidang;
 
         const participant = await this.prismaService.participant.create({
             data: {
-                noPegawai: validatedData.noPegawai,
-                nama: validatedData.nama,
+                idNumber: validatedData.idNumber,
+                name: validatedData.name,
                 nik: validatedData.nik,
                 dinas: validatedData.dinas,
                 bidang: validatedData.bidang,
-                perusahaan: validatedData.perusahaan,
+                company: validatedData.company,
                 email: validatedData.email,
-                noTelp: validatedData.noTelp,
-                negara: validatedData.negara,
-                tempatLahir: validatedData.tempatLahir,
-                tanggalLahir: validatedData.tanggalLahir,
+                phoneNumber: validatedData.phoneNumber,
+                nationality: validatedData.nationality,
+                placeOfBirth: validatedData.placeOfBirth,
+                dateOfBirth: validatedData.dateOfBirth,
                 simA: validatedData.simA,
                 simAFileName: validatedData.simAFileName,
                 simB: validatedData.simB,
@@ -80,29 +73,29 @@ export class ParticipantService {
                 foto: validatedData.foto,
                 fotoFileName: validatedData.fotoFileName,
                 suratSehatButaWarna: validatedData.suratSehatButaWarna,
-                suratSehatButaWarnaFileName: validatedData.suratSehatbutaWarnaFileName,
+                suratSehatButaWarnaFileName: validatedData.suratSehatButaWarnaFileName,
                 tglKeluarSuratSehatButaWarna: validatedData.tglKeluarSuratSehatButaWarna,
                 suratBebasNarkoba: validatedData.suratBebasNarkoba,
                 suratBebasNarkobaFileName: validatedData.suratBebasNarkobaFileName,
                 tglKeluarSuratBebasNarkoba: validatedData.tglKeluarSuratBebasNarkoba,
-                linkQrCode: '',
+                qrCodeLink: '',
                 qrCode: null,
                 gmfNonGmf: validatedData.gmfNonGmf,
             },
         });
 
-        // Modifikasi linkQrCode dengan ID peserta
+        // Modifikasi qrCodeLink dengan ID peserta
         const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
 
         // Generate QR code
-        const qrCodeBase64 = await QRCode.toDataURL(link);
+        const qrCodeBase64 = await QRCode.toDataURL(link, { width: 500 });
         const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
         // Update peserta dengan QR code dan link
         const result = await this.prismaService.participant.update({
             where: { id: participant.id },
             data: {
-                linkQrCode: link,
+                qrCodeLink: link,
                 qrCode: qrCodeBuffer,
             },
         });
@@ -117,8 +110,8 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         if(userRole === 'user') {
             if(participant.nik !== user.user.nik) {
@@ -144,8 +137,8 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         if(userRole === 'user') {
             if(participant.nik !== user.user.nik) {
@@ -169,11 +162,11 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        if (!participant.foto || !participant.perusahaan || !participant.negara || !participant.qrCode) {
+        if (!participant.foto || !participant.company || !participant.nationality || !participant.qrCode) {
             throw new HttpException('ID Card tidak bisa diunduh, lengkapi data terlebih dahulu', 400);
         }
 
-        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
+        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.name, participant.company, participant.idNumber, participant.nationality);
 
         const htmlContent = idCardModel.getHtmlTemplate();
 
@@ -197,11 +190,11 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        if (!participant.foto || !participant.perusahaan || !participant.negara || !participant.qrCode) {
+        if (!participant.foto || !participant.company || !participant.nationality || !participant.qrCode) {
             throw new HttpException('ID Card tidak bisa dilihat, lengkapi data terlebih dahulu', 400);
         }
 
-        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.nama, participant.perusahaan, participant.noPegawai, participant.negara);
+        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.name, participant.company, participant.idNumber, participant.nationality);
 
         const htmlContent = idCardModel.getHtmlTemplate();
     
@@ -209,8 +202,7 @@ export class ParticipantService {
     }
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<ParticipantResponse> {
-        req.gmfNonGmf = req.perusahaan.toLowerCase().includes('gmf') || req.perusahaan.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
-
+        req.gmfNonGmf = req.company.toLowerCase().includes('gmf') || req.company.toLowerCase().includes('garuda maintenance facility') ? 'GMF' : 'Non GMF';
         const updateRequest = this.validationService.validate(ParticipantValidation.UPDATE, req);
 
         const participant = await this.prismaService.participant.findUnique({
@@ -223,49 +215,56 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
-        if(userRole === 'user') {
-            if(req.nik !== user.user.nik) {
-                throw new HttpException('NIK tidak sama dengan data pengguna', 400);
-            }
+        if(userRole !== 'super admin' && updateRequest.email) {
+            throw new HttpException('Anda tidak bisa mengubah email participant', 400);
         }
 
-        if(userRole !== 'super admin') {
-            if(req.email) {
-                throw new HttpException('Anda tidak bisa mengubah email participant', 400);
-            }
+        if(updateRequest.email) {
+            await this.coreHelper.ensureUniqueFields('participant', [
+                { field: 'email', value: updateRequest.email, message: 'Email sudah ada di data peserta', }
+            ], participantId);
         }
 
-        // Modifikasi linkQrCode dengan ID peserta
-        const link = this.configService.get<string>('QR_CODE_LINK').replace('{id}', participant.id);
+        let result: any;
 
-        // Generate QR code
-        const qrCodeBase64 = await QRCode.toDataURL(link);
-        const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
-        console.log(req.perusahaan)
+        if(updateRequest.qrCodeLink || (!participant.qrCodeLink || !participant.qrCode)) {
+            // Modifikasi qrCodeLink dengan ID peserta
+            const qrCodeLink = updateRequest.qrCodeLink.replace('{id}', participant.id);
 
-        const updateRequestWithNulls = this.transformEmptyStringsToNull(updateRequest);
+            // Generate QR code
+            const qrCodeBase64 = await QRCode.toDataURL(qrCodeLink, { width: 500 });
+            const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
-        const result = await this.prismaService.participant.update({
-            where: { id: participantId },
-            data: {
-                ...updateRequestWithNulls,
-                linkQrCode: link,
-                qrCode: qrCodeBuffer,
-            },
-        });
+            result = await this.prismaService.participant.update({
+                where: { id: participantId },
+                data: {
+                    ...updateRequest,
+                    qrCodeLink: qrCodeLink,
+                    qrCode: qrCodeBuffer,
+                },
+            });
+        } else {
+
+            result = await this.prismaService.participant.update({
+                where: { id: participantId },
+                data: {
+                    ...updateRequest,
+                },
+            });
+        }
 
         if(participant.nik) {
             const updateUser = {
-                noPegawai: req.noPegawai,
-                nik: req.nik,
-                dinas: req.dinas,
+                idNumber: updateRequest.idNumber,
+                name: updateRequest.name,
+                nik: updateRequest.nik,
+                dinas: updateRequest.dinas,
+                email: updateRequest.email,
             };
-    
-            const updateUserWithNulls = this.transformEmptyStringsToNull(updateUser);
-    
+
             const userUpdate = await this.prismaService.user.findUnique({
                 where: {
                     participantId: participant.id,
@@ -277,7 +276,7 @@ export class ParticipantService {
                     where: {
                         id: userUpdate.id,
                     },
-                    data: updateUserWithNulls,
+                    data: updateUser,
                 });
             }
         }
@@ -285,82 +284,72 @@ export class ParticipantService {
         return this.toParticipantResponse(result);
     }
 
-    async deleteParticipant(participantId: string, user: CurrentUserRequest): Promise<ParticipantResponse> {
+    async deleteParticipant(participantId: string, user: CurrentUserRequest): Promise<string> {
         const participant = await this.findOneParticipant(participantId);
-
-        if(!participant) {
+    
+        if (!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
-
-        if(user.user.dinas || user.user.dinas !== null) {
+    
+        if (user.user.dinas || user.user.dinas !== null) {
             this.validateDinasForLcuRequest(participant.dinas, user.user.dinas);
         }
-
-        const findUser = await this.prismaService.user.findFirst({
-            where: {
-                participantId: participant.id,
-            }
-        });
-
-        if(findUser) {
-            await this.prismaService.user.delete({
+    
+        // Gunakan Prisma Transaction
+        await this.prismaService.$transaction(async (prisma) => {
+            // Hapus user terkait (jika ada)
+            const findUser = await prisma.user.findFirst({
                 where: {
-                    id: findUser.id,
-                }
+                    participantId: participant.id,
+                },
             });
-        }
-
-        await this.prismaService.participantsCOT.deleteMany({
-            where: {
-                participantId: participantId,
-            },
+    
+            if (findUser) {
+                await prisma.user.delete({
+                    where: {
+                        id: findUser.id,
+                    },
+                });
+            }
+    
+            // Hapus data terkait di tabel participantsCOT
+            await prisma.participantsCOT.deleteMany({
+                where: {
+                    participantId: participantId,
+                },
+            });
+    
+            // Hapus data peserta
+            await prisma.participant.delete({
+                where: {
+                    id: participantId,
+                },
+            });
         });
-
-        const result = await this.prismaService.participant.delete({
-            where: {
-                id: participantId,
-            },
-        });
-
-        return this.toParticipantResponse(result);
-    }
+    
+        return 'Berhasil menghapus participant';
+    }    
 
     async listParticipants(req: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(ParticipantValidation.LIST, req);
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         let participants: ParticipantList[];
 
         const participantSelectFields = {
             id: true,
-            noPegawai: true,
-            nama: true,
-            nik: true,
+            idNumber: true,
+            name: true,
             dinas: true,
             bidang: true,
-            perusahaan: true,
+            company: true,
             email: true,
-            noTelp: true,
-            negara: true,
-            tempatLahir: true,
-            tanggalLahir: true,
-            tglKeluarSuratSehatButaWarna: true,
-            tglKeluarSuratBebasNarkoba: true,
-            gmfNonGmf: true,
-            linkQrCode: true,
         }
 
         if (userRole === 'super admin') {
             participants = await this.prismaService.participant.findMany({
                 select: participantSelectFields,
-            });
-        } else if(userRole === 'supervisor') {
-            participants = await this.prismaService.participant.findMany({
-                select: {
-                    ...participantSelectFields,
-                    nik: false,
-                },
             });
         } else if (userRole === 'lcu' || userRole === 'user') {
             participants = await this.prismaService.participant.findMany({
@@ -383,15 +372,11 @@ export class ParticipantService {
             req.page * req.size
         );
 
-        if (paginatedUsers.length === 0) {
-            throw new HttpException("Data peserta tidak ditemukan", 404);
-        }
-
-        const actions = this.validateActions(userRole);
+        const accessRights = this.validateActions(userRole);
 
         return {
             data: paginatedUsers.map(participant => this.toParticipantResponse(participant)),
-            actions: actions,
+            actions: accessRights,
             paging: {
                 currentPage: listRequest.page,
                 totalPage: totalPage,
@@ -403,18 +388,17 @@ export class ParticipantService {
     async searchParticipant(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: ListParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(ParticipantValidation.SEARCH, req);
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
         
         const participantSelectFields = {
             id: true,
-            noPegawai: true,
-            nama: true,
+            idNumber: true,
+            name: true,
             email: true,
-            noTelp: true,
             dinas: true,
             bidang: true,
-            perusahaan: true,
+            company: true,
         };
 
         // Prepare where clause for Prisma based on role and search query
@@ -430,20 +414,18 @@ export class ParticipantService {
             const query = searchRequest.searchQuery.toLowerCase();
             if (userRole === 'super admin' || userRole === 'supervisor') {
                 whereClause.OR = [
-                    { noPegawai: { contains: query, mode: 'insensitive' } },
-                    { nama: { contains: query, mode: 'insensitive' } },
+                    { idNumber: { contains: query, mode: 'insensitive' } },
+                    { name: { contains: query, mode: 'insensitive' } },
                     { email: { contains: query, mode: 'insensitive' } },
-                    { noTelp: { contains: query, mode: 'insensitive' } },
                     { dinas: { contains: query, mode: 'insensitive' } },
                     { bidang: { contains: query, mode: 'insensitive' } },
-                    { perusahaan: { contains: query, mode: 'insensitive' } },
+                    { company: { contains: query, mode: 'insensitive' } },
                 ];
             } else {
                 whereClause.OR = [
-                    { noPegawai: { contains: query, mode: 'insensitive' } },
-                    { nama: { contains: query, mode: 'insensitive' } },
+                    { idNumber: { contains: query, mode: 'insensitive' } },
+                    { name: { contains: query, mode: 'insensitive' } },
                     { email: { contains: query, mode: 'insensitive' } },
-                    { noTelp: { contains: query, mode: 'insensitive' } },
                     { bidang: { contains: query, mode: 'insensitive' } },
                 ];
             }
@@ -457,29 +439,20 @@ export class ParticipantService {
 
         const totalParticipants = participants.length;
         const totalPage = Math.ceil(totalParticipants / searchRequest.size);
-        const paginatedParticipants = participants.slice(
-            (searchRequest.page - 1) * searchRequest.size,
-            searchRequest.page * searchRequest.size
-        );
 
-        if (paginatedParticipants.length === 0) {
-            throw new HttpException("Data peserta tidak ditemukan", 204);
-        }
-
-        const actions = this.validateActions(userRole);
+        const accessRights = this.validateActions(userRole);
 
         return {
             data: participants.map(participant => ({
                 id: participant.id,
-                noPegawai: participant.noPegawai,
-                nama: participant.nama,
+                idNumber: participant.idNumber,
+                name: participant.name,
                 email: participant.email,
-                noTelp: participant.noTelp,
                 dinas: participant.dinas,
                 bidang: participant.bidang,
-                perusahaan: participant.perusahaan
+                company: participant.company
             })),
-            actions: actions,
+            actions: accessRights,
             paging: {
                 currentPage: searchRequest.page,
                 totalPage: totalPage,
@@ -488,30 +461,58 @@ export class ParticipantService {
         };
     }
 
-    toParticipantResponse(participant: ParticipantList): ParticipantResponse {
+    async isDataComplete(participantId: string): Promise<boolean> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: {
+                id: participantId
+            },
+            select: {
+                name: true,
+                nik: true,
+                company: true,
+                email: true,
+                phoneNumber: true,
+                nationality: true,
+                placeOfBirth: true,
+                dateOfBirth: true,
+                simA: true,
+                ktp: true,
+                foto: true,
+                suratSehatButaWarna: true,
+                tglKeluarSuratSehatButaWarna: true,
+                suratBebasNarkoba: true,
+                tglKeluarSuratBebasNarkoba: true,
+            }
+        });
+
+        const isComplete = participant && Object.values(participant).every(value => value !== null && value !== undefined);
+        return isComplete;
+    }
+
+    toParticipantResponse(participant: any): ParticipantResponse {
         return {
             id: participant.id,
-            noPegawai: participant.noPegawai,
-            nama: participant.nama,
+            idNumber: participant.idNumber,
+            name: participant.name,
             nik: participant.nik,
             dinas: participant.dinas,
             bidang: participant.bidang,
-            perusahaan: participant.perusahaan,
+            company: participant.company,
             email: participant.email,
-            noTelp: participant.noTelp,
-            negara: participant.negara,
-            tempatLahir: participant.tempatLahir,
+            phoneNumber: participant.phoneNumber,
+            nationality: participant.nationality,
+            placeOfBirth: participant.placeOfBirth,
             simAFileName: participant.simAFileName,
             simBFileName: participant.simBFileName,
             ktpFileName: participant.ktpFileName,
             fotoFileName: participant.fotoFileName,
             suratSehatButaWarnaFileName: participant.suratSehatButaWarnaFileName,
             suratBebasNarkobaFileName: participant.suratBebasNarkobaFileName,
-            tanggalLahir: this.formatDate(new Date(participant.tanggalLahir)),
-            tglKeluarSuratSehatButaWarna: this.formatDate(new Date(participant.tglKeluarSuratSehatButaWarna)),
-            tglKeluarSuratBebasNarkoba: this.formatDate(new Date(participant.tglKeluarSuratBebasNarkoba)),
+            dateOfBirth: participant.dateOfBirth,
+            tglKeluarSuratSehatButaWarna: participant.tglKeluarSuratSehatButaWarna,
+            tglKeluarSuratBebasNarkoba: participant.tglKeluarSuratBebasNarkoba,
             gmfNonGmf: participant.gmfNonGmf,
-            linkQrCode: participant.linkQrCode,
+            qrCodeLink: participant.qrCodeLink,
         };
     }
 
@@ -521,18 +522,6 @@ export class ParticipantService {
         const year = date.getFullYear().toString().slice();
 
         return `${day}-${month}-${year}`;
-    }
-
-    private async userWithRole(userId: string) {
-        const userRequest = await this.prismaService.user.findUnique({
-            where: {
-                id: userId,
-            },
-            select: {
-                role: true
-            }
-        });
-        return userRequest;
     }
 
     private async findOneParticipant(participantId: string): Promise<Participant> {
@@ -551,24 +540,12 @@ export class ParticipantService {
     }
 
     private validateActions(userRole: string): ActionAccessRights {
-        if(userRole === 'super admin' || userRole === 'lcu') {
-            return {
-                canEdit: true,
-                canDelete: true,
-                canView: true,
-            }
-        } else {
-            return {
-                canEdit: false,
-                canDelete: false,
-                canView: true,
-            }
-        }
-    }
-
-    private transformEmptyStringsToNull(obj: any): any {
-        return Object.fromEntries(
-            Object.entries(obj).map(([key, value]) => [key, value === '' ? null : value])
-        );
+        const accessMap = {
+            'super admin': { canEdit: true, canDelete: true, canView: true, },
+            'supervisor': { canEdit: false, canDelete: false, canView: true, },
+            'lcu': { canEdit: true, canDelete: true, canView: true, },
+        };
+        
+        return this.coreHelper.validateActions(userRole, accessMap);
     }
 }

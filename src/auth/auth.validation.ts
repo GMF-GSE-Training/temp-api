@@ -4,7 +4,7 @@ const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
 export class AuthValidation {
     static readonly REGISTER: ZodType = z.object({
-        noPegawai: z.string().max(20).optional(),
+        idNumber: z.string().max(20).optional(),
         nik: z.string().min(1).max(50),
         email: z.string().min(1).max(50).email(),
         name: z.string().min(1).max(50),    
@@ -21,7 +21,7 @@ export class AuthValidation {
     });
 
     static readonly UPDATE: ZodType = z.object({
-        noPegawai: z.string().min(1).max(20).optional(),
+        idNumber: z.string().min(1).max(20).optional(),
         nik: z.string().min(1).max(50).optional().optional(),
         email: z.string().min(1).max(50).email().optional(),
         name: z.string().min(1).max(50).optional(),  

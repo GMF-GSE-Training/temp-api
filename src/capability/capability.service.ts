@@ -5,41 +5,35 @@ import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/mode
 import { CapabilityValidation } from "./capability.validation";
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { CoreHelper } from "src/shared/helpers/core.helper";
 
 @Injectable()
 export class CapabilityService {
     constructor(
         private readonly prismaService: PrismaService,
         private readonly validationService: ValidationService,
+        private readonly coreHelper: CoreHelper,
     ) { }
 
     async createCapability(request: CreateCapability): Promise<CapabilityResponse> {
         const createCapabilityRequest = this.validationService.validate(CapabilityValidation.CREATE, request);
 
-        const capabilityCount = await this.prismaService.capability.count({
-            where: {
-                OR: [
-                    { kodeRating: createCapabilityRequest.kodeRating },
-                    { kodeTraining: createCapabilityRequest.kodeTraining },
-                    { namaTraining: createCapabilityRequest.namaTraining },
-                ]
-            }
-        });
-
-        if(capabilityCount > 0) {
-            throw new HttpException('Capability sudah ada', 400);
-        }
+        await this.coreHelper.ensureUniqueFields('capability', [
+            { field: 'ratingCode', value: createCapabilityRequest.ratingCode, message: 'Kode Rating sudah ada' },
+            { field: 'trainingCode', value: createCapabilityRequest.trainingCode, message: 'Kode Training sudah ada' },
+            { field: 'trainingName', value: createCapabilityRequest.trainingName, message: 'Nama Training sudah ada' },
+        ]);        
 
         const capability = await this.prismaService.capability.create({
             data: createCapabilityRequest,
         });
 
         const {
-            totalDurasiTeoriRegGse, 
-            totalDurasiPraktekRegGse, 
-            totalDurasiPraktekKompetensi, 
-            totalDurasiTeoriKompetensi, 
-            totalDurasi,
+            totalTheoryDurationRegGse, 
+            totalPracticeDurationRegGse, 
+            totalTheoryDurationCompetency, 
+            totalPracticeDurationCompetency, 
+            totalDuration,
             ...result
         } = capability;
 
@@ -53,9 +47,9 @@ export class CapabilityService {
             },
             select: {
                 id: true,
-                kodeRating: true,
-                kodeTraining: true,
-                namaTraining: true,
+                ratingCode: true,
+                trainingCode: true,
+                trainingName: true,
                 curriculumSyllabus: true,
             },
         });
@@ -69,7 +63,6 @@ export class CapabilityService {
 
     async updateCapability(capabilityId: string, req: UpdateCapability): Promise<string> {
         const updateCapabilityRequest = this.validationService.validate(CapabilityValidation.UPDATE, req);
-        console.log(req);
 
         const capability = await this.prismaService.capability.findUnique({
             where: {
@@ -80,6 +73,12 @@ export class CapabilityService {
         if(!capability) {
             throw new HttpException('Capability tidak ditemukan', 404);
         }
+
+        await this.coreHelper.ensureUniqueFields('capability', [
+            { field: 'ratingCode', value: updateCapabilityRequest.ratingCode, message: 'Kode Rating sudah ada' },
+            { field: 'trainingCode', value: updateCapabilityRequest.trainingCode, message: 'Kode Training sudah ada' },
+            { field: 'trainingName', value: updateCapabilityRequest.trainingName, message: 'Nama Training sudah ada' },
+        ], capabilityId);        
 
         await this.prismaService.capability.update({
             where: {
@@ -102,23 +101,37 @@ export class CapabilityService {
             throw new HttpException('Capability tidak ditemukan', 404);
         }
 
-        await this.prismaService.curriculumSyllabus.deleteMany({
-            where: {
-                capabilityId: capabilityId
-            }
-        });
+        await this.prismaService.$transaction(async (prisma) => {
+            // Hapus curriculumSyllabus terkait capabilityId
+            await prisma.curriculumSyllabus.deleteMany({
+                where: {
+                    capabilityId: capabilityId,
+                },
+            });
 
-        await this.prismaService.capability.delete({
-            where: {
-                id: capabilityId
-            },
+            // Hapus capability
+            await prisma.capability.delete({
+                where: {
+                    id: capabilityId,
+                },
+            });
         });
 
         return 'Capability berhasil dihapus';
     }
 
-    async listCapability(request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const capability = await this.prismaService.capability.findMany();    
+    async getAllCapability(): Promise<CapabilityResponse[]> {
+        const capability = await this.prismaService.capability.findMany();
+        return capability.map(item => ({
+            id: item.id,
+            ratingCode: item.ratingCode,
+            trainingCode: item.trainingCode,
+            trainingName: item.trainingName,
+        }));
+    }
+
+    async listCapability(user: CurrentUserRequest, request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
+        const capability = await this.prismaService.capability.findMany();
 
         const totalCapability = capability.length;
         const totalPage = Math.ceil(totalCapability / request.size);
@@ -127,17 +140,13 @@ export class CapabilityService {
             request.page * request.size
         );
 
-        if (paginateCapability.length === 0) {
-            throw new HttpException("Data tidak ditemukan", 404);
-        }
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
+        const actions = this.validateActions(userRole);
 
         return {
             data: paginateCapability,
-            actions:{
-                canEdit: true,
-                canDelete: true,
-                canView: false,
-            },
+            actions: actions,
             paging: {
                 currentPage: request.page,
                 totalPage: totalPage,
@@ -155,9 +164,9 @@ export class CapabilityService {
         let filteredCapability = capability;
         if(searchRequest.searchQuery) {
             filteredCapability = capability.filter(capability => 
-                capability.kodeRating.toLowerCase().includes(query) ||
-                capability.kodeTraining.toLowerCase().includes(query) ||
-                capability.namaTraining.toLowerCase().includes(query)
+                capability.ratingCode.toLowerCase().includes(query) ||
+                capability.trainingCode.toLowerCase().includes(query) ||
+                capability.trainingName.toLowerCase().includes(query)
             );
         }
 
@@ -168,12 +177,8 @@ export class CapabilityService {
             searchRequest.page * searchRequest.size
         );
 
-        if(paginatedCapability.length === 0) {
-            throw new HttpException('Data capability tidak ditemukan', 404);
-        }
-
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
         const actions = this.validateActions(userRole);
 
         return {
@@ -187,32 +192,14 @@ export class CapabilityService {
         }
     }
 
-    private async userWithRole(userId: string) {
-        const userRequest = await this.prismaService.user.findUnique({
-            where: {
-                id: userId,
-            },
-            select: {
-                role: true
-            }
-        });
-
-        return userRequest;
-    }
-
     private validateActions(userRole: string): ActionAccessRights {
-        if(userRole === 'super admin' || userRole === 'lcu') {
-            return {
-                canEdit: true,
-                canDelete: true,
-                canView: true,
-            }
-        } else {
-            return {
-                canEdit: false,
-                canDelete: false,
-                canView: true,
-            }
+        const accessMap = {
+            'super admin': { canEdit: true, canDelete: true },
+            'supervisor': { canEdit: false, canDelete: false },
+            'lcu': { canEdit: false, canDelete: false },
+            'user': { canEdit: false, canDelete: false },
         }
+
+        return this.coreHelper.validateActions(userRole, accessMap);
     }
 }

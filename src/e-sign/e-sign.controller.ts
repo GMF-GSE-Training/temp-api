@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, ParseIntPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Roles } from "src/common/decorator/role.decorator";
 import { AuthGuard } from "src/common/guard/auth.guard";
@@ -9,7 +9,9 @@ import { ESignService } from "./e-sign.service";
 
 @Controller('e-sign')
 export class ESignController {
-    constructor(private readonly eSignService: ESignService) { }
+    constructor(
+        private readonly eSignService: ESignService,
+    ) { }
 
     @Post()
     @HttpCode(200)
@@ -24,11 +26,23 @@ export class ESignController {
             eSign: Express.Multer.File[],
         },
     ): Promise<WebResponse<string>> {
+        // Validasi ukuran file secara manual
+        const maxSize = 2 * 1024 * 1024; // 2 MB
+
+        // Validasi file berdasarkan field
+        const fileKeys = ['eSign'];
+        
+        fileKeys.forEach(field => {
+        if (files[field] && files[field][0].size > maxSize) {
+            throw new HttpException(`File E-Sign melebihi ukuran maksimum 2MB.`, 400);
+        }
+        });
+
         let eSign: CreateESign;
         try {
             eSign = {
                 ...createESign,
-                eSignFileName: createESign.eSignFileName ? createESign.eSignFileName : 'e-sign.png',
+                signFileName: createESign.signFileName ? createESign.signFileName : 'e-sign.png',
                 eSign: files.eSign[0].buffer,
                 status: true,
             };
@@ -37,6 +51,34 @@ export class ESignController {
         }
         
         const result = await this.eSignService.createESign(eSign);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:eSignId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async get(@Param('eSignId', ParseUUIDPipe) eSignId: string): Promise<any> {
+        const result = await this.eSignService.getESign(eSignId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:eSignId/view')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getESign(@Param('eSignId', ParseUUIDPipe) eSignId: string): Promise<WebResponse<string>> {
+        const fileBuffer = await this.eSignService.streamFile(eSignId);
+        const result = fileBuffer.toString('base64');
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Delete('/:eSignId')
+    @HttpCode(200)
+    @Roles('super admin')
+    @UseGuards(AuthGuard, RoleGuard)
+    async delete(@Param('eSignId', ParseUUIDPipe) eSignId: string): Promise<WebResponse<string>> {
+        const result = await this.eSignService.deleteESign(eSignId);
         return buildResponse(HttpStatus.OK, result);
     }
 

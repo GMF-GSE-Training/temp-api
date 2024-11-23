@@ -4,11 +4,10 @@ import { ParticipantService } from "./participant.service";
 import { MulterModule } from "@nestjs/platform-express";
 import { ParticipantController } from "./participant.controller";
 import { extname } from 'path';
+import { SharedModule } from "src/shared/shared.module";
 
 @Module({
-    imports: [
-        
-    ],
+    imports: [SharedModule],
     providers: [
         PrismaService,
         ParticipantService,

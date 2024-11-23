@@ -48,7 +48,7 @@ export class RoleGuard implements CanActivate {
             throw new HttpException('Forbidden', 403);
         }
 
-        return userWithRole.role.role;
+        return userWithRole.role.name;
     }
 
     private checkRoleAuthorization(userRole: string, requiredRoles: string[]): void {

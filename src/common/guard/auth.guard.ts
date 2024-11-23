@@ -35,7 +35,7 @@ export class AuthGuard implements CanActivate {
                 where: { id: payload.sub },
                 select: {
                     id: true,
-                    noPegawai: true,
+                    idNumber: true,
                     nik: true,
                     email: true,
                     name: true,

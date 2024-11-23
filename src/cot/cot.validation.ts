@@ -2,29 +2,43 @@ import { z, ZodType } from "zod";
 
 export class CotValidation {
     static readonly CREATE: ZodType = z.object({
-        kodeCot: z.string().min(1).max(20),
         capabilityId: z.string().min(1).max(255),
-        tanggalMulai: z.date(),
-        tanggalSelesai: z.date(),
-        lokasiTraining: z.string().min(1).max(50),
-        instrukturTeoriRegulasiGse: z.string().min(1).max(50),
-        instrukturTeoriKompetensi: z.string().min(1).max(50),
-        instrukturPraktek1: z.string().min(1).max(50),
-        instrukturPraktek2: z.string().min(1).max(50),
-        status: z.boolean().optional(),
+        startDate: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date))
+        .optional(),
+    endDate: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date))
+        .optional(),
+        trainingLocation: z.string().min(1).max(50),
+        theoryInstructorRegGse: z.string().min(1).max(50),
+        theoryInstructorCompetency: z.string().min(1).max(50),
+        practicalInstructor1: z.string().min(1).max(50),
+        practicalInstructor2: z.string().min(1).max(50),
+        status: z.string().min(1).max(50),
     });
 
     static readonly UPDATE: ZodType = z.object({
-        kodeCot: z.string().min(1).max(20).optional(),
         capabilityId: z.string().min(1).max(255).optional(),
-        tanggalMulai: z.date().optional(),
-        tanggalSelesai: z.date().optional(),
-        lokasiTraining: z.string().min(1).max(50).optional(),
-        instrukturTeoriRegulasiGse: z.string().min(1).max(50).optional(),
-        instrukturTeoriKompetensi: z.string().min(1).max(50).optional(),
-        instrukturPraktek1: z.string().min(1).max(50).optional(),
-        instrukturPraktek2: z.string().min(1).max(50).optional(),
-        status: z.boolean().optional(),
+        startDate: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date))
+        .optional(),
+    endDate: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date))
+        .optional(),
+        trainingLocation: z.string().min(1).max(50).optional(),
+        theoryInstructorRegGse: z.string().min(1).max(50).optional(),
+        theoryInstructorCompetency: z.string().min(1).max(50).optional(),
+        practicalInstructor1: z.string().min(1).max(50).optional(),
+        practicalInstructor2: z.string().min(1).max(50).optional(),
+        status: z.string().min(1).max(50).optional(),
     });
 
     static readonly LIST: ZodType = z.object({

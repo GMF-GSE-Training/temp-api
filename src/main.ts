@@ -33,15 +33,15 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
 
   app.enableCors({
-    origin: [`${process.env.ORIGIN}`, `http://${localIp}:4200`],
+    origin: [`${process.env.ORIGIN}`, `http://${host}:4200`],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type',
+    allowedHeaders: 'Content-Type', 
     credentials: true,
   });
 
   await app.listen(port);
 
-  // console.log(`Application is running on: http://${localIp}:${port}`);
+  console.log(`Application is running on: http://${localIp}:${port}`);
 }
 
 bootstrap();

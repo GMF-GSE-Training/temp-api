@@ -11,7 +11,8 @@ import { JwtService } from '@nestjs/jwt';
 import { SendEmail } from "src/model/mailer.model";
 import { MailerService } from "src/mailer/mailer.service";
 import { ConfigService } from "@nestjs/config";
-import { ParticipantService } from "src/participant/participant.service";
+import * as os from 'os';
+import { CoreHelper } from "src/shared/helpers/core.helper";
 
 @Injectable()
 export class AuthService {
@@ -22,96 +23,115 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
         private readonly configService: ConfigService,
-        private readonly participantService: ParticipantService,
+        private readonly coreHelper: CoreHelper,
     ) {}
 
     async register(req: RegisterUserRequest): Promise<string> {
-        if(req.roleId) {
+        if (req.roleId) {
             throw new HttpException('Anda tidak berhak menentukan role', 403);
         }
-
+    
         const defaultRole = await this.prismaService.role.findFirst({
             where: { 
-                role: {
-                    equals: "user",
-                    mode: "insensitive"
-                }
-            }
+                name: { equals: "user", mode: "insensitive" },
+            },
         });
-
+    
         if (!defaultRole) {
             throw new HttpException("Role tidak ditemukan", 404);
         }
-
+    
         req.roleId = defaultRole.id;
-
+    
         const registerRequest: RegisterUserRequest = this.validationService.validate(AuthValidation.REGISTER, req);
-
+    
         const participant = await this.prismaService.participant.findUnique({
-            where: {
-                nik: req.nik,
-            }
+            where: { nik: req.nik },
         });
-
-        if(participant) {
+    
+        if (participant) {
             if (registerRequest.email !== participant.email) {
                 throw new HttpException('Email tidak sesuai dengan data peserta', 400);
             }
     
-            if (participant.noPegawai && registerRequest.noPegawai !== participant.noPegawai) {
+            if (participant.idNumber && registerRequest.idNumber !== participant.idNumber) {
                 throw new HttpException('No Pegawai tidak sesuai dengan data peserta', 400);
             }
     
             if (participant.dinas && registerRequest.dinas !== participant.dinas) {
                 throw new HttpException('Dinas tidak sesuai dengan data peserta', 400);
             }
+    
             req.participantId = participant.id;
         }
-
-        await this.checkUserExists(registerRequest.noPegawai, registerRequest.email);
-
+    
+        await this.checkUserExists(registerRequest.idNumber, registerRequest.email);
+    
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
-
+    
         const authSelectedFields = this.authSelectedFields();
+    
+        // Transaksi Prisma
+        const [user] = await this.prismaService.$transaction(async (prisma) => {
 
-        let user = await this.prismaService.user.create({
-            data: registerRequest,
-            select: authSelectedFields,
+            await this.coreHelper.ensureUniqueFields('participant', [
+                { field: 'idNumber', value: registerRequest.idNumber, message: 'No Pegawai sudah digunakan' },
+                { field: 'nik', value: registerRequest.nik, message: 'NIK sudah digunakan' },
+                { field: 'email', value: registerRequest.email, message: 'Email sudah digunakan' }
+            ])
+
+            // Buat user
+            const user = await prisma.user.create({
+                data: registerRequest,
+                select: authSelectedFields,
+            });
+    
+            // Buat participant
+            const createParticipantData = {
+                idNumber: registerRequest.idNumber,
+                name: registerRequest.name,
+                nik: registerRequest.nik,
+                email: registerRequest.email,
+                dinas: registerRequest.dinas,
+            };
+    
+            const participant = await prisma.participant.create({
+                data: createParticipantData,
+            });
+    
+            // Update user dengan participantId
+            const updatedUser = await prisma.user.update({
+                where: { id: user.id },
+                data: { participantId: participant.id },
+                select: authSelectedFields,
+            });
+    
+            return [updatedUser, participant];
         });
-
-        const createParticipantData = {
-            noPegawai: req.noPegawai,
-            nama: req.name,
-            nik: req.nik,
-            email: req.email,
-            dinas: req.dinas,
-        };
-
-        const userRegister: CurrentUserRequest = {
-            user: {
-                ...user
-            }
-        };
-
-        const createParticipant = await this.participantService.createParticipant(createParticipantData, userRegister);
-
+    
+        // Generate token
         const token = await this.jwtService.signAsync({ sub: user.id }, {
             expiresIn: '1d',
         });
-
-        user = await this.prismaService.user.update({
-            where: { 
-                id: user.id 
-            },
-            data: { 
-                participantId: createParticipant.id,
-                token 
-            },
-            select: authSelectedFields,
-        });
-
-        const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}`;
-
+    
+        // Kirim email verifikasi
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost';
+    
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address;
+                        break;
+                    }
+                }
+            }
+        }
+    
+        const verificationLink = `http://${localIp}:3000/auth/verify-email?token=${token}`;
+    
         const email: SendEmail = {
             from: {
                 name: this.configService.get<string>('APP_NAME'),
@@ -124,12 +144,12 @@ export class AuthService {
             subject: 'Email Verifikasi',
             html: `<p>Klik <a href="${verificationLink}">link ini</a> untuk memverifikasi akun Anda.</p>`,
         };
-
+    
         await this.mailerService.sendEmail(email);
-        
+    
         return 'Register berhasil';
     }
-    
+
     async login(req: LoginUserRequest): Promise<AuthResponse> {
         const loginRequest: LoginUserRequest = this.validationService.validate(AuthValidation.LOGIN, req);
 
@@ -143,19 +163,19 @@ export class AuthService {
         } else {
             user = await this.prismaService.user.findFirst({
                 where: {
-                    noPegawai: loginRequest.identifier
+                    idNumber: loginRequest.identifier
                 }
             });
         }
 
         if(!user || !user.emailVerified) {
-            throw new HttpException('Akun belum diverifikasi atau data login salah', 401);
+            throw new HttpException('Akun belum diverifikasi', 401);
         }
 
         const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
 
         if(!isPasswordValid) {
-            throw new HttpException('noPegawai or email or password is invalid', 401);
+            throw new HttpException('idNumber or email or password is invalid', 401);
         }
 
         const payload = { sub: user.id };
@@ -199,7 +219,7 @@ export class AuthService {
             name: user.name,
             role: {
                 id: user.role.id,
-                role: user.role.role,
+                name: user.role.name,
             }
         }
     }
@@ -212,27 +232,43 @@ export class AuthService {
             }
         });
 
-        if (!user) {
-            throw new HttpException('Email tidak ditemukan', 404);
-        }
+        if(user) {
+            // Buat token reset password
+            const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
 
-        // Buat token reset password
-        const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
-    
-        // Kirim email reset password
-        const resetPasswordLink = `http://${this.configService.get<string>('HOST')}:3000/auth/verify-reset-password/${resetToken}`;
-        await this.mailerService.sendEmail({
-            from: {
-                name: this.configService.get<string>('APP_NAME'),
-                address: this.configService.get<string>('MAIL_USER'),
-            },
-            receptients: [{
-                name: user.name,
-                address: email,
-            }],
-            subject: 'Reset Password',
-            html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
-        });
+            // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+            const networkInterfaces = os.networkInterfaces();
+            let localIp = 'localhost'; // Default fallback
+            
+            // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+            for (const interfaceName in networkInterfaces) {
+                const addresses = networkInterfaces[interfaceName];
+                if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                    break;
+                    }
+                }
+                }
+            }
+        
+            // Kirim email reset password
+            const resetPasswordLink = `http://${this.configService.get<string>('HOST')}:3000/auth/verify-reset-password/${resetToken}`;
+            await this.mailerService.sendEmail({
+                from: {
+                    name: this.configService.get<string>('APP_NAME'),
+                    address: this.configService.get<string>('MAIL_USER'),
+                },
+                receptients: [{
+                    name: user ? user.name : email,
+                    address: email,
+                }],
+                subject: 'Reset Password',
+                html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
+            });
+
+        }
 
         return 'Email reset password sudah dikirim';
     }
@@ -273,6 +309,17 @@ export class AuthService {
         }
     }
 
+    async verifyEmail(token: string): Promise<void> {
+        const payload = this.jwtService.verify(token);
+        await this.prismaService.user.update({
+            where: { id: payload.sub },
+            data: {
+                token: token,
+                emailVerified: true,
+            },
+        });
+    }
+
     async logout(user: CurrentUserRequest): Promise<string> {
         const authSelectedFields = this.authSelectedFields();
         const result = await this.prismaService.user.update({
@@ -288,11 +335,11 @@ export class AuthService {
         return 'Logout berhasil';
     }
 
-    async checkUserExists(noPegawai: string, email: string) {
-        if (noPegawai) {
+    async checkUserExists(idNumber: string, email: string) {
+        if (idNumber) {
             const totalUserwithSameNoPegawai = await this.prismaService.user.count({
                 where: {
-                    noPegawai: noPegawai,
+                    idNumber: idNumber,
                 }
             });
     
@@ -316,7 +363,7 @@ export class AuthService {
         return {
             id: true,
             participantId: true,
-            noPegawai: true,
+            idNumber: true,
             email: true,
             name: true,
             nik: true,
@@ -331,7 +378,7 @@ export class AuthService {
         return {
             id: user.id,
             participantId: user.participantId,
-            noPegawai: user.noPegawai,
+            idNumber: user.idNumber,
             email: user.email,
             name: user.name,
             dinas: user.dinas,
@@ -339,7 +386,7 @@ export class AuthService {
             token: user.token,
             role: {
                 id: user.role.id,
-                role: user.role.role
+                name: user.role.name
             }
         };
     }

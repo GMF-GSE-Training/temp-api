@@ -1,24 +1,24 @@
 export interface CreateCapability {
-    kodeRating: string;
-    kodeTraining: string;
-    namaTraining: string;
+    ratingCode: string;
+    trainingCode: string;
+    trainingName: string;
 }
 
 export interface UpdateCapability {
-    kodeRating?: string;
-    kodeTraining?: string;
-    namaTraining?: string;
+    ratingCode?: string;
+    trainingCode?: string;
+    trainingName?: string;
 }
 
 export interface CapabilityResponse {
     id: string;
-    kodeRating: string;
-    kodeTraining: string;
-    namaTraining: string;
-    totalDurasiTeoriRegGse?: number;
-    totalDurasiPraktekRegGse?: number;
-    totalDurasiTeoriKompetensi?: number;
-    totalDurasiPraktekKompetensi?: number;
-    TotalDurasi?: number;
+    ratingCode: string;
+    trainingCode: string;
+    trainingName: string;
+    totalTheoryDurationRegGse?: number;
+    totalPracticeDurationRegGse?: number;
+    totalTheoryDurationCompetency?: number;
+    totalPracticeDurationCompetency?: number;
+    totalDuration?: number;
     curriculumSyllabus?: Object[];
 }

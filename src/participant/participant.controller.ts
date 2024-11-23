@@ -14,7 +14,7 @@ export class ParticipantController {
 
     @Post()
     @HttpCode(200)
-    @Roles('super admin', 'lcu', 'user')
+    @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     @UseInterceptors(FileFieldsInterceptor([
         { name: 'simA', maxCount: 1 },
@@ -40,7 +40,7 @@ export class ParticipantController {
         try {
             participantData = {
                 ...createParticipantDto,
-                tanggalLahir: new Date(createParticipantDto.tanggalLahir),
+                dateOfBirth: new Date(createParticipantDto.dateOfBirth),
                 tglKeluarSuratSehatButaWarna: new Date(createParticipantDto.tglKeluarSuratSehatButaWarna),
                 tglKeluarSuratBebasNarkoba: new Date(createParticipantDto.tglKeluarSuratBebasNarkoba),
                 simA: files.simA ? files.simA[0].buffer : null,
@@ -84,9 +84,31 @@ export class ParticipantController {
             suratBebasNarkoba?: Express.Multer.File[],
         }
     ): Promise<WebResponse<ParticipantResponse>> {
+        // Validasi ukuran file secara manual
+        const maxSize = 2 * 1024 * 1024; // 2 MB
+
+        // Objek untuk memetakan nama field ke nama yang lebih deskriptif
+        const fileNames = {
+            simA: 'SIM A',
+            simB: 'SIM B',
+            ktp: 'KTP',
+            foto: 'Foto',
+            suratSehatButaWarna: 'Surat Sehat Buta Warna',
+            suratBebasNarkoba: 'Surat Bebas Narkoba',
+        };
+    
+        // Validasi ukuran file secara manual dengan pesan khusus untuk setiap field
+        const fileKeys = Object.keys(files);
+        fileKeys.forEach(field => {
+            if (files[field] && files[field][0].size > maxSize) {
+                const fieldName = fileNames[field] || field; // Menggunakan nama deskriptif jika ada
+                throw new HttpException(`File ${fieldName} melebihi ukuran maksimum 2MB.`, 400);
+            }
+        });
+
         const participantData = {
             ...req,
-            tanggalLahir: req.tanggalLahir ? new Date(req.tanggalLahir) : undefined,
+            dateOfBirth: req.dateOfBirth ? new Date(req.dateOfBirth) : undefined,
             tglKeluarSuratSehatButaWarna: req.tglKeluarSuratSehatButaWarna ? new Date(req.tglKeluarSuratSehatButaWarna) : undefined,
             tglKeluarSuratBebasNarkoba: req.tglKeluarSuratBebasNarkoba ? new Date(req.tglKeluarSuratBebasNarkoba) : undefined,
             simA: files?.simA?.[0]?.buffer || undefined,
@@ -96,8 +118,6 @@ export class ParticipantController {
             suratSehatButaWarna: files?.suratSehatButaWarna?.[0]?.buffer || undefined,
             suratBebasNarkoba: files?.suratBebasNarkoba?.[0]?.buffer || undefined,
         };
-
-        console.log(participantData);
 
         const participant = await this.participantService.updateParticipant(participantId, participantData, user);
         return buildResponse(HttpStatus.OK, participant);
@@ -213,9 +233,9 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async delete(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<boolean>> {
-        await this.participantService.deleteParticipant(participantId, user);
-        return buildResponse(HttpStatus.OK, true);
+    async delete(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const result = await this.participantService.deleteParticipant(participantId, user);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/list/result')
@@ -255,5 +275,14 @@ export class ParticipantController {
         };
         const result = await this.participantService.searchParticipant(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
+    }
+
+    @Get('/check-data-complete/:participantId')
+    @Roles('user')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async isDataComplete(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<boolean> {
+        const result = await this.participantService.isDataComplete(participantId);
+        return result;
     }
 }

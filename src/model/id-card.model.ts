@@ -4,19 +4,19 @@ import * as path from 'path';
 export class IdCardModel {
     foto: Buffer;
     qrCode: Buffer;
-    nama: string;
-    perusahaan: string;
-    noPegawai: string;
-    negara: string;
+    name: string;
+    company: string;
+    idNumber: string;
+    nationality: string;
     logoBuffer: Buffer;
 
-    constructor(foto: Buffer, qrCode: Buffer, nama: string, perusahaan: string, noPegawai: string, negara: string) {
+    constructor(foto: Buffer, qrCode: Buffer, name: string, company: string, idNumber: string, nationality: string) {
         this.foto = foto;
         this.qrCode = qrCode;
-        this.nama = nama;
-        this.perusahaan = perusahaan;
-        this.noPegawai = noPegawai;
-        this.negara = negara;
+        this.name = name;
+        this.company = company;
+        this.idNumber = idNumber;
+        this.nationality = nationality;
         this.logoBuffer = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'assets', 'images', 'Logo_GMF_Aero_Asia.png'));
     }
 
@@ -189,10 +189,10 @@ export class IdCardModel {
                         </div>
                     </div>
                     <div class="details">
-                        <p><span>Name</span><span>: ${this.nama}</span></p>
-                        <p><span>Company</span><span>: ${this.perusahaan}</span></p>
-                        <p><span>ID Number</span><span>: ${this.noPegawai}</span></p>
-                        <p><span>Nationality</span><span>: ${this.negara}</span></p>
+                        <p><span>Name</span><span>: ${this.name}</span></p>
+                        <p><span>Company</span><span>: ${this.company}</span></p>
+                        <p><span>ID Number</span><span>: ${this.idNumber ? this.idNumber : '-'}</span></p>
+                        <p><span>Nationality</span><span>: ${this.nationality}</span></p>
                     </div>          
                 </div>
                 </div>

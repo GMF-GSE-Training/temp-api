@@ -1,15 +1,15 @@
 export interface CreateParticipantRequest {
-    noPegawai?: string;
-    nama: string;
+    idNumber?: string;
+    name: string;
     nik: string;
     dinas?: string;
     bidang?: string;
-    perusahaan?: string;
+    company?: string;
     email: string;
-    noTelp?: string;
-    negara?: string;
-    tempatLahir?: string;
-    tanggalLahir?: Date;
+    phoneNumber?: string;
+    nationality?: string;
+    placeOfBirth?: string;
+    dateOfBirth?: Date;
     simA?: Buffer;
     simAFileName?: string;
     simB?: Buffer;
@@ -19,7 +19,7 @@ export interface CreateParticipantRequest {
     foto?: Buffer;
     fotoFileName?: string;
     suratSehatButaWarna?: Buffer;
-    suratSehatbutaWarnaFileName?: string;
+    suratSehatButaWarnaFileName?: string;
     tglKeluarSuratSehatButaWarna?: Date;
     suratBebasNarkoba?: Buffer;
     suratBebasNarkobaFileName?: string;
@@ -28,17 +28,17 @@ export interface CreateParticipantRequest {
 }
 
 export interface UpdateParticipantRequest {
-    noPegawai?: string;
-    nama?: string;
+    idNumber?: string;
+    name?: string;
     nik?: string;
     dinas?: string;
     bidang?: string;
-    perusahaan?: string;
+    company?: string;
     email?: string;
-    noTelp?: string;
-    negara?: string;
-    tempatLahir?: string;
-    tanggalLahir?: Date;
+    phoneNumber?: string;
+    nationality?: string;
+    placeOfBirth?: string;
+    dateOfBirth?: Date;
     simA?: Buffer;
     simAFileName?: string;
     simB?: Buffer;
@@ -54,22 +54,41 @@ export interface UpdateParticipantRequest {
     suratBebasNarkobaFileName?: string;
     tglKeluarSuratBebasNarkoba?: Date;
     gmfNonGmf?: string;
-    linkQrCode?: string;
+    qrCodeLink?: string;
 }
 
 export interface ParticipantList {
     id: string;
-    noPegawai: string;
-    nama: string;
-    nik?: string;
+    idNumber: string;
+    name: string;
     dinas: string;
     bidang: string;
-    perusahaan?: string;
+    company: string;
     email: string;
-    noTelp: string;
-    negara: string;
-    tempatLahir: string;
-    tanggalLahir: Date;
+}
+
+export interface ListParticipantResponse {
+    id: string;
+    idNumber: string;
+    name: string;
+    dinas: string;
+    bidang: string;
+    company: string;
+}
+
+export interface ParticipantResponse {
+    id: string;
+    idNumber: string;
+    name: string;
+    nik: string;
+    dinas: string;
+    bidang: string;
+    company: string;
+    email: string;
+    phoneNumber: string;
+    nationality: string;
+    placeOfBirth: string;
+    dateOfBirth: Date;
     simAFileName?: string;
     simBFileName?: string;
     ktpFileName?: string;
@@ -79,39 +98,5 @@ export interface ParticipantList {
     tglKeluarSuratSehatButaWarna: Date;
     tglKeluarSuratBebasNarkoba: Date;
     gmfNonGmf: string;
-    linkQrCode: string;
-}
-
-export interface ListParticipantResponse {
-    id: string;
-    noPegawai: string;
-    nama: string;
-    dinas: string;
-    bidang: string;
-    perusahaan: string;
-}
-
-export interface ParticipantResponse {
-    id: string;
-    noPegawai: string;
-    nama: string;
-    nik: string;
-    dinas: string;
-    bidang: string;
-    perusahaan: string;
-    email: string;
-    noTelp: string;
-    negara: string;
-    tempatLahir: string;
-    tanggalLahir: string;
-    simAFileName?: string;
-    simBFileName?: string;
-    ktpFileName?: string;
-    fotoFileName?: string;
-    suratSehatButaWarnaFileName?: string;
-    suratBebasNarkobaFileName?: string;
-    tglKeluarSuratSehatButaWarna: string;
-    tglKeluarSuratBebasNarkoba: string;
-    gmfNonGmf: string;
-    linkQrCode: string;
+    qrCodeLink: string;
 }

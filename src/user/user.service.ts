@@ -8,7 +8,8 @@ import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
-import { RoleResponse } from "src/model/role.model";
+import { CoreHelper } from "src/shared/helpers/core.helper";
+import { UserHelper } from "src/shared/helpers/user.helper";
 
 @Injectable()
 export class UserService {
@@ -16,31 +17,27 @@ export class UserService {
         private readonly validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private readonly prismaService: PrismaService,
+        private readonly coreHelper: CoreHelper,
+        private readonly userHelper: UserHelper,
     ) {}
 
     async createUser(req: CreateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
-        if(!req.roleId) {
-            throw new HttpException('Role tidak boleh kosong', 404);
-        }
+        const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
+        createRequest.dinas ? createRequest.dinas.toUpperCase() : createRequest.dinas;
 
-        const participant = await this.prismaService.participant.findFirst({
-            where: {
-                id: req.participantId
-            }
-        });
+        await this.coreHelper.ensureUniqueFields('user', [
+            { field: 'idNumber', value: createRequest.idNumber, message: 'No pegawai sudah digunakan' },
+            { field: 'email', value: createRequest.email, message: 'Email sudah digunakan' }
+        ]);
 
-        if(!participant) {
-            throw new HttpException('participant tidak ditemukan', 404);
-        }
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
-
-        const roleUser = await this.findRoleUser();
+        const roleUser = await this.userHelper.findRoleUser();
 
         const role = await this.prismaService.role.findUnique({
             where: {
-                id: req.roleId
+                id: createRequest.roleId
             }
         });
 
@@ -48,32 +45,39 @@ export class UserService {
             throw new HttpException('Role tidak valid', 400);
         }
 
-        const roleRequest = role.role.toLowerCase();
+        const roleRequest = role.name.toLowerCase();
 
         if (roleRequest === 'user') {
-            this.validateNikForUser(req);
-            await this.validateParticipantNik(req.nik);
+            if(createRequest.participantId) {
+                const participant = await this.prismaService.participant.findFirst({
+                    where: {
+                        id: createRequest.participantId
+                    }
+                });
+
+                if(!participant) {
+                    throw new HttpException('Participant tidak ditemukan', 404);
+                }
+            }
+            this.validateNikForUser(createRequest);
+            await this.validateParticipantByNik(createRequest);
         } else if (roleRequest === 'lcu') {
-            this.validateNikForNonUserRoles(req.nik);
-            this.validateDinas(req.dinas);
+            this.validateNikForNonUserRoles(createRequest.nik);
+            this.validateDinas(createRequest.dinas);
         } else if(roleRequest === 'supervisor') {
-            this.validateNikForNonUserRoles(req.nik);
-            this.validateDinas(req.dinas);
+            this.validateNikForNonUserRoles(createRequest.nik);
+            this.validateDinas(createRequest.dinas);
         } else {
-            this.validateNikForNonUserRoles(req.nik);
-            this.validateDinasForSuperAdmin(req.dinas);
+            this.validateNikForNonUserRoles(createRequest.nik);
+            this.validateDinasForSuperAdmin(createRequest.dinas);
         }
 
         if(userRole === 'lcu') {
-            this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
-            this.validateDinasForLcuRequest(req.dinas, user.user.dinas);
+            this.validateRoleForLcuOrSupervisorRequest(createRequest.roleId, roleUser.id);
+            this.validateDinasForLcuRequest(createRequest.dinas, user.user.dinas);
         } else if(userRole === 'supervisor') {
-            this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
+            this.validateRoleForLcuOrSupervisorRequest(createRequest.roleId, roleUser.id);
         }
-
-        const createRequest: CreateUserRequest = this.validationService.validate(UserValidation.CREATE, req);
-
-        await this.checkUserExists(createRequest.noPegawai, createRequest.email);
 
         createRequest.password = await bcrypt.hash(createRequest.password, 10);
 
@@ -90,7 +94,7 @@ export class UserService {
         const result: UserResponse = {
             ...createUser,
         }
-        
+
         return this.toUserResponse(result, userRole);
     }
 
@@ -100,9 +104,9 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
-        const roleUser = await this.findRoleUser();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
+        const roleUser = await this.userHelper.findRoleUser();
 
         if(userRole === 'lcu') {
             this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
@@ -119,36 +123,34 @@ export class UserService {
     async updateUser(userId: string, req: UpdateUserRequest, user: CurrentUserRequest): Promise<UserResponse> {
         this.logger.debug(`UserService.register(${JSON.stringify(req)})`);
 
+        const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
+
         const findUser = await this.findUser(userId);
 
         if(!findUser) {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const roleUser = await this.findRoleUser();
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const roleUser = await this.userHelper.findRoleUser();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         if(userRole === 'lcu') {
-            if(req.roleId) {
-                this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
+            if(updateRequest.roleId) {
+                this.validateRoleForLcuOrSupervisorRequest(updateRequest.roleId, roleUser.id);
             }
-            if(req.dinas) {
-                this.validateDinasForLcuRequest(req.dinas, user.user.dinas);
+            if(updateRequest.dinas) {
+                this.validateDinasForLcuRequest(updateRequest.dinas, user.user.dinas);
             }
         } else if(userRole === 'supervisor') {
-            if(req.roleId) {
-                this.validateRoleForLcuOrSupervisorRequest(req.roleId, roleUser.id);
+            if(updateRequest.roleId) {
+                this.validateRoleForLcuOrSupervisorRequest(updateRequest.roleId, roleUser.id);
             }
         }
 
-        if(userRole !== 'super admin') {
-            if(req.email) {
-                throw new HttpException('Anda tidak bisa mengubah email pengguna', 400);
-            }
+        if(userRole !== 'super admin' && updateRequest.email) {
+            throw new HttpException('Anda tidak bisa mengubah email pengguna', 400);
         }
-
-        const updateRequest: UpdateUserRequest = this.validationService.validate(UserValidation.UPDATE, req);
 
         for (const key of Object.keys(updateRequest)) {
             if (updateRequest[key] !== undefined) {
@@ -170,16 +172,14 @@ export class UserService {
             select: userSelectFields,
         });
 
-        console.log("Update User : ", updateUser);
-
         if(findUser.nik) {
             const updateParticipant = {
-                noPegawai: req.noPegawai,
-                nik: req.nik,
-                dinas: req.dinas,
+                idNumber: updateRequest.idNumber,
+                name: updateRequest.name,
+                nik: updateRequest.nik,
+                dinas: updateRequest.dinas,
+                email: updateRequest.email,
             };
-
-            const updateParticipantWithNulls = this.transformEmptyStringsToNull(updateParticipant);
 
             const participantUpdate = await this.prismaService.participant.findFirst({
                 where: {
@@ -188,14 +188,12 @@ export class UserService {
             });
 
             if(participantUpdate) {
-                console.log(participantUpdate)
                 await this.prismaService.participant.update({
                     where: {
                         id: participantUpdate.id,
                     },
-                    data: updateParticipantWithNulls,
+                    data: updateParticipant,
                 });
-                console.log("Update Participant: ", updateParticipant);
             }
         }
 
@@ -213,9 +211,9 @@ export class UserService {
             throw new HttpException('User tidak ditemukan', 404);
         }
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
-        const roleUser = await this.findRoleUser();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
+        const roleUser = await this.userHelper.findRoleUser();
 
         if(userRole === 'lcu') {
             this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
@@ -230,7 +228,7 @@ export class UserService {
 
         const result: UserResponse = {
             id: deleteUser.id,
-            noPegawai: deleteUser.noPegawai,
+            idNumber: deleteUser.idNumber,
             email: deleteUser.email,
             name: deleteUser.name,
             dinas: deleteUser.dinas,
@@ -242,8 +240,8 @@ export class UserService {
 
     async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
 
         let users: UserList[];
 
@@ -257,12 +255,15 @@ export class UserService {
             users = await this.prismaService.user.findMany({
                 where: {
                     role: {
-                        role: {
+                        name: {
                             equals: 'user',
                             mode: 'insensitive',
                         },
                     },
-                    dinas: user.user.dinas,
+                    dinas: {
+                        equals: user.user.dinas,
+                        mode: 'insensitive',
+                    },
                 },
                 select: userSelectFields,
             });
@@ -276,10 +277,6 @@ export class UserService {
             (req.page - 1) * req.size,
             req.page * req.size
         );
-
-        if (paginatedUsers.length === 0) {
-            throw new HttpException("Data users tidak ditemukan", 404);
-        }
 
         const actions = this.validateActions(userRole);
 
@@ -297,8 +294,8 @@ export class UserService {
     async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
 
-        const userWithRole = await this.userWithRole(user.user.id);
-        const userRole = userWithRole.role.role.toLowerCase();
+        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
+        const userRole = userWithRole.role.name.toLowerCase();
         let users = await this.prismaService.user.findMany({
             include: {
                 role: true,
@@ -306,7 +303,7 @@ export class UserService {
         });
 
         if (userRole === 'lcu') {
-            users = users.filter(u => u.role.role.toLowerCase() === 'user' && u.dinas === user.user.dinas);
+            users = users.filter(u => u.role.name.toLowerCase() === 'user' && u.dinas === user.user.dinas);
         }
 
         let filteredUsers = users;
@@ -314,15 +311,15 @@ export class UserService {
             const query = searchRequest.searchQuery.toLowerCase();
             if (userRole === 'super admin' || userRole === 'supervisor') {
                 filteredUsers = users.filter(user => 
-                    user.noPegawai?.toLowerCase().includes(query) ||
+                    user.idNumber?.toLowerCase().includes(query) ||
                     user.email.toLowerCase().includes(query) ||
                     user.name.toLowerCase().includes(query) ||
-                    user.role?.role.toLowerCase().includes(query) ||
+                    user.role?.name.toLowerCase().includes(query) ||
                     user.dinas?.toLowerCase().includes(query)
                 );
             } else {
                 filteredUsers = users.filter(user => 
-                    user.noPegawai?.toLowerCase().includes(query) ||
+                    user.idNumber?.toLowerCase().includes(query) ||
                     user.email.toLowerCase().includes(query) ||
                     user.name.toLowerCase().includes(query)
                 );
@@ -336,13 +333,9 @@ export class UserService {
             (searchRequest.page - 1) * searchRequest.size,
             searchRequest.page * searchRequest.size
         );
-    
-        if (paginatedUsers.length === 0) {
-            throw new HttpException("Data users tidak ditemukan", 404);
-        }
 
         const actions = this.validateActions(userRole);
-    
+
         return {
             data: paginatedUsers.map(user => ({
                 ...this.toUserResponse(user, userRole),
@@ -354,30 +347,6 @@ export class UserService {
                 size: searchRequest.size,
             },
         };
-    }
-
-    async checkUserExists(noPegawai: string, email: string) {
-        if (noPegawai) {
-            const totalUserwithSameNoPegawai = await this.prismaService.user.count({
-                where: {
-                    noPegawai: noPegawai,
-                }
-            });
-    
-            if (totalUserwithSameNoPegawai != 0) {
-                throw new HttpException("No pegawai sudah digunakan", 400);
-            }
-        }
-
-        const totalUserwithSameEmail = await this.prismaService.user.count({
-            where: {
-                email: email,
-            }
-        });
-
-        if(totalUserwithSameEmail != 0) {
-            throw new HttpException("Email sudah digunakan", 400);
-        }
     }
 
     toUserResponse(data: UserResponse, currentRoleUser: string): UserResponse {
@@ -397,7 +366,7 @@ export class UserService {
         return {
             id: true,
             participantId: true,
-            noPegawai: true,
+            idNumber: true,
             nik: true,
             email: true,
             name: true,
@@ -418,59 +387,59 @@ export class UserService {
         return findUser;
     }
 
-    private async findRoleUser(): Promise<RoleResponse> {
-        const roleUser = await this.prismaService.role.findFirst({
-            where: { 
-                role: {
-                    equals: "user",
-                    mode: "insensitive"
-                }
-            }
-        });
-        return roleUser;
-    }
-
-    private async userWithRole(userId: string) {
-        const userRequest = await this.prismaService.user.findUnique({
-            where: {
-                id: userId,
-            },
-            select: {
-                role: true
-            }
-        });
-
-        return userRequest;
-    }
-
     private validateNikForUser(req: any) {
         if (!req.nik) {
             throw new HttpException('NIK tidak boleh kosong', 400);
         }
     }
-    
-    private async validateParticipantNik(nik: string) {
+
+    private async validateParticipantByNik(request: CreateUserRequest) {
         const participant = await this.prismaService.participant.findUnique({
-            where: { nik: nik },
+            where: { nik: request.nik },
         });
+
+        // Validasi idNumber, name, dan dinas
+        if(participant) {
+            if (request.idNumber && request.idNumber !== participant.idNumber) {
+                throw new HttpException('No Pegawai tidak sesuai dengan data participant', 400);
+            }
     
-        if (!participant) {
-            throw new HttpException('NIK tidak ada di data peserta', 400);
+            if (request.name && request.name !== participant.name) {
+                throw new HttpException('Nama tidak sesuai dengan data participant', 400);
+            }
+    
+            if (request.email && request.email !== participant.email) {
+                throw new HttpException('Email tidak sesuai dengan data participant', 400);
+            }
+    
+            if (request.dinas && request.dinas !== participant.dinas) {
+                throw new HttpException('Dinas tidak sesuai dengan data participant', 400);
+            }
+        } else {
+            await this.prismaService.participant.create({
+                data: {
+                    idNumber: request.idNumber,
+                    name: request.name,
+                    nik: request.nik,
+                    dinas: request.dinas,
+                    email: request.email,
+                }
+            });
         }
     }
-    
+
     private validateNikForNonUserRoles(nik: string) {
         if (nik) {
             throw new HttpException('Role super admin, supervisor, dan LCU tidak perlu NIK', 400);
         }
     }
-    
+
     private validateDinas(dinas: string) {
         if (!dinas) {
             throw new HttpException('Dinas tidak boleh kosong', 400);
         }
     }
-    
+
     private validateDinasForSuperAdmin(dinas: string) {
         if (dinas) {
             throw new HttpException('Role Super Admin tidak perlu dinas', 400);
@@ -490,24 +459,12 @@ export class UserService {
     }
 
     private validateActions(userRole: string): ActionAccessRights {
-        if(userRole === 'super admin' || userRole === 'lcu') {
-            return {
-                canEdit: true,
-                canDelete: true,
-                canView: true,
-            }
-        } else {
-            return {
-                canEdit: false,
-                canDelete: false,
-                canView: true,
-            }
+        const accessMap = {
+            'super admin': { canEdit: true, canDelete: true },
+            'supervisor': { canEdit: false, canDelete: false },
+            'lcu': { canEdit: true, canDelete: true },
         }
-    }
 
-    private transformEmptyStringsToNull(obj: any): any {
-        return Object.fromEntries(
-            Object.entries(obj).map(([key, value]) => [key, value === '' ? null : value])
-        );
-    }  
+        return this.coreHelper.validateActions(userRole, accessMap);
+    }
 }
