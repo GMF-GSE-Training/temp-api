@@ -2,10 +2,11 @@ import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Par
 import { CapabilityService } from "./capability.service";
 import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "src/model/web.model";
-import { Roles } from "src/common/decorator/role.decorator";
-import { AuthGuard } from "src/common/guard/auth.guard";
-import { RoleGuard } from "src/common/guard/role.guard";
+import { Roles } from "src/shared/decorator/role.decorator";
+import { AuthGuard } from "src/shared/guard/auth.guard";
+import { RoleGuard } from "src/shared/guard/role.guard";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { User } from "src/shared/decorator/user.decorator";
 
 @Controller('/capability')
 export class CapabilityController {
@@ -61,7 +62,7 @@ export class CapabilityController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<CapabilityResponse[]>> {
@@ -78,7 +79,7 @@ export class CapabilityController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async search(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Query('q') q: string,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,

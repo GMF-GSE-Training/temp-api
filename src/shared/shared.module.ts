@@ -1,18 +1,16 @@
-import { Module } from "@nestjs/common";
-import { CoreHelper } from "./helpers/core.helper";
-import { UserHelper } from "./helpers/user.helper";
-import { CoreUtil } from "./utils/core.utils";
+import { Global, Module } from "@nestjs/common";
+import { AuthGuard } from "./guard/auth.guard";
+import { RoleGuard } from "./guard/role.guard";
 
+@Global()
 @Module({
     providers: [
-        CoreHelper,
-        UserHelper,
-        CoreUtil,
+        AuthGuard,
+        RoleGuard,
     ],
     exports: [
-        CoreHelper,
-        UserHelper,
-        CoreUtil,
+        AuthGuard,
+        RoleGuard,
     ],
 })
 export class SharedModule {}

@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { Roles } from "src/common/decorator/role.decorator";
-import { AuthGuard } from "src/common/guard/auth.guard";
-import { RoleGuard } from "src/common/guard/role.guard";
+import { Roles } from "src/shared/decorator/role.decorator";
+import { AuthGuard } from "src/shared/guard/auth.guard";
+import { RoleGuard } from "src/shared/guard/role.guard";
 import { CreateESign, ESignResponse } from "src/model/e-sign.model";
 import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { ESignService } from "./e-sign.service";

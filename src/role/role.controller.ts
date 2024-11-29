@@ -1,11 +1,12 @@
 import { Controller, Get, HttpCode, HttpStatus, Req, UseGuards } from "@nestjs/common";
 import { RoleService } from "./role.service";
-import { Roles } from "../common/decorator/role.decorator";
-import { AuthGuard } from "../common/guard/auth.guard";
-import { RoleGuard } from "../common/guard/role.guard";
+import { Roles } from "../shared/decorator/role.decorator";
+import { AuthGuard } from "../shared/guard/auth.guard";
+import { RoleGuard } from "../shared/guard/role.guard";
 import { RoleResponse } from "../model/role.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { User } from "src/shared/decorator/user.decorator";
 
 @Controller("/roles")
 export class RoleController {
@@ -15,7 +16,7 @@ export class RoleController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async getAllRoles(@Req() user: CurrentUserRequest): Promise<WebResponse<RoleResponse[]>> {
+    async getAllRoles(@User() user: CurrentUserRequest): Promise<WebResponse<RoleResponse[]>> {
         const result = await this.roleService.getAllRole(user);
         return buildResponse(HttpStatus.OK, result);
     }

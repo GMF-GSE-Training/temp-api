@@ -7,10 +7,10 @@ import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthGuard } from './guard/auth.guard';
-import { RoleGuard } from './guard/role.guard';
 import { MulterModule } from "@nestjs/platform-express";
 import { extname } from 'path';
+import { CoreHelper } from './helpers/core.helper';
+import { CoreUtil } from 'src/common/utils/core.utils';
 
 @Global()
 @Module({
@@ -53,13 +53,15 @@ import { extname } from 'path';
             provide: APP_FILTER,
             useClass: ErrorFilter,
         },
-        AuthGuard,
-        RoleGuard,
+        CoreHelper,
+        CoreUtil,
     ],
     exports: [
         PrismaService,
         ValidationService,
         JwtModule,
+        CoreHelper,
+        CoreUtil,
     ],
 })
 export class CommonModule {

@@ -1,25 +1,22 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PrismaService } from "../common/service/prisma.service";
-import { ValidationService } from "../common/service/validation.service";
 import { Logger } from 'winston';
 import { RoleResponse } from "src/model/role.model";
 import { Role } from "@prisma/client";
 import { CurrentUserRequest } from "src/model/auth.model";
-import { CoreHelper } from "src/shared/helpers/core.helper";
+import { CoreHelper } from "src/common/helpers/core.helper";
 
 @Injectable()
 export class RoleService {
     constructor(
-        private readonly validationService: ValidationService,
         @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
         private readonly prismaService: PrismaService,
         private readonly coreHelper: CoreHelper,
     ){}
 
     async getAllRole(user: CurrentUserRequest): Promise<RoleResponse[]> {
-        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
-        const userRole = userWithRole.role.name.toLowerCase();
+        const userRole = user.role.name.toLowerCase();
     
         let roles: Role[];
     

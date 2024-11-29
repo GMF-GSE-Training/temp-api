@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { PrismaService } from "../service/prisma.service";
+import { PrismaService } from "../../common/service/prisma.service";
 import { ConfigService } from "@nestjs/config";
 
 @Injectable()
@@ -35,6 +35,7 @@ export class AuthGuard implements CanActivate {
                 where: { id: payload.sub },
                 select: {
                     id: true,
+                    participantId: true,
                     idNumber: true,
                     nik: true,
                     email: true,
@@ -42,6 +43,7 @@ export class AuthGuard implements CanActivate {
                     dinas: true,
                     roleId: true,
                     token: true,
+                    role: true,
                 }
             });
 

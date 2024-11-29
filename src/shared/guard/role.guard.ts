@@ -5,7 +5,7 @@ import {
     HttpException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '../service/prisma.service';
+import { PrismaService } from '../../common/service/prisma.service';
 
 @Injectable()
 export class RoleGuard implements CanActivate {

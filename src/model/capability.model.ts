@@ -19,6 +19,8 @@ export interface CapabilityResponse {
     totalPracticeDurationRegGse?: number;
     totalTheoryDurationCompetency?: number;
     totalPracticeDurationCompetency?: number;
+    totalMaterialDurationRegGse?: number;
+    totalMaterialDurationCompetency?: number;
     totalDuration?: number;
     curriculumSyllabus?: Object[];
 }

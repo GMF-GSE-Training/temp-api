@@ -2,10 +2,11 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPip
 import { CotResponse, CreateCot, UpdateCot } from "src/model/cot.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "src/model/web.model";
 import { CotService } from "./cot.service";
-import { Roles } from "src/common/decorator/role.decorator";
-import { AuthGuard } from "src/common/guard/auth.guard";
-import { RoleGuard } from "src/common/guard/role.guard";
+import { Roles } from "src/shared/decorator/role.decorator";
+import { AuthGuard } from "src/shared/guard/auth.guard";
+import { RoleGuard } from "src/shared/guard/role.guard";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { User } from "src/shared/decorator/user.decorator";
 
 @Controller('/cot')
 export class CotController {
@@ -40,58 +41,6 @@ export class CotController {
         return buildResponse(HttpStatus.OK, result);
     }
 
-    // @Get('/participant-cot/:cotId/unregistered/result')
-    // @HttpCode(200)
-    // @Roles('super admin', 'supervisor', 'lcu', 'user')
-    // @UseGuards(AuthGuard, RoleGuard)
-    // async getUnregisteredParticipants(
-    //     @Param('cotId', ParseUUIDPipe) cotId: string,
-    //     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-    //     @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    // ): Promise<WebResponse<any[]>> {
-    //     const query: ListRequest = { 
-    //         page: page || 1,
-    //         size: size || 10,
-    //     };
-    //     const result = await this.cotService.getUnregisteredParticipants(cotId, query);
-    //     return buildResponse(HttpStatus.OK, result.data, null, null, result.paging);
-    // }
-
-    // @Post('participant-cot/:cotId')
-    // @HttpCode(200)
-    // @Roles('super admin')
-    // @UseGuards(AuthGuard, RoleGuard)
-    // async addParticipantToCot(@Param('cotId', ParseUUIDPipe) cotId: string, @Body('participantIds') participantIds: string[]): Promise<WebResponse<string>> {
-    //     const result = await this.cotService.addParticipantToCot(cotId, participantIds);
-    //     return buildResponse(HttpStatus.OK, result);
-    // }
-
-    // @Get('/participant-cot/:cotId')
-    // @HttpCode(200)
-    // @Roles('super admin', 'supervisor', 'lcu', 'user')
-    // @UseGuards(AuthGuard, RoleGuard)
-    // async getParticipantCot(
-    //     @Param('cotId', ParseUUIDPipe) cotId: string,
-    //     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-    //     @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    // ): Promise<WebResponse<any>> {
-    //     const query: ListRequest = { 
-    //         page: page || 1,
-    //         size: size || 10,
-    //     };
-    //     const result = await this.cotService.getParticipantsCot(cotId, query);
-    //     return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    // }
-
-    // @Delete('/participant-cot/:cotId/:participantId')
-    // @HttpCode(200)
-    // @Roles('super admin')
-    // @UseGuards(AuthGuard, RoleGuard)
-    // async deleteParticipantFromCot(@Param('cotId', ParseUUIDPipe) cotId: string, @Param('participantId', ParseUUIDPipe) participantId: string): Promise<WebResponse<string>> {
-    //     const result = await this.cotService.deleteParticipantFromCot(participantId, cotId);
-    //     return buildResponse(HttpStatus.OK, result);
-    // }
-
     @Delete('/:cotId')
     @HttpCode(200)
     @Roles('super admin')
@@ -106,35 +55,42 @@ export class CotController {
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
     ): Promise<WebResponse<CotResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,
             size: size || 10,
+            startDate,
+            endDate,
         };
         const result = await this.cotService.listCot(user, query);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
-    // @Get('/search/result')
-    // @HttpCode(200)
-    // @Roles('super admin', 'supervisor', 'lcu', 'user')
-    // @UseGuards(AuthGuard, RoleGuard)
-    // async search(
-    //     @Req() user: CurrentUserRequest,
-    //     @Query('q') q: string,
-    //     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-    //     @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    // ): Promise<WebResponse<CotResponse[]>> {
-    //     const query: SearchRequest = {
-    //         searchQuery: q,
-    //         page: page || 1,
-    //         size: size || 10,
-    //     };
-
-    //     const result = await this.cotService.searchCot(query, user);
-    //     return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    // }
+    @Get('/search/result')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async search(
+        @User() user: CurrentUserRequest,
+        @Query('q') q: string,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ): Promise<WebResponse<CotResponse[]>> {
+        const query: SearchRequest = {
+            searchQuery: q,
+            page: page || 1,
+            size: size || 10,
+            startDate,
+            endDate,
+        };
+        const result = await this.cotService.searchCot(query, user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
+    }
 }

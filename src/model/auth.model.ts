@@ -15,14 +15,17 @@ export interface LoginUserRequest {
 }
 
 export interface CurrentUserRequest {
-    user: {
-        id: string,
-        idNumber: string,
-        email: string,
-        name: string,
-        nik: string,
-        dinas: string,
-        roleId: string,
+    id: string;
+    participantId?: string;
+    idNumber: string;
+    email: string;
+    name: string;
+    nik: string;
+    dinas: string;
+    roleId: string;
+    role: {
+        id: string;
+        name: string;
     }
 }
 
@@ -41,7 +44,7 @@ export interface AuthResponse {
     dinas?: string;
     roleId?: string;
     token?: string;
-    role?: {
+    role: {
         id: string,
         name: string,
     }

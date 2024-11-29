@@ -5,7 +5,7 @@ import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/mode
 import { CapabilityValidation } from "./capability.validation";
 import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
-import { CoreHelper } from "src/shared/helpers/core.helper";
+import { CoreHelper } from "src/common/helpers/core.helper";
 
 @Injectable()
 export class CapabilityService {
@@ -17,17 +17,17 @@ export class CapabilityService {
 
     async createCapability(request: CreateCapability): Promise<CapabilityResponse> {
         const createCapabilityRequest = this.validationService.validate(CapabilityValidation.CREATE, request);
-
+    
         await this.coreHelper.ensureUniqueFields('capability', [
             { field: 'ratingCode', value: createCapabilityRequest.ratingCode, message: 'Kode Rating sudah ada' },
             { field: 'trainingCode', value: createCapabilityRequest.trainingCode, message: 'Kode Training sudah ada' },
             { field: 'trainingName', value: createCapabilityRequest.trainingName, message: 'Nama Training sudah ada' },
         ]);        
-
+    
         const capability = await this.prismaService.capability.create({
             data: createCapabilityRequest,
         });
-
+    
         const {
             totalTheoryDurationRegGse, 
             totalPracticeDurationRegGse, 
@@ -36,7 +36,7 @@ export class CapabilityService {
             totalDuration,
             ...result
         } = capability;
-
+    
         return result;
     }
 
@@ -53,40 +53,40 @@ export class CapabilityService {
                 curriculumSyllabus: true,
             },
         });
-
+    
         if(!capability) {
             throw new HttpException('Capability Not Found', 404);
         }
-
+    
         return capability;
     }
 
     async updateCapability(capabilityId: string, req: UpdateCapability): Promise<string> {
         const updateCapabilityRequest = this.validationService.validate(CapabilityValidation.UPDATE, req);
-
+    
         const capability = await this.prismaService.capability.findUnique({
             where: {
                 id: capabilityId,
             }
         });
-
+    
         if(!capability) {
             throw new HttpException('Capability tidak ditemukan', 404);
         }
-
+    
         await this.coreHelper.ensureUniqueFields('capability', [
             { field: 'ratingCode', value: updateCapabilityRequest.ratingCode, message: 'Kode Rating sudah ada' },
             { field: 'trainingCode', value: updateCapabilityRequest.trainingCode, message: 'Kode Training sudah ada' },
             { field: 'trainingName', value: updateCapabilityRequest.trainingName, message: 'Nama Training sudah ada' },
         ], capabilityId);        
-
+    
         await this.prismaService.capability.update({
             where: {
                 id: capability.id
             },
             data: updateCapabilityRequest
         });
-
+    
         return 'Capability berhasil diperbarui';
     }
 
@@ -96,7 +96,7 @@ export class CapabilityService {
                 id: capabilityId
             }
         });
-
+    
         if(!capability) {
             throw new HttpException('Capability tidak ditemukan', 404);
         }
@@ -108,7 +108,7 @@ export class CapabilityService {
                     capabilityId: capabilityId,
                 },
             });
-
+        
             // Hapus capability
             await prisma.capability.delete({
                 where: {
@@ -116,7 +116,7 @@ export class CapabilityService {
                 },
             });
         });
-
+    
         return 'Capability berhasil dihapus';
     }
 
@@ -131,21 +131,22 @@ export class CapabilityService {
     }
 
     async listCapability(user: CurrentUserRequest, request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const capability = await this.prismaService.capability.findMany();
-
-        const totalCapability = capability.length;
+        const capability = await this.prismaService.capability.findMany({
+            take: request.size,
+            skip: (request.page - 1) * request.size,
+        });
+    
+        const totalCapability = await this.prismaService.capability.count();
+    
+        const capabilitiesWithFilteredAttributes = capability.map(this.mapCapabilityWithDurations);
+    
         const totalPage = Math.ceil(totalCapability / request.size);
-        const paginateCapability = capability.slice(
-            (request.page - 1) * request.size,
-            request.page * request.size
-        );
-
-        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
-        const userRole = userWithRole.role.name.toLowerCase();
+    
+        const userRole = user.role.name.toLowerCase();
         const actions = this.validateActions(userRole);
-
+    
         return {
-            data: paginateCapability,
+            data: capabilitiesWithFilteredAttributes,
             actions: actions,
             paging: {
                 currentPage: request.page,
@@ -156,38 +157,48 @@ export class CapabilityService {
     }
 
     async searchCapability(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const searchRequest = this.validationService.validate(CapabilityValidation.SEARCH, request);
-
-        const capability = await this.prismaService.capability.findMany();
-        const query = searchRequest.searchQuery.toLowerCase();
-
-        let filteredCapability = capability;
-        if(searchRequest.searchQuery) {
-            filteredCapability = capability.filter(capability => 
-                capability.ratingCode.toLowerCase().includes(query) ||
-                capability.trainingCode.toLowerCase().includes(query) ||
-                capability.trainingName.toLowerCase().includes(query)
-            );
-        }
-
-        const totalCapability = filteredCapability.length;
-        const totalPage = Math.ceil(totalCapability / searchRequest.size);
-        const paginatedCapability = filteredCapability.slice(
-            (searchRequest.page - 1) * searchRequest.size,
-            searchRequest.page * searchRequest.size
-        );
-
-        const userWithRole = await this.coreHelper.userWithRole(user.user.id);
-        const userRole = userWithRole.role.name.toLowerCase();
+        const query = request.searchQuery.toLowerCase();
+    
+        // Ambil total jumlah data yang cocok dengan filter
+        const totalCapability = await this.prismaService.capability.count({
+            where: {
+                OR: [
+                    { ratingCode: { contains: query, mode: 'insensitive' } },
+                    { trainingCode: { contains: query, mode: 'insensitive' } },
+                    { trainingName: { contains: query, mode: 'insensitive' } },
+                ],
+            },
+        });
+    
+        // Ambil data capability sesuai paginasi dan query
+        const capabilities = await this.prismaService.capability.findMany({
+            where: {
+                OR: [
+                    { ratingCode: { contains: query, mode: 'insensitive' } },
+                    { trainingCode: { contains: query, mode: 'insensitive' } },
+                    { trainingName: { contains: query, mode: 'insensitive' } },
+                ],
+            },
+            skip: (request.page - 1) * request.size,
+            take: request.size,
+        });
+    
+        // Hitung total duration untuk setiap capability
+        const capabilitiesWithFilteredAttributes = capabilities.map(this.mapCapabilityWithDurations);
+    
+        // Hitung total halaman
+        const totalPage = Math.ceil(totalCapability / request.size);
+    
+        const userRole = user.role.name.toLowerCase();
         const actions = this.validateActions(userRole);
-
+    
         return {
-            data: paginatedCapability.map(capability => capability),
+            data: capabilitiesWithFilteredAttributes,
             actions: actions,
             paging: {
-                currentPage: searchRequest.page,
+                currentPage: request.page,
                 totalPage: totalPage,
-                size: searchRequest.size,
+                size: request.size,
             }
         }
     }
@@ -199,7 +210,26 @@ export class CapabilityService {
             'lcu': { canEdit: false, canDelete: false },
             'user': { canEdit: false, canDelete: false },
         }
-
+    
         return this.coreHelper.validateActions(userRole, accessMap);
+    }
+
+    private mapCapabilityWithDurations(capability: any): any {
+        const { 
+            totalTheoryDurationRegGse, 
+            totalPracticeDurationRegGse, 
+            totalTheoryDurationCompetency, 
+            totalPracticeDurationCompetency, 
+            ...rest 
+        } = capability;
+    
+        const totalMaterialDurationRegGse = (totalTheoryDurationRegGse || 0) + (totalPracticeDurationRegGse || 0);
+        const totalMaterialDurationCompetency = (totalTheoryDurationCompetency || 0) + (totalPracticeDurationCompetency || 0);
+    
+        return {
+            ...rest,
+            totalMaterialDurationRegGse,
+            totalMaterialDurationCompetency,
+        };
     }
 }

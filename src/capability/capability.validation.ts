@@ -12,10 +12,4 @@ export class CapabilityValidation {
         trainingCode: z.string().min(1).max(50).optional(),
         trainingName: z.string().min(1).max(50).optional(), 
     });
-
-    static readonly SEARCH: ZodType = z.object({
-        searchQuery: z.string().min(1),
-        page: z.number().min(1).positive(),
-        size: z.number().min(1).positive(),
-    });
 }

@@ -12,26 +12,24 @@ interface UniqueFieldCheck {
 export class CoreHelper {
     constructor(private prismaService: PrismaService) {}
 
-    async userWithRole(userId: string) {
-        return this.prismaService.user.findUnique({
-            where: { id: userId },
-            select: { role: true },
-        });
-    }
-
     async ensureUniqueFields(
         tableName: string, 
         data: UniqueFieldCheck[],
         excludeId?: string
     ): Promise<void> {
         for (const { field, value, message } of data) {
+            console.log(field, value)
+            if (!value || value === null || value === '') {
+                continue;
+            }
+        
             const condition: any = { [field]: value };
             if (excludeId) {
                 condition.NOT = { id: excludeId };
             }
-    
+        
             const count = await this.prismaService[tableName].count({ where: condition });
-    
+        
             if (count > 0) {
                 throw new HttpException(message, 400);
             }
@@ -52,5 +50,9 @@ export class CoreHelper {
 
         // Kembalikan hak akses berdasarkan role, atau default jika role tidak ditemukan
         return accessMap[currentRole] || defaultAccess;
+    }
+
+    transformEmptyToNull(value: any): any {
+        return value === '' ? null : value;
     }
 }

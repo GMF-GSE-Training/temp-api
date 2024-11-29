@@ -5,11 +5,12 @@ import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { ParticipantModule } from './participant/participant.module';
 import { ConfigModule } from '@nestjs/config';
-import { MailerModule } from './mailer/mailer.module';
 import { CapabilityModule } from './capability/capability.module';
 import { CurriculumSyllabusModule } from './curriculum-syllabus/curriculum-syllabus.module';
 import { CotModule } from './cot/cot.module';
 import { ESignModule } from './e-sign/e-sign.module';
+import { ParticipantCotModule } from './participant-cot/participant-cot.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -17,14 +18,15 @@ import { ESignModule } from './e-sign/e-sign.module';
       isGlobal: true,
     }),
     CommonModule, 
+    SharedModule,
     UserModule,
     AuthModule,
     RoleModule,
     ParticipantModule,
-    MailerModule,
     CapabilityModule,
     CurriculumSyllabusModule,
     CotModule,
+    ParticipantCotModule,
     ESignModule,
   ],
   controllers: [],

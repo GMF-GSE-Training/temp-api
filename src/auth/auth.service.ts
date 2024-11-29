@@ -12,7 +12,7 @@ import { SendEmail } from "src/model/mailer.model";
 import { MailerService } from "src/mailer/mailer.service";
 import { ConfigService } from "@nestjs/config";
 import * as os from 'os';
-import { CoreHelper } from "src/shared/helpers/core.helper";
+import { CoreHelper } from "src/common/helpers/core.helper";
 
 @Injectable()
 export class AuthService {
@@ -27,6 +27,8 @@ export class AuthService {
     ) {}
 
     async register(req: RegisterUserRequest): Promise<string> {
+        const registerRequest: RegisterUserRequest = this.validationService.validate(AuthValidation.REGISTER, req);
+    
         if (req.roleId) {
             throw new HttpException('Anda tidak berhak menentukan role', 403);
         }
@@ -42,8 +44,6 @@ export class AuthService {
         }
     
         req.roleId = defaultRole.id;
-    
-        const registerRequest: RegisterUserRequest = this.validationService.validate(AuthValidation.REGISTER, req);
     
         const participant = await this.prismaService.participant.findUnique({
             where: { nik: req.nik },
@@ -199,27 +199,27 @@ export class AuthService {
         return this.toAuthResponse(user);
     }
 
-    async me(me: CurrentUserRequest): Promise<AuthResponse> {
-        const user = await this.prismaService.user.findUnique({
+    async me(user: CurrentUserRequest): Promise<AuthResponse> {
+        const findUser = await this.prismaService.user.findUnique({
             where: { 
-                id: me.user.id
+                id: user.id
             },
             include: {
                 role: true,
             }
         });
 
-        if (!user) {
-            throw new HttpException('User not found', 404);
+        if (!findUser) {
+            throw new HttpException('User tidak ditemukan', 404);
         }
 
         return {
-            id: user.id,
-            participantId: user.participantId,
-            name: user.name,
+            id: findUser.id,
+            participantId: findUser.participantId,
+            name: findUser.name,
             role: {
-                id: user.role.id,
-                name: user.role.name,
+                id: findUser.role.id,
+                name: findUser.role.name,
             }
         }
     }
@@ -244,17 +244,17 @@ export class AuthService {
             for (const interfaceName in networkInterfaces) {
                 const addresses = networkInterfaces[interfaceName];
                 if (addresses) {
-                for (const addr of addresses) {
-                    if (addr.family === 'IPv4' && !addr.internal) {
-                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
-                    break;
+                    for (const addr of addresses) {
+                        if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
+                        }
                     }
-                }
                 }
             }
         
             // Kirim email reset password
-            const resetPasswordLink = `http://${this.configService.get<string>('HOST')}:3000/auth/verify-reset-password/${resetToken}`;
+            const resetPasswordLink = `http://${localIp}:3000/auth/verify-reset-password/${resetToken}`;
             await this.mailerService.sendEmail({
                 from: {
                     name: this.configService.get<string>('APP_NAME'),
@@ -267,7 +267,6 @@ export class AuthService {
                 subject: 'Reset Password',
                 html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
             });
-
         }
 
         return 'Email reset password sudah dikirim';
@@ -322,9 +321,9 @@ export class AuthService {
 
     async logout(user: CurrentUserRequest): Promise<string> {
         const authSelectedFields = this.authSelectedFields();
-        const result = await this.prismaService.user.update({
+        await this.prismaService.user.update({
             where: {
-                id: user.user.id,
+                id: user.id,
             },
             data: {
                 token: null,

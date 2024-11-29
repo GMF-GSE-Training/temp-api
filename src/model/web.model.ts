@@ -1,10 +1,11 @@
 import { HttpStatus, StreamableFile } from "@nestjs/common";
 
-export class WebResponse<T> {
+export interface WebResponse<T> {
     code: number;
     status: string;
     data?: T;
     errors?: string;
+    actions?: ActionAccessRights;
     paging?: Paging;
     fileStream?: StreamableFile;
 }
@@ -23,14 +24,18 @@ export interface Paging  {
 }
 
 export interface ListRequest {
+    startDate?: string;
+    endDate?: string;
     page?: number,
     size?: number,
 }
 
 export interface SearchRequest {
-    searchQuery: string;
-    page: number;
-    size: number;
+    searchQuery?: string;
+    page?: number;
+    size?: number;
+    startDate?: string;
+    endDate?: string;
 }
 
 export function buildResponse<T>(

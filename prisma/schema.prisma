@@ -76,7 +76,7 @@ model Participant {
   user                          User?
 
   @@map("participants")
-} 
+}
 
 model Capability {
   id                                String                  @id @default(uuid())

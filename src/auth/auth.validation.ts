@@ -12,7 +12,7 @@ export class AuthValidation {
             message: "Password harus memiliki minimal satu huruf besar dan satu angka"
         }),
         dinas: z.string().max(20).optional(),
-        roleId: z.string().min(1),
+        roleId: z.string().uuid().min(1),
     });
     
     static readonly LOGIN: ZodType = z.object({
@@ -27,7 +27,7 @@ export class AuthValidation {
         name: z.string().min(1).max(50).optional(),  
         password: z.string().min(1).max(100).optional(),
         dinas: z.string().min(1).max(20).optional(),
-        roleId: z.string().min(1).optional(),
+        roleId: z.string().uuid().min(1).optional(),
     });
 
     static readonly RESETPASSWORD: ZodType = z.object({

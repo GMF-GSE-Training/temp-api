@@ -26,11 +26,11 @@ export interface CotResponse {
     id: string;
     startDate: Date; 
     endDate: Date;
-    trainingLocation: string;
-    theoryInstructorRegGse: string;
-    theoryInstructorCompetency: string;
-    practicalInstructor1: string;
-    practicalInstructor2: string;
-    status: string;
+    trainingLocation?: string;
+    theoryInstructorRegGse?: string;
+    theoryInstructorCompetency?: string;
+    practicalInstructor1?: string;
+    practicalInstructor2?: string;
+    status?: string;
     Capability?: Object;
 }

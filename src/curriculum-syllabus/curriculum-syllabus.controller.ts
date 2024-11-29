@@ -2,9 +2,9 @@ import { Body, Controller, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Po
 import { CurriculumSyllabusService } from "./curriculum-syllabus.service";
 import { CreateCurriculumSyllabus, UpdateCurriculumSyllabus } from "src/model/curriculum-syllabus.model";
 import { buildResponse, WebResponse } from "src/model/web.model";
-import { Roles } from "src/common/decorator/role.decorator";
-import { AuthGuard } from "src/common/guard/auth.guard";
-import { RoleGuard } from "src/common/guard/role.guard";
+import { Roles } from "src/shared/decorator/role.decorator";
+import { AuthGuard } from "src/shared/guard/auth.guard";
+import { RoleGuard } from "src/shared/guard/role.guard";
 
 @Controller('/curriculum-syllabus')
 export class CurriculumSyllabusController {

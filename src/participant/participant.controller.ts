@@ -2,11 +2,12 @@ import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Par
 import { ParticipantService } from "./participant.service";
 import { CreateParticipantRequest, ListParticipantResponse, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
-import { AuthGuard } from "../common/guard/auth.guard";
+import { AuthGuard } from "../shared/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { RoleGuard } from "../common/guard/role.guard";
-import { Roles } from "../common/decorator/role.decorator";
+import { RoleGuard } from "../shared/guard/role.guard";
+import { Roles } from "../shared/decorator/role.decorator";
 import { CurrentUserRequest } from "src/model/auth.model";
+import { User } from "src/shared/decorator/user.decorator";
 
 @Controller('/participants')
 export class ParticipantController {
@@ -25,7 +26,7 @@ export class ParticipantController {
         { name: 'suratBebasNarkoba', maxCount: 1 },
     ]))
     async create(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Body() createParticipantDto: CreateParticipantRequest,
         @UploadedFiles() files: {
             simA?: Express.Multer.File[],
@@ -72,7 +73,7 @@ export class ParticipantController {
         { name: 'suratBebasNarkoba', maxCount: 1 },
     ]))
     async update(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Param('participantId', ParseUUIDPipe) participantId: string,
         @Body() req: Omit<UpdateParticipantRequest, 'simA' | 'simB' | 'ktp' | 'foto' | 'suratSehatButaWarna' | 'suratBebasNarkoba'>,
         @UploadedFiles() files: {
@@ -83,7 +84,7 @@ export class ParticipantController {
             suratSehatButaWarna?: Express.Multer.File[],
             suratBebasNarkoba?: Express.Multer.File[],
         }
-    ): Promise<WebResponse<ParticipantResponse>> {
+    ): Promise<WebResponse<string>> {
         // Validasi ukuran file secara manual
         const maxSize = 2 * 1024 * 1024; // 2 MB
 
@@ -119,15 +120,15 @@ export class ParticipantController {
             suratBebasNarkoba: files?.suratBebasNarkoba?.[0]?.buffer || undefined,
         };
 
-        const participant = await this.participantService.updateParticipant(participantId, participantData, user);
-        return buildResponse(HttpStatus.OK, participant);
+        const result = await this.participantService.updateParticipant(participantId, participantData, user);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @Get('/:participantId/sim-a')
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimA(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSimA(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'simA', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -137,7 +138,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSimB(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSimB(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'simB', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -147,7 +148,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getFoto(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getFoto(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'foto', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -157,7 +158,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getKTP(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getKTP(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'ktp', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -167,7 +168,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratSehat(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSuratSehat(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'suratSehatButaWarna', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -177,7 +178,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getSuratKetBebasNarkoba(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'suratBebasNarkoba', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -187,7 +188,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async getQrCode(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async getQrCode(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const fileBuffer = await this.participantService.streamFile(participantId, 'qrCode', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
@@ -197,7 +198,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
+    async get(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<ParticipantResponse>> {
         const result = await this.participantService.getParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -233,7 +234,7 @@ export class ParticipantController {
     @HttpCode(200)
     @Roles('super admin', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
-    async delete(@Param('participantId', ParseUUIDPipe) participantId: string, @Req() user: CurrentUserRequest): Promise<WebResponse<string>> {
+    async delete(@Param('participantId', ParseUUIDPipe) participantId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
         const result = await this.participantService.deleteParticipant(participantId, user);
         return buildResponse(HttpStatus.OK, result);
     }
@@ -242,7 +243,7 @@ export class ParticipantController {
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
@@ -259,7 +260,7 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async search(
-        @Req() user: CurrentUserRequest,
+        @User() user: CurrentUserRequest,
         @Query('q') q: string,
         @Query('page', new ParseIntPipe({ optional: true })) page?: number,
         @Query('size', new ParseIntPipe({ optional: true })) size?: number,
@@ -273,6 +274,7 @@ export class ParticipantController {
             page: page || 1,
             size: size || 10,
         };
+        console.log(query)
         const result = await this.participantService.searchParticipant(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
@@ -281,8 +283,8 @@ export class ParticipantController {
     @Roles('user')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async isDataComplete(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<boolean> {
+    async isDataComplete(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<WebResponse<boolean>> {
         const result = await this.participantService.isDataComplete(participantId);
-        return result;
+        return buildResponse(HttpStatus.OK, result);
     }
 }

@@ -1,20 +1,17 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../common/guard/auth.guard";
+import { AuthGuard } from "../shared/guard/auth.guard";
 import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 import { Response } from "express";
-import { JwtService } from "@nestjs/jwt";
-import { PrismaService } from "src/common/service/prisma.service";
 import { ConfigService } from "@nestjs/config";
 import * as os from 'os';
+import { User } from "src/shared/decorator/user.decorator";
 
 @Controller('/auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly jwtService: JwtService,
-        private readonly prismaService: PrismaService,
         private readonly configService: ConfigService,
     ) {}
 
@@ -83,12 +80,13 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @Get('/current')
     @HttpCode(200)
-    async me(@Req() req: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
-        const result = await this.authService.me(req);
+    async me(@User() user: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
+        const result = await this.authService.me(user);
         return buildResponse(HttpStatus.OK, result);
     }
 
     @Post('request-reset-password')
+    @HttpCode(200)
     async requestResetPassword(@Body('email') email: string): Promise<WebResponse<string>> {
         const result = await this.authService.requestPasswordReset(email);
         return buildResponse(HttpStatus.OK, result);
@@ -108,15 +106,15 @@ export class AuthController {
                 if (addresses) {
                 for (const addr of addresses) {
                     if (addr.family === 'IPv4' && !addr.internal) {
-                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
-                    break;
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
                     }
                 }
                 }
             }
 
             // Redirect ke frontend untuk memasukkan password baru
-            res.redirect(`http://${localIp}:4200}/reset/${token}`);
+            res.redirect(`http://${localIp}:4200/reset/${token}`);
             return buildResponse(HttpStatus.OK, isValid);
         } else {
             throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
@@ -124,15 +122,15 @@ export class AuthController {
     }
 
     @Post('reset-password')
-    async resetPassword(@Body() req: ResetPassword): Promise<WebResponse<boolean>> {
-        await this.authService.resetPassword(req);
-        return buildResponse(HttpStatus.OK, true);
+    async resetPassword(@Body() req: ResetPassword): Promise<WebResponse<string>> {
+        const result = await this.authService.resetPassword(req);
+        return buildResponse(HttpStatus.OK, result);
     }
 
     @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
-    async logout(@Req() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
+    async logout(@User() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
         const result = await this.authService.logout(req);
         res.cookie('access_token', '', {
             httpOnly: true,
