@@ -1,3 +1,5 @@
+import { ParticipantResponse } from "./participant.model";
+
 export interface RegisterUserRequest {
     participantId?: string;
     idNumber?: string;
@@ -23,10 +25,11 @@ export interface CurrentUserRequest {
     nik: string;
     dinas: string;
     roleId: string;
+    refreshToken?: string;
     role: {
         id: string;
         name: string;
-    }
+    },
 }
 
 export interface ResetPassword {
@@ -36,16 +39,18 @@ export interface ResetPassword {
 }
 
 export interface AuthResponse {
-    id: string;
-    participantId?: string;
+    id?: string;
     idNumber?: string;
     email?: string;
-    name: string;
+    name?: string;
     dinas?: string;
-    roleId?: string;
-    token?: string;
-    role: {
-        id: string,
-        name: string,
-    }
+    refreshToken?: string;
+    accessToken?: string;
+    role?: {
+        id?: string,
+        name?: string,
+    },
+    participant?: ParticipantResponse;
+    isDataComplete?: boolean;
+    expiredAt?: number;
 }

@@ -87,8 +87,8 @@ export class ESignController {
     @Roles('super admin', 'supervisor', 'lcu')
     @UseGuards(AuthGuard, RoleGuard)
     async list(
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Page must be a positive number', 400) })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Size must be a positive number', 400) })) size?: number,
     ): Promise<WebResponse<ESignResponse[]>> {
         const query: ListRequest = { 
             page: page || 1,

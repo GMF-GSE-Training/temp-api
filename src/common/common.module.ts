@@ -5,8 +5,8 @@ import { PrismaService } from './service/prisma.service';
 import { ValidationService } from './service/validation.service';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error/error.filter';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { MulterModule } from "@nestjs/platform-express";
 import { extname } from 'path';
 import { CoreHelper } from './helpers/core.helper';
@@ -21,16 +21,7 @@ import { CoreUtil } from 'src/common/utils/core.utils';
                 new winston.transports.Console()
             ]
         }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('ACCESS_TOKEN'),
-                signOptions: {
-                    expiresIn: configService.get<string>('ACCESS_TOKEN_EXPIRES_IN'),
-                },
-            }),
-        }),
+        JwtModule.register({}),
         MulterModule.register({
             fileFilter: (_req, file, callback) => {
                 const allowedExtensions = ['.png', '.jpg', '.jpeg', '.pdf'];
@@ -55,6 +46,39 @@ import { CoreUtil } from 'src/common/utils/core.utils';
         },
         CoreHelper,
         CoreUtil,
+        {
+            provide: 'ACCESS_JWT_SERVICE',
+            useFactory: async (configService: ConfigService) =>
+            new JwtService({
+                secret: configService.get<string>('ACCESS_TOKEN'),
+                signOptions: {
+                    expiresIn: '5m',
+                },
+            }),
+            inject: [ConfigService],
+        },
+        {
+            provide: 'REFRESH_JWT_SERVICE',
+            useFactory: async (configService: ConfigService) =>
+            new JwtService({
+                secret: configService.get<string>('REFRESH_TOKEN'),
+                signOptions: {
+                    expiresIn: '1d',
+                },
+            }),
+            inject: [ConfigService],
+        },
+        {
+            provide: 'VERIFICATION_JWT_SERVICE',
+            useFactory: async (configService: ConfigService) =>
+            new JwtService({
+                secret: configService.get<string>('VERIFICATION_TOKEN'),
+                signOptions: {
+                    expiresIn: '15m',
+                },
+            }),
+            inject: [ConfigService],
+        },
     ],
     exports: [
         PrismaService,
@@ -62,8 +86,11 @@ import { CoreUtil } from 'src/common/utils/core.utils';
         JwtModule,
         CoreHelper,
         CoreUtil,
+        'ACCESS_JWT_SERVICE',
+        'REFRESH_JWT_SERVICE',
+        'VERIFICATION_JWT_SERVICE',
     ],
 })
 export class CommonModule {
-
+    
 }

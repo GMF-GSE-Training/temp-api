@@ -18,7 +18,6 @@ export class CoreHelper {
         excludeId?: string
     ): Promise<void> {
         for (const { field, value, message } of data) {
-            console.log(field, value)
             if (!value || value === null || value === '') {
                 continue;
             }

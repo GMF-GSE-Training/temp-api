@@ -4,7 +4,7 @@ import { ValidationService } from "../common/service/validation.service";
 import { CreateUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { UserValidation } from "./user.validation";
 import * as bcrypt from 'bcrypt';
-import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { CoreHelper } from "src/common/helpers/core.helper";
 import { RoleResponse } from "src/model/role.model";
@@ -86,7 +86,7 @@ export class UserService {
         await this.prismaService.user.create({
                 data: {
                     ...createRequest,
-                    emailVerified: true,
+                    verifiedAccount: true,
                 },
                 select: userSelectFields,
         });
@@ -222,43 +222,51 @@ export class UserService {
         return "User berhasil dihapus";
     }
 
-    async listUsers(req: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const listRequest: ListRequest = this.validationService.validate(UserValidation.LIST, req);
+    async listUsers(request: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
         const userRole = user.role.name.toLowerCase();
     
         const userSelectFields = this.userSelectFields();
-        let whereCondition = {};
+        let whereCondition: any = {};
+    
+        if (request.searchQuery) {
+            const searchQuery = request.searchQuery.toLowerCase();
+            if (userRole === 'super admin' || userRole === 'supervisor') {
+                whereCondition.OR = [
+                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
+                    { email: { contains: searchQuery, mode: 'insensitive' } },
+                    { name: { contains: searchQuery, mode: 'insensitive' } },
+                    { role: { name: { contains: searchQuery, mode: 'insensitive' } } },
+                    { dinas: { contains: searchQuery, mode: 'insensitive' } },
+                ];
+            } else {
+                whereCondition.OR = [
+                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
+                    { email: { contains: searchQuery, mode: 'insensitive' } },
+                    { name: { contains: searchQuery, mode: 'insensitive' } },
+                ];
+            }
+        }
     
         if (userRole === 'lcu') {
-            whereCondition = {
-                role: {
-                    name: {
-                        equals: 'user',
-                        mode: 'insensitive',
-                    },
-                },
-                dinas: {
-                    equals: user.dinas,
-                    mode: 'insensitive',
-                },
-            };
+            whereCondition.dinas = user.dinas;
+            whereCondition.role = { name: 'user' };
         }
     
         // Hitung total data
         const totalUsers = await this.prismaService.user.count({
-            where: whereCondition,
+            where: whereCondition
         });
     
         // Ambil data dengan paginasi
         const users = await this.prismaService.user.findMany({
             where: whereCondition,
             select: userSelectFields,
-            skip: (listRequest.page - 1) * listRequest.size,
-            take: listRequest.size,
+            skip: (request.page - 1) * request.size,
+            take: request.size,
         });
     
         // Hitung total halaman
-        const totalPage = Math.ceil(totalUsers / listRequest.size);
+        const totalPage = Math.ceil(totalUsers / request.size);
         
         // Dapatkan actions berdasarkan role user
         const actions = this.validateActions(userRole);
@@ -270,67 +278,9 @@ export class UserService {
             data: formattedUsers,
             actions: actions,
             paging: {
-                currentPage: listRequest.page,
+                currentPage: request.page,
                 totalPage: totalPage,
-                size: listRequest.size,
-            },
-        };
-    }
-
-    async searchUser(req: SearchRequest, user: CurrentUserRequest): Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const searchRequest: SearchRequest = this.validationService.validate(UserValidation.SEARCH, req);
-    
-        const userRole = user.role.name.toLowerCase();
-    
-        const userSelectFields = this.userSelectFields();
-        let whereClause: any = {};
-    
-        if (userRole === 'lcu') {
-            whereClause.dinas = user.dinas;
-            whereClause.role = { name: 'user' };
-        }
-    
-        if (searchRequest.searchQuery) {
-            const query = searchRequest.searchQuery.toLowerCase();
-            if (userRole === 'super admin' || userRole === 'supervisor') {
-                whereClause.OR = [
-                    { idNumber: { contains: query, mode: 'insensitive' } },
-                    { email: { contains: query, mode: 'insensitive' } },
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { role: { name: { contains: query, mode: 'insensitive' } } },
-                    { dinas: { contains: query, mode: 'insensitive' } },
-                ];
-            } else {
-                whereClause.OR = [
-                    { idNumber: { contains: query, mode: 'insensitive' } },
-                    { email: { contains: query, mode: 'insensitive' } },
-                    { name: { contains: query, mode: 'insensitive' } },
-                ];
-            }
-        }
-    
-        const totalUsers = await this.prismaService.user.count({
-            where: whereClause,
-        });
-    
-        const users = await this.prismaService.user.findMany({
-            where: whereClause,
-            select: userSelectFields,
-            take: searchRequest.size,
-            skip: (searchRequest.page - 1) * searchRequest.size,
-        });
-    
-        const totalPage = Math.ceil(totalUsers / searchRequest.size);
-        const actions = this.validateActions(userRole);
-        const formattedUsers = users.map(({ nik, ...rest }) => this.toUserResponse(rest));
-    
-        return {
-            data: formattedUsers,
-            actions: actions,
-            paging: {
-                currentPage: searchRequest.page,
-                totalPage: totalPage,
-                size: searchRequest.size,
+                size: request.size,
             },
         };
     }

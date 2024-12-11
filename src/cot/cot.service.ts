@@ -3,7 +3,7 @@ import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
 import { CotResponse, CreateCot, UpdateCot } from "src/model/cot.model";
 import { CotValidation } from "./cot.validation";
-import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { CoreHelper } from "src/common/helpers/core.helper";
 
@@ -163,7 +163,7 @@ export class CotService {
         return 'Berhasil menghapus COT';
     }
 
-    async listCot(user: CurrentUserRequest, request: ListRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
+    async listCot(request: ListRequest, user: CurrentUserRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
         const userRole = user.role.name.toLowerCase();
         const dateFilter: any = {};
     
@@ -172,37 +172,32 @@ export class CotService {
             dateFilter.AND = [
                 {
                     startDate: {
-                        gte: new Date(request.startDate),
+                        gte: request.startDate,
                     },
                 },
                 {
                     endDate: {
-                        lte: new Date(request.endDate),
+                        lte: request.endDate,
                     },
                 },
             ];
-
-            // Tanggal mulai dan Tanggal selesai harus
-            // dateFilter.AND = [
-            //     {
-            //         startDate: {
-            //             equals: new Date(request.startDate),
-            //         },
-            //     },
-            //     {
-            //         endDate: {
-            //             equals: new Date(request.endDate),
-            //         },
-            //     },
-            // ];
         } else if (request.startDate) {
             dateFilter.startDate = {
-                equals: new Date(request.startDate)
+                equals: request.startDate
             };
         } else if (request.endDate) {
             dateFilter.endDate = {
-                equals: new Date(request.endDate)
+                equals: request.endDate
             };
+        }
+    
+        let whereClauseCapability: any = {};
+        if(request.searchQuery) {
+            const searchQuery = request.searchQuery;
+            whereClauseCapability.OR = [
+                { ratingCode: { contains: request.searchQuery, mode: 'insensitive' } },
+                { trainingName: { contains: request.searchQuery, mode: 'insensitive' } },
+            ]
         }
     
         const whereCondition = userRole === 'user' ? {
@@ -214,8 +209,18 @@ export class CotService {
                     ...dateFilter,
                 },
             },
+            capabilityCots: {
+                some: {
+                    capability: whereClauseCapability,
+                },
+            },
         } : {
             ...dateFilter,
+            capabilityCots: {
+                some: {
+                    capability: whereClauseCapability,
+                },
+            },
         };
     
         // Hitung total data
@@ -257,112 +262,6 @@ export class CotService {
                 totalPage: totalPage,
                 size: request.size,
             },
-        };
-    }
-
-    async searchCot(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: CotResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const query = request.searchQuery.toLowerCase();
-        const userRole = user.role.name.toLowerCase();
-
-        const dateFilter: any = {};
-
-        if (request.startDate && request.endDate) {
-            // Range
-            dateFilter.AND = [
-                {
-                    startDate: {
-                        gte: new Date(request.startDate),
-                    },
-                },
-                {
-                    endDate: {
-                        lte: new Date(request.endDate),
-                    },
-                },
-            ];
-        } else if (request.startDate) {
-            dateFilter.startDate = {
-                equals: new Date(request.startDate),
-            };
-        } else if (request.endDate) {
-            dateFilter.endDate = {
-                equals: new Date(request.endDate),
-            };
-        }
-    
-        const whereCondition = userRole === 'user' ? {
-            participantsCots: {
-                some: {
-                    participant: {
-                        id: user.participantId,
-                    },
-                    ...dateFilter,
-                },
-            },
-            // If no search query, we apply the date filter to the search as well
-            capabilityCots: {
-                some: {
-                    capability: {
-                        OR: [
-                            { ratingCode: { contains: query, mode: 'insensitive' } },
-                            { trainingName: { contains: query, mode: 'insensitive' } },
-                        ],
-                    },
-                },
-            },
-        } : {
-            ...dateFilter,
-            capabilityCots: {
-                some: {
-                    capability: {
-                        OR: [
-                            { ratingCode: { contains: query, mode: 'insensitive' } },
-                            { trainingName: { contains: query, mode: 'insensitive' } },
-                        ],
-                    },
-                },
-            },
-        };
-
-        const totalCot = await this.prismaService.cOT.count({
-            where: whereCondition,
-        });
-    
-        // Ambil data sesuai dengan paginasi
-        const cot = await this.prismaService.cOT.findMany({
-            where: whereCondition,
-            include: {
-                capabilityCots: {
-                    select: {
-                        capability: {
-                            select: {
-                                ratingCode: true,
-                                trainingName: true,
-                            },
-                        },
-                    },
-                },
-            },
-            skip: (request.page - 1) * request.size,
-            take: request.size,
-        });
-    
-        const actions = this.validateActions(userRole);
-    
-        // Format data ke dalam bentuk CotResponse
-        const formattedCot = cot.map(this.formatCotList);
-    
-        // Hitung total halaman
-        const totalPage = Math.ceil(totalCot / request.size);
-    
-        return {
-            data: formattedCot,
-            actions: actions,
-            paging: {
-                currentPage: request.page,
-                totalPage: totalPage,
-                size: request.size,
-            }
         };
     }
 

@@ -3,7 +3,7 @@ import { PrismaService } from "src/common/service/prisma.service";
 import { ValidationService } from "src/common/service/validation.service";
 import { CapabilityResponse, CreateCapability, UpdateCapability } from "src/model/capability.model";
 import { CapabilityValidation } from "./capability.validation";
-import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { CoreHelper } from "src/common/helpers/core.helper";
 
@@ -131,14 +131,27 @@ export class CapabilityService {
     }
 
     async listCapability(user: CurrentUserRequest, request: ListRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const capability = await this.prismaService.capability.findMany({
-            take: request.size,
-            skip: (request.page - 1) * request.size,
+        let whereClause: any = {};
+        if(request.searchQuery) {
+            const searchQuery = request.searchQuery;
+            whereClause.OR = [
+                { ratingCode: { contains: searchQuery, mode: 'insensitive' } },
+                { trainingCode: { contains: searchQuery, mode: 'insensitive' } },
+                { trainingName: { contains: searchQuery, mode: 'insensitive' } },
+            ];
+        }
+
+        const totalCapability = await this.prismaService.capability.count({
+            where: whereClause,
         });
     
-        const totalCapability = await this.prismaService.capability.count();
+        const capabilities = await this.prismaService.capability.findMany({
+            where: whereClause,
+            skip: (request.page - 1) * request.size,
+            take: request.size,
+        });
     
-        const capabilitiesWithFilteredAttributes = capability.map(this.mapCapabilityWithDurations);
+        const capabilitiesWithFilteredAttributes = capabilities.map(this.mapCapabilityWithDurations);
     
         const totalPage = Math.ceil(totalCapability / request.size);
     
@@ -154,53 +167,6 @@ export class CapabilityService {
                 size: request.size,
             },
         };
-    }
-
-    async searchCapability(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: CapabilityResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const query = request.searchQuery.toLowerCase();
-    
-        // Ambil total jumlah data yang cocok dengan filter
-        const totalCapability = await this.prismaService.capability.count({
-            where: {
-                OR: [
-                    { ratingCode: { contains: query, mode: 'insensitive' } },
-                    { trainingCode: { contains: query, mode: 'insensitive' } },
-                    { trainingName: { contains: query, mode: 'insensitive' } },
-                ],
-            },
-        });
-    
-        // Ambil data capability sesuai paginasi dan query
-        const capabilities = await this.prismaService.capability.findMany({
-            where: {
-                OR: [
-                    { ratingCode: { contains: query, mode: 'insensitive' } },
-                    { trainingCode: { contains: query, mode: 'insensitive' } },
-                    { trainingName: { contains: query, mode: 'insensitive' } },
-                ],
-            },
-            skip: (request.page - 1) * request.size,
-            take: request.size,
-        });
-    
-        // Hitung total duration untuk setiap capability
-        const capabilitiesWithFilteredAttributes = capabilities.map(this.mapCapabilityWithDurations);
-    
-        // Hitung total halaman
-        const totalPage = Math.ceil(totalCapability / request.size);
-    
-        const userRole = user.role.name.toLowerCase();
-        const actions = this.validateActions(userRole);
-    
-        return {
-            data: capabilitiesWithFilteredAttributes,
-            actions: actions,
-            paging: {
-                currentPage: request.page,
-                totalPage: totalPage,
-                size: request.size,
-            }
-        }
     }
 
     private validateActions(userRole: string): ActionAccessRights {

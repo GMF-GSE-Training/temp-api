@@ -224,7 +224,7 @@ async function seedDatabase(prismaService: PrismaClient) {
                     name: dataDummy[i+15].name,
                     password: superAdminHashedPassword,
                     roleId: superAdminRole.id,
-                    emailVerified: true,
+                    verifiedAccount: true,
                 },
             });
             console.log(`Super Admin ${i+1} created successfully.`);
@@ -247,7 +247,7 @@ async function seedDatabase(prismaService: PrismaClient) {
                     name: dataDummy[i+20].name,
                     password: supervisorHashedPassword,
                     roleId: supervisorRole.id,
-                    emailVerified: true,
+                    verifiedAccount: true,
                     dinas: dinas
                 },
             });
@@ -271,7 +271,7 @@ async function seedDatabase(prismaService: PrismaClient) {
                     dinas: dinasList[i],
                     password: lcuHashedPassword,
                     roleId: lcuRole.id,
-                    emailVerified: true,
+                    verifiedAccount: true,
                 },
             });
             console.log(`LCU ${i+1} created successfully.`);
@@ -296,7 +296,7 @@ async function seedDatabase(prismaService: PrismaClient) {
                     password: userHashedPassword,
                     dinas: participant[i].dinas,
                     roleId: userRole.id,
-                    emailVerified: true,
+                    verifiedAccount: true,
                 },
             });
 

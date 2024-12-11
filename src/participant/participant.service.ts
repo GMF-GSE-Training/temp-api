@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
-import { CreateParticipantRequest, ListParticipantResponse, ParticipantList, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
+import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
 import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
@@ -8,9 +8,10 @@ import * as puppeteer from 'puppeteer';
 import { IdCardModel } from "../model/id-card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
-import { ActionAccessRights, ListRequest, Paging, SearchRequest } from "src/model/web.model";
+import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 import { ConfigService } from "@nestjs/config";
 import { CoreHelper } from "src/common/helpers/core.helper";
+import { PDFDocument, PDFImage } from "pdf-lib";
 
 @Injectable()
 export class ParticipantService {
@@ -85,7 +86,6 @@ export class ParticipantService {
                 suratBebasNarkoba: createRequest.suratBebasNarkoba,
                 suratBebasNarkobaFileName: createRequest.suratBebasNarkobaFileName,
                 tglKeluarSuratBebasNarkoba: createRequest.tglKeluarSuratBebasNarkoba,
-                qrCodeLink: '',
                 qrCode: null,
                 gmfNonGmf: createRequest.gmfNonGmf,
             },
@@ -102,7 +102,6 @@ export class ParticipantService {
         const result = await this.prismaService.participant.update({
             where: { id: participant.id },
             data: {
-                qrCodeLink: link,
                 qrCode: qrCodeBuffer,
             },
         });
@@ -144,6 +143,9 @@ export class ParticipantService {
         }
     
         const userRole = user.role.name.toLowerCase();
+
+        console.log(participant.nik)
+        console.log(user.nik)
     
         if(userRole === 'user') {
             if(participant.nik !== user.nik) {
@@ -161,6 +163,14 @@ export class ParticipantService {
     async downloadIdCard(participantId: string): Promise<Buffer> {
         const participant = await this.prismaService.participant.findUnique({
             where: { id: participantId },
+            select: {
+                idNumber: true,
+                name: true,
+                foto: true,
+                company: true,
+                nationality: true,
+                qrCode: true,
+            }
         });
     
         if (!participant) {
@@ -184,6 +194,100 @@ export class ParticipantService {
         await browser.close(); // Don't forget to close the browser after generating PDF
     
         return Buffer.from(pdfBuffer);
+    }
+
+    async downloadDocument(participantId: string): Promise<Buffer> {
+        const participant = await this.prismaService.participant.findUnique({
+            where: { id: participantId },
+            select: {
+                name: true,
+                simA: true,
+                simB: true,
+                ktp: true,
+                suratSehatButaWarna: true,
+                suratBebasNarkoba: true
+            }
+        });
+    
+        if (!participant) {
+            throw new HttpException('Peserta tidak ditemukan', 404);
+        }
+
+        console.log('SIM A:', participant.simA ? 'Ada' : 'Tidak Ada');
+        console.log('KTP:', participant.ktp ? 'Ada' : 'Tidak Ada');
+        console.log('Surat Sehat:', participant.suratSehatButaWarna ? 'Ada' : 'Tidak Ada');
+        console.log('Surat Bebas Narkoba:', participant.suratBebasNarkoba ? 'Ada' : 'Tidak Ada');
+    
+        if (!participant.simA || !participant.ktp || !participant.suratSehatButaWarna || !participant.suratBebasNarkoba) {
+            throw new HttpException('Dokumen belum lengkap, lengkapi data terlebih dahulu', 400);
+        }
+
+        try {
+            console.log('Tipe SIM A:', this.getMediaType(Buffer.from(participant.simA)));
+            console.log('Tipe KTP:', this.getMediaType(Buffer.from(participant.ktp)));
+            console.log('Tipe Surat Sehat:', this.getMediaType(Buffer.from(participant.suratSehatButaWarna)));
+            console.log('Tipe Surat Bebas Narkoba:', this.getMediaType(Buffer.from(participant.suratBebasNarkoba)));
+        } catch (error) {
+            console.error('Error mendeteksi tipe file:', error);
+        }
+    
+        const pdfDoc = await PDFDocument.create();
+    
+        // Helper function to handle both image and PDF
+        const addFileToPdf = async (fileBuffer: Buffer, fileName: string) => {
+            try {
+                const mimeType = this.getMediaType(fileBuffer);
+                
+                if (mimeType.startsWith('application/pdf')) {
+                    const existingPdf = await PDFDocument.load(fileBuffer);
+                    const copiedPages = await pdfDoc.copyPages(existingPdf, existingPdf.getPageIndices());
+                    copiedPages.forEach((page) => pdfDoc.addPage(page));
+                } else if (mimeType.startsWith('image/')) {
+                    const page = pdfDoc.addPage();
+                    const { width, height } = page.getSize();
+                    const imageBytes = fileBuffer;
+                    
+                    let embeddedImage: PDFImage;
+                    if (mimeType === 'image/jpeg') {
+                        embeddedImage = await pdfDoc.embedJpg(imageBytes);
+                    } else if (mimeType === 'image/png') {
+                        embeddedImage = await pdfDoc.embedPng(imageBytes);
+                    } else {
+                        console.warn(`Unsupported image type for ${fileName}`);
+                        return;
+                    }
+                
+                    // Scale image to fit page while maintaining aspect ratio
+                    const scale = Math.min(
+                        width / embeddedImage.width, 
+                        height / embeddedImage.height
+                    );
+                    const scaledWidth = embeddedImage.width * scale;
+                    const scaledHeight = embeddedImage.height * scale;
+    
+                    page.drawImage(embeddedImage, {
+                        x: (width - scaledWidth) / 2,
+                        y: (height - scaledHeight) / 2,
+                        width: scaledWidth,
+                        height: scaledHeight,
+                    });
+                } else {
+                    console.warn(`Unsupported file format for ${fileName}`);
+                }
+            } catch (error) {
+                console.error(`Error processing ${fileName}:`, error);
+                throw new HttpException(`Gagal memproses dokumen ${fileName}`, 500);
+            }
+        };
+
+        // Add each document to the final PDF
+        await addFileToPdf(Buffer.from(participant.simA), 'SIM A');
+        await addFileToPdf(Buffer.from(participant.ktp), 'KTP');
+        await addFileToPdf(Buffer.from(participant.suratSehatButaWarna), 'Surat Sehat Buta Warna');
+        await addFileToPdf(Buffer.from(participant.suratBebasNarkoba), 'Surat Bebas Narkoba');
+
+        const pdfBytes = await pdfDoc.save();
+        return Buffer.from(pdfBytes);
     }
 
     async getIdCard(participantId: string): Promise<string> {
@@ -241,32 +345,14 @@ export class ParticipantService {
         await this.coreHelper.ensureUniqueFields('participant', [
             { field: 'idNumber', value: updateRequest.idNumber, message: 'No Pegawai sudah ada di data peserta' },
         ], participantId);
+        
+        await this.prismaService.participant.update({
+            where: { id: participantId },
+            data: {
+                ...updateRequest,
+            },
+        });
     
-        if(updateRequest.qrCodeLink || (!participant.qrCodeLink || !participant.qrCode)) {
-            // Modifikasi qrCodeLink dengan ID peserta
-            const qrCodeLink = updateRequest.qrCodeLink.replace('{id}', participant.id);
-        
-            // Generate QR code
-            const qrCodeBase64 = await QRCode.toDataURL(qrCodeLink, { width: 500 });
-            const qrCodeBuffer = Buffer.from(qrCodeBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
-        
-            await this.prismaService.participant.update({
-                where: { id: participantId },
-                data: {
-                    ...updateRequest,
-                    qrCodeLink: qrCodeLink,
-                    qrCode: qrCodeBuffer,
-                },
-            });
-        } else {
-            await this.prismaService.participant.update({
-                where: { id: participantId },
-                data: {
-                    ...updateRequest,
-                },
-            });
-        }
-
         if(participant.nik) {
             const updateUser = {
                 idNumber: updateRequest.idNumber,
@@ -342,7 +428,6 @@ export class ParticipantService {
     }    
 
     async listParticipants(request: ListRequest, user: CurrentUserRequest):Promise<{ data: ParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
-        
         const userRole = user.role.name.toLowerCase();
     
         const participantSelectFields = {
@@ -355,18 +440,39 @@ export class ParticipantService {
             email: true,
         }
     
-        let whereCondition = {};
+        let whereClause: any = {};
     
         if (userRole === 'lcu') {
-            whereCondition = { dinas: user.dinas };
+            whereClause = { dinas: user.dinas };
+        }
+        
+        if (request.searchQuery) {
+            const searchQuery = request.searchQuery;
+            if (userRole === 'super admin' || userRole === 'supervisor') {
+                whereClause.OR = [
+                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
+                    { name: { contains: searchQuery, mode: 'insensitive' } },
+                    { email: { contains: searchQuery, mode: 'insensitive' } },
+                    { dinas: { contains: searchQuery, mode: 'insensitive' } },
+                    { bidang: { contains: searchQuery, mode: 'insensitive' } },
+                    { company: { contains: searchQuery, mode: 'insensitive' } },
+                ];
+            } else {
+                whereClause.OR = [
+                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
+                    { name: { contains: searchQuery, mode: 'insensitive' } },
+                    { email: { contains: searchQuery, mode: 'insensitive' } },
+                    { bidang: { contains: searchQuery, mode: 'insensitive' } },
+                ];
+            }
         }
     
         const totalUsers = await this.prismaService.participant.count({
-            where: whereCondition,
+            where: whereClause,
         });
     
         const participants = await this.prismaService.participant.findMany({
-            where: whereCondition,
+            where: whereClause,
             select: participantSelectFields,
             skip: (request.page - 1) * request.size,
             take: request.size,
@@ -385,101 +491,6 @@ export class ParticipantService {
                 size: request.size,
             },
         };
-    }
-
-    async searchParticipant(request: SearchRequest, user: CurrentUserRequest): Promise<{ data: ListParticipantResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const userRole = user.role.name.toLowerCase();
-        
-        const participantSelectFields = {
-            id: true,
-            idNumber: true,
-            name: true,
-            email: true,
-            dinas: true,
-            bidang: true,
-            company: true,
-        };
-
-        // Prepare where clause for Prisma based on role and search query
-        let whereClause: any = {};
-
-        // Add dinas filter if user is LCU
-        if (userRole === 'lcu') {
-            whereClause.dinas = user.dinas;
-        }
-
-        // Add search query filters if provided
-        if (request.searchQuery) {
-            const query = request.searchQuery.toLowerCase();
-            if (userRole === 'super admin' || userRole === 'supervisor') {
-                whereClause.OR = [
-                    { idNumber: { contains: query, mode: 'insensitive' } },
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { email: { contains: query, mode: 'insensitive' } },
-                    { dinas: { contains: query, mode: 'insensitive' } },
-                    { bidang: { contains: query, mode: 'insensitive' } },
-                    { company: { contains: query, mode: 'insensitive' } },
-                ];
-            } else {
-                whereClause.OR = [
-                    { idNumber: { contains: query, mode: 'insensitive' } },
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { email: { contains: query, mode: 'insensitive' } },
-                    { bidang: { contains: query, mode: 'insensitive' } },
-                ];
-            }
-        }
-
-        const totalParticipants = await this.prismaService.participant.count({
-            where: whereClause,
-        });
-        
-        const participants = await this.prismaService.participant.findMany({
-            where: whereClause,
-            select: participantSelectFields,
-            take: request.size,
-            skip: (request.page - 1) * request.size,
-        });
-        
-        const totalPage = Math.ceil(totalParticipants / request.size);
-        
-        return {
-            data: participants.map(participant => this.toParticipantResponse(participant)),
-            actions: this.validateActions(userRole),
-            paging: {
-                currentPage: request.page,
-                totalPage: totalPage,
-                size: request.size,
-            },
-        };        
-    }
-
-    async isDataComplete(participantId: string): Promise<boolean> {
-        const participant = await this.prismaService.participant.findUnique({
-            where: {
-                id: participantId
-            },
-            select: {
-                name: true,
-                nik: true,
-                company: true,
-                email: true,
-                phoneNumber: true,
-                nationality: true,
-                placeOfBirth: true,
-                dateOfBirth: true,
-                simA: true,
-                ktp: true,
-                foto: true,
-                suratSehatButaWarna: true,
-                tglKeluarSuratSehatButaWarna: true,
-                suratBebasNarkoba: true,
-                tglKeluarSuratBebasNarkoba: true,
-            }
-        });
-
-        const isComplete = participant && Object.values(participant).every(value => value !== null && value !== undefined);
-        return isComplete;
     }
 
     toParticipantResponse(participant: any): ParticipantResponse {
@@ -505,7 +516,6 @@ export class ParticipantService {
             tglKeluarSuratSehatButaWarna: participant.tglKeluarSuratSehatButaWarna,
             tglKeluarSuratBebasNarkoba: participant.tglKeluarSuratBebasNarkoba,
             gmfNonGmf: participant.gmfNonGmf,
-            qrCodeLink: participant.qrCodeLink,
         };
     }
 
@@ -533,4 +543,12 @@ export class ParticipantService {
         
         return this.coreHelper.validateActions(userRole, accessMap);
     }
+
+        private getMediaType(buffer: Buffer): string {
+            const header = buffer.toString('hex', 0, 4);
+            if (header.startsWith('89504e47')) return 'image/png'; // PNG
+            if (header.startsWith('ffd8ff')) return 'image/jpeg'; // JPEG
+            if (header.startsWith('25504446')) return 'application/pdf'; // PDF
+            throw new Error('Unable to detect file type');
+        }
 }

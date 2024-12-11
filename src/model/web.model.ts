@@ -24,18 +24,11 @@ export interface Paging  {
 }
 
 export interface ListRequest {
-    startDate?: string;
-    endDate?: string;
-    page?: number,
-    size?: number,
-}
-
-export interface SearchRequest {
     searchQuery?: string;
     page?: number;
     size?: number;
-    startDate?: string;
-    endDate?: string;
+    startDate?: Date;
+    endDate?: Date;
 }
 
 export function buildResponse<T>(

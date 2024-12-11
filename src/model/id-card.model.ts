@@ -25,7 +25,7 @@ export class IdCardModel {
         if (header.startsWith('89504e47')) return 'image/png'; // PNG
         if (header.startsWith('ffd8ff')) return 'image/jpeg'; // JPEG
         if (header.startsWith('25504446')) return 'application/pdf'; // PDF
-        return ''; // Unknown type
+        return '';
     }
 
     async getHtmlTemplate(): Promise<string> {

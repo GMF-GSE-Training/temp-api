@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, HttpException, Inject, Injectable } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { PrismaService } from "../../common/service/prisma.service";
@@ -7,32 +7,29 @@ import { ConfigService } from "@nestjs/config";
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
-        private jwtService: JwtService,
         private prismaService: PrismaService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        @Inject('ACCESS_JWT_SERVICE') private readonly accessJwtService: JwtService,
     ){}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const referer = request.headers.referer || request.headers.origin;
-        const token = this.extractTokenFromCookie(request);
-
-        if (!token) {
+        const accessToken = this.extractTokenFromCookie(request);
+        
+        if (!accessToken) {
             throw new HttpException('Unauthorized', 401);
         }
-
-        // if (!this.isValidReferer(referer)) {
-        //     throw new HttpException('Akses terlarang', 403);
-        // }
-
+        
+        if (this.isProduction() && !referer) {
+            throw new HttpException('Forbidden', 403);
+        }
+        
         try {
-            const payload = await this.jwtService.verifyAsync(
-                token,
-                { secret: this.configService.get<string>('ACCESS_TOKEN') }
-            );
-
+            const verifyAccessToken = await this.accessJwtService.verifyAsync(accessToken);
+            
             const user = await this.prismaService.user.findUnique({
-                where: { id: payload.sub },
+                where: { id: verifyAccessToken.id },
                 select: {
                     id: true,
                     participantId: true,
@@ -41,18 +38,26 @@ export class AuthGuard implements CanActivate {
                     email: true,
                     name: true,
                     dinas: true,
-                    roleId: true,
-                    token: true,
+                    refreshToken: true,
+                    accountVerificationToken: true,
+                    emailChangeToken: true,
+                    passwordResetToken: true,
+                    verifiedAccount: true,
                     role: true,
                 }
             });
-
-            if (!user || user.token !== token) {
-                throw new HttpException('Unauthorized', 401);
+            
+            if(!user) {
+                throw new HttpException('Pengguna tidak ditemukan', 404);
             }
-
+            
+            if(!user.verifiedAccount) {
+                throw new HttpException('Akun belum diverifikasi', 403);
+            }
+            
             request.user = user;
         } catch (err) {
+            console.log(err)
             throw new HttpException('Unauthorized', 401);
         }
         return true;
@@ -62,17 +67,7 @@ export class AuthGuard implements CanActivate {
         return request.cookies.access_token;
     }
 
-    private isValidReferer(referer: string | undefined): boolean {
-        // Daftar referer yang valid (ganti sesuai environment)
-        const allowedOrigins = [
-            this.configService.get<string>('ORIGIN'), // url aplikasi front-end
-        ];
-
-        if (!referer) {
-            return false; // Jika referer tidak ada, tolak akses
-        }
-
-        // Periksa apakah referer atau origin ada dalam daftar yang diizinkan
-        return allowedOrigins.some(origin => referer.startsWith(origin));
+    private isProduction(): boolean {
+        return this.configService.get<string>('NODE_ENV') === 'production';
     }
 }

@@ -14,20 +14,22 @@ datasource db {
 }
 
 model User {
-  id              String        @id @default(uuid())
-  participantId   String?       @unique
-  idNumber        String?       @unique @db.VarChar(20)
-  email           String        @db.VarChar(255)
-  nik             String?       @unique @db.VarChar(50)
-  name            String        @db.VarChar(50)
-  password        String        @db.VarChar(100)
-  token           String?       @db.VarChar(255)
-  roleId          String
-  dinas           String?       @db.VarChar(50)
-  emailVerified   Boolean       @default(false)
-
-  role            Role          @relation(fields: [roleId], references: [id])
-  participant     Participant?  @relation(fields: [participantId], references: [id])
+  id                        String        @id @default(uuid())
+  participantId             String?       @unique
+  idNumber                  String?       @unique @db.VarChar(20)
+  email                     String        @db.VarChar(255)
+  nik                       String?       @unique @db.VarChar(50)
+  name                      String        @db.VarChar(255)
+  password                  String        @db.VarChar(255)
+  refreshToken              String?       @db.VarChar(255)
+  accountVerificationToken  String?       @db.VarChar(255)
+  emailChangeToken          String?       @db.VarChar(255)
+  passwordResetToken        String?       @db.VarChar(255)
+  roleId                    String
+  dinas                     String?       @db.VarChar(50)
+  verifiedAccount           Boolean       @default(false)
+  role                      Role          @relation(fields: [roleId], references: [id])
+  participant               Participant?  @relation(fields: [participantId], references: [id])
 
   @@map("users")
 }
@@ -44,11 +46,11 @@ model Role {
 model Participant {
   id                            String              @id @default(uuid())
   idNumber                      String?             @unique @db.VarChar(20)
-  name                          String              @db.VarChar(50)
+  name                          String              @db.VarChar(255)
   nik                           String              @unique @db.VarChar(50)
   dinas                         String?             @db.VarChar(50)
   bidang                        String?             @db.VarChar(50)
-  company                       String?             @db.VarChar(50)
+  company                       String?             @db.VarChar(255)
   email                         String              @db.VarChar(255)
   phoneNumber                   String?             @db.VarChar(50)
   nationality                   String?             @db.VarChar(50)
@@ -68,7 +70,6 @@ model Participant {
   suratBebasNarkoba             Bytes?
   suratBebasNarkobaFileName     String?             @db.VarChar(255)
   tglKeluarSuratBebasNarkoba    DateTime?           @db.Date
-  qrCodeLink                    String?             @db.VarChar(255)
   qrCode                        Bytes?
   gmfNonGmf                     String?             @db.VarChar(20)
 

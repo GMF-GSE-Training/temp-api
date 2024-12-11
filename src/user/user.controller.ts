@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
+import { buildResponse, ListRequest, WebResponse } from "../model/web.model";
 import { CreateUserRequest, UpdateUserRequest, UserResponse } from "../model/user.model";
 import { AuthGuard } from "../shared/guard/auth.guard";
 import { RoleGuard } from "../shared/guard/role.guard";
@@ -45,37 +45,16 @@ export class UserController {
     @HttpCode(200)
     async list(
         @User() user: CurrentUserRequest,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<UserResponse[]>> {
-        const query: ListRequest = { 
-            page: page || 1,
-            size: size || 10,
-        };
-        const result = await this.userService.listUsers(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    }
-
-    @Get('/search/result')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
-    @UseGuards(AuthGuard, RoleGuard)
-    @HttpCode(200)
-    async search(
-        @User() user: CurrentUserRequest,
         @Query('q') q: string,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('page', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Page must be a positive number', 400) })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Size must be a positive number', 400) })) size?: number,
     ): Promise<WebResponse<UserResponse[]>> {
-        if(!q) {
-            throw new HttpException('Query kosong, data tidak ditemukan', 404);
-        }
-
-        const query: SearchRequest = {
+        const query: ListRequest = {
             searchQuery: q,
             page: page || 1,
             size: size || 10,
         };
-        const result = await this.userService.searchUser(query, user);
+        const result = await this.userService.listUsers(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 

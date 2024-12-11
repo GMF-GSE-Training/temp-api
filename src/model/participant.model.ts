@@ -54,17 +54,6 @@ export interface UpdateParticipantRequest {
     suratBebasNarkobaFileName?: string;
     tglKeluarSuratBebasNarkoba?: Date;
     gmfNonGmf?: string;
-    qrCodeLink?: string;
-}
-
-export interface ParticipantList {
-    id: string;
-    idNumber: string;
-    name: string;
-    dinas: string;
-    bidang: string;
-    company: string;
-    email: string;
 }
 
 export interface ListParticipantResponse {
@@ -98,5 +87,4 @@ export interface ParticipantResponse {
     tglKeluarSuratSehatButaWarna: Date;
     tglKeluarSuratBebasNarkoba: Date;
     gmfNonGmf: string;
-    qrCodeLink: string;
 }

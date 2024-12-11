@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ParticipantService } from "./participant.service";
-import { CreateParticipantRequest, ListParticipantResponse, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
-import { buildResponse, ListRequest, SearchRequest, WebResponse } from "../model/web.model";
+import { CreateParticipantRequest, ParticipantResponse, UpdateParticipantRequest } from "../model/participant.model";
+import { buildResponse, ListRequest, WebResponse } from "../model/web.model";
 import { AuthGuard } from "../shared/guard/auth.guard";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { RoleGuard } from "../shared/guard/role.guard";
@@ -85,10 +85,8 @@ export class ParticipantController {
             suratBebasNarkoba?: Express.Multer.File[],
         }
     ): Promise<WebResponse<string>> {
-        // Validasi ukuran file secara manual
         const maxSize = 2 * 1024 * 1024; // 2 MB
-
-        // Objek untuk memetakan nama field ke nama yang lebih deskriptif
+    
         const fileNames = {
             simA: 'SIM A',
             simB: 'SIM B',
@@ -98,11 +96,10 @@ export class ParticipantController {
             suratBebasNarkoba: 'Surat Bebas Narkoba',
         };
     
-        // Validasi ukuran file secara manual dengan pesan khusus untuk setiap field
         const fileKeys = Object.keys(files);
         fileKeys.forEach(field => {
             if (files[field] && files[field][0].size > maxSize) {
-                const fieldName = fileNames[field] || field; // Menggunakan nama deskriptif jika ada
+                const fieldName = fileNames[field] || field;
                 throw new HttpException(`File ${fieldName} melebihi ukuran maksimum 2MB.`, 400);
             }
         });
@@ -223,8 +220,28 @@ export class ParticipantController {
     async downloadIdCard(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<StreamableFile> {
         try {
             const pdfBuffer = await this.participantService.downloadIdCard(participantId);
-            const stream = new StreamableFile(pdfBuffer); // Create a StreamableFile instance from the buffer
-            return stream;
+            const filename = `ID_Card_${participantId}.pdf`;
+            return new StreamableFile(pdfBuffer, {
+                type: 'application/pdf',
+                disposition: `attachment; filename="${filename}"`,
+            });
+        } catch (error) {
+            throw new HttpException(error.message, error.status || 500);
+        }
+    }
+
+    @Get('/:participantId/download-document')
+    @Roles('super admin', 'lcu')
+    @UseGuards(AuthGuard, RoleGuard)
+    @HttpCode(200)
+    async downloadDocument(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<StreamableFile> {
+        try {
+            const pdfBuffer = await this.participantService.downloadDocument(participantId);
+            const filename = `Document_${participantId}.pdf`;
+            return new StreamableFile(pdfBuffer, {
+                type: 'application/pdf',
+                disposition: `attachment; filename="${filename}"`,
+            });
         } catch (error) {
             throw new HttpException(error.message, error.status || 500);
         }
@@ -244,47 +261,16 @@ export class ParticipantController {
     @UseGuards(AuthGuard, RoleGuard)
     async list(
         @User() user: CurrentUserRequest,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
+        @Query('q') q?: string,
+        @Query('page', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Page must be a positive number', 400) })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Size must be a positive number', 400) })) size?: number,
     ): Promise<WebResponse<ParticipantResponse[]>> {
-        const query: ListRequest = { 
+        const query: ListRequest = {
+            searchQuery: q,
             page: page || 1,
             size: size || 10,
         };
         const result = await this.participantService.listParticipants(query, user);
         return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    }
-
-    @Get('/search/result')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
-    @UseGuards(AuthGuard, RoleGuard)
-    @HttpCode(200)
-    async search(
-        @User() user: CurrentUserRequest,
-        @Query('q') q: string,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-    ): Promise<WebResponse<ListParticipantResponse[]>> {
-        if(!q) {
-            throw new HttpException('Query kosong, data tidak ditemukan', 204);
-        }
-
-        const query: SearchRequest = {
-            searchQuery: q,
-            page: page || 1,
-            size: size || 10,
-        };
-        console.log(query)
-        const result = await this.participantService.searchParticipant(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    }
-
-    @Get('/check-data-complete/:participantId')
-    @Roles('user')
-    @UseGuards(AuthGuard, RoleGuard)
-    @HttpCode(200)
-    async isDataComplete(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<WebResponse<boolean>> {
-        const result = await this.participantService.isDataComplete(participantId);
-        return buildResponse(HttpStatus.OK, result);
     }
 }

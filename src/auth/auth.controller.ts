@@ -7,6 +7,7 @@ import { Response } from "express";
 import { ConfigService } from "@nestjs/config";
 import * as os from 'os';
 import { User } from "src/shared/decorator/user.decorator";
+import { GetCookie } from "src/shared/decorator/cookie.decorator";
 
 @Controller('/auth')
 export class AuthController {
@@ -22,50 +23,59 @@ export class AuthController {
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('/verify-email')
-    async verifyEmail(@Query('token') token: string, @Query('callback') callbackUrl: string, @Res() res: Response): Promise<void> {
-        try {
-            await this.authService.verifyEmail(token);
-
-            // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
-            const networkInterfaces = os.networkInterfaces();
-            let localIp = 'localhost'; // Default fallback
-
-            // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
-            for (const interfaceName in networkInterfaces) {
-                const addresses = networkInterfaces[interfaceName];
-                if (addresses) {
+    @Get('/verify-account')
+    async accountVerification(@Query('token') token: string, @Res() res: Response): Promise<void> {
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
                 for (const addr of addresses) {
                     if (addr.family === 'IPv4' && !addr.internal) {
-                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
-                    break;
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
                     }
                 }
-                }
             }
+        }
 
-            res.cookie('access_token', token, {
+        try {
+            const result = await this.authService.accountVerification(token);
+            
+            res.cookie('refresh_token', result.refreshToken, {
                 httpOnly: true,
                 secure: this.configService.get<string>('NODE_ENV') === 'production',
-                // domain: this.configService.get<string>('HOST'),
                 sameSite: 'lax',
                 path: '/',
                 maxAge: 1000 * 60 * 60 * 24,
             });
-
-            const redirectUrl = callbackUrl || `http://${localIp}:4200/home`;
-
+            
+            res.cookie('access_token', result.accessToken, {
+                httpOnly: true,
+                secure: this.configService.get<string>('NODE_ENV') === 'production',
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 1000 * 60 * 60 * 24,
+            });
+            
+            const redirectUrl = `http://${localIp}:4200/home`;
             return res.redirect(redirectUrl);
         } catch (error) {
-            throw new HttpException('Token tidak valid atau telah kadaluarsa', 400);
+            // Tangani kesalahan dengan redirect ke halaman login atau halaman error
+            console.log(error);
+            const redirectUrl = `http://${localIp}:4200/verification?error=${error.message}`;
+            return res.redirect(redirectUrl);
         }
     }
 
     @Post('/login')
     @HttpCode(200)
-    async login(@Body() req: LoginUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<AuthResponse>> {
-        let result = await this.authService.login(req);
-        res.cookie('access_token', result.token, {
+    async login(@Body() request: LoginUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
+        let result = await this.authService.login(request);
+        res.cookie('refresh_token', result.refreshToken, {
             httpOnly: true,
             secure: this.configService.get<string>('NODE_ENV') === 'production',
             // domain: this.configService.get<string>('HOST'),
@@ -73,72 +83,100 @@ export class AuthController {
             path: '/',
             maxAge: 1000 * 60 * 60 * 24,
         });
-        const { token, ...response } = result;
-        return buildResponse(HttpStatus.OK, response);
+
+        res.cookie('access_token', result.accessToken, {
+            httpOnly: true,
+            secure: this.configService.get<string>('NODE_ENV') === 'production',
+            // domain: this.configService.get<string>('HOST'),
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 1000 * 60 * 60 * 24,
+        });
+        // const { refreshToken, ...response } = result;
+        return buildResponse(HttpStatus.OK, 'Login Berhasil');
+    }
+
+    @Get('/token')
+    @HttpCode(200)
+    async refreshTokens(@GetCookie('refresh_token') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
+        let result = await this.authService.refreshTokens(refreshToken);
+        res.cookie('access_token', result.accessToken, {
+            httpOnly: true,
+            secure: this.configService.get<string>('NODE_ENV') === 'production',
+            // domain: this.configService.get<string>('HOST'),
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 1000 * 60 * 60 * 24,
+        });
+        return buildResponse(HttpStatus.OK, "Access token berhasil diperbarui");
     }
 
     @UseGuards(AuthGuard)
-    @Get('/current')
+    @Get('/current')    
     @HttpCode(200)
-    async me(@User() user: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
-        const result = await this.authService.me(user);
+    async profile(@User() user: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
+        const result = await this.authService.profile(user);
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Post('request-reset-password')
+    @Post('/resend-verification')
     @HttpCode(200)
-    async requestResetPassword(@Body('email') email: string): Promise<WebResponse<string>> {
-        const result = await this.authService.requestPasswordReset(email);
+    async resendVerification(@Body('email') email: string): Promise<WebResponse<string>> {
+        const result = await this.authService.resendVerificationLink(email);
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('verify-reset-password/:token')
-    async verifyResetPassword(@Param('token') token: string, @Res() res: Response): Promise<WebResponse<boolean>> {
-        const isValid = await this.authService.verifyResetPasswordToken(token);
-        if (isValid) {
-            // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
-            const networkInterfaces = os.networkInterfaces();
-            let localIp = 'localhost'; // Default fallback
-            
-            // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
-            for (const interfaceName in networkInterfaces) {
-                const addresses = networkInterfaces[interfaceName];
-                if (addresses) {
+    @Post('/request-reset-password')
+    @HttpCode(200)
+    async passwordResetRequest(@Body('email') email: string): Promise<WebResponse<string>> {
+        const result = await this.authService.passwordResetRequest(email);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/verify-reset-password/:token')
+    async verifyPasswordResetRequestToken(@Param('token') token: string, @Res() res: Response): Promise<WebResponse<boolean>> {
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
                 for (const addr of addresses) {
                     if (addr.family === 'IPv4' && !addr.internal) {
                         localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
                         break;
                     }
                 }
-                }
             }
+        }
 
-            // Redirect ke frontend untuk memasukkan password baru
+        try {
+            const result = await this.authService.verifyPasswordResetRequestToken(token);
             res.redirect(`http://${localIp}:4200/reset/${token}`);
-            return buildResponse(HttpStatus.OK, isValid);
-        } else {
-            throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
+            return buildResponse(HttpStatus.OK, result);
+        } catch (error) {
+            // Tangani kesalahan dengan redirect ke halaman login atau halaman error
+            console.log(error);
+            const redirectUrl = `http://${localIp}:4200//password-reset?error=${error.message}`;
+            res.redirect(redirectUrl);
         }
     }
 
-    @Post('reset-password')
-    async resetPassword(@Body() req: ResetPassword): Promise<WebResponse<string>> {
-        const result = await this.authService.resetPassword(req);
+    @Post('/reset-password')
+    async resetPassword(@Body() request: ResetPassword): Promise<WebResponse<string>> {
+        const result = await this.authService.resetPassword(request);
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @UseGuards(AuthGuard)
     @Delete('/current')
     @HttpCode(200)
+    @UseGuards(AuthGuard)
     async logout(@User() req: CurrentUserRequest, @Res({ passthrough: true }) res: Response): Promise<WebResponse<string>> {
         const result = await this.authService.logout(req);
-        res.cookie('access_token', '', {
-            httpOnly: true,
-            // secure: this.configService.get<string>('NODE_ENV') === 'production', 
-            secure: false,
-            sameSite: 'none',
-            expires: new Date(0) // or you can use maxAge: 0
-        });
+        res.clearCookie('refresh_token');
+        res.clearCookie('access_token');
         return buildResponse(HttpStatus.OK, result);
     }
 }

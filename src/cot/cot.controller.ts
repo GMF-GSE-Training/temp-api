@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { CotResponse, CreateCot, UpdateCot } from "src/model/cot.model";
-import { buildResponse, ListRequest, SearchRequest, WebResponse } from "src/model/web.model";
+import { buildResponse, ListRequest, WebResponse } from "src/model/web.model";
 import { CotService } from "./cot.service";
 import { Roles } from "src/shared/decorator/role.decorator";
 import { AuthGuard } from "src/shared/guard/auth.guard";
@@ -19,6 +19,37 @@ export class CotController {
     async create(@Body() request: CreateCot): Promise<WebResponse<string>> {
         const result = await this.cotService.createCot(request);
         return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/list')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async list(
+        @User() user: CurrentUserRequest,
+        @Query('q') q?: string,
+        @Query('page', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Page must be a positive number', 400) })) page?: number,
+        @Query('size', new ParseIntPipe({ optional: true, exceptionFactory: () => new HttpException('Size must be a positive number', 400) })) size?: number,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ): Promise<WebResponse<CotResponse[]>> {
+        const validateDate = (dateStr: string) => {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) {
+                throw new HttpException(`Invalid date format: ${dateStr}`, 400);
+            }
+            return date;
+        };
+
+        const query: ListRequest = { 
+            searchQuery: q,
+            page: page || 1,
+            size: size || 10,
+            startDate: startDate ? validateDate(startDate) : undefined,
+            endDate: endDate ? validateDate(endDate) : undefined,
+        };
+        const result = await this.cotService.listCot(query, user);
+        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 
     @Get('/:cotId')
@@ -48,49 +79,5 @@ export class CotController {
     async delete(@Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<string>> {
         const result = await this.cotService.deleteCot(cotId);
         return buildResponse(HttpStatus.OK, result);
-    }
-
-    @Get('/list/result')
-    @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu', 'user')
-    @UseGuards(AuthGuard, RoleGuard)
-    async list(
-        @User() user: CurrentUserRequest,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
-    ): Promise<WebResponse<CotResponse[]>> {
-        const query: ListRequest = { 
-            page: page || 1,
-            size: size || 10,
-            startDate,
-            endDate,
-        };
-        const result = await this.cotService.listCot(user, query);
-        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
-    }
-
-    @Get('/search/result')
-    @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu', 'user')
-    @UseGuards(AuthGuard, RoleGuard)
-    async search(
-        @User() user: CurrentUserRequest,
-        @Query('q') q: string,
-        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-        @Query('size', new ParseIntPipe({ optional: true })) size?: number,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
-    ): Promise<WebResponse<CotResponse[]>> {
-        const query: SearchRequest = {
-            searchQuery: q,
-            page: page || 1,
-            size: size || 10,
-            startDate,
-            endDate,
-        };
-        const result = await this.cotService.searchCot(query, user);
-        return buildResponse(HttpStatus.OK, result.data, null, result.actions, result.paging);
     }
 }
