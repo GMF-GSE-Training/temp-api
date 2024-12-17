@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../shared/guard/auth.guard";
-import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
+import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, UpdatePassword } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
 import { AuthService } from "./auth.service";
 import { Response } from "express";
@@ -23,8 +23,8 @@ export class AuthController {
         return buildResponse(HttpStatus.OK, result);
     }
 
-    @Get('/verify-account')
-    async accountVerification(@Query('token') token: string, @Res() res: Response): Promise<void> {
+    @Get('/verify-account/:token')
+    async accountVerification(@Param('token') token: string, @Res() res: Response): Promise<void> {
         // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
         const networkInterfaces = os.networkInterfaces();
         let localIp = 'localhost'; // Default fallback
@@ -111,9 +111,9 @@ export class AuthController {
         return buildResponse(HttpStatus.OK, "Access token berhasil diperbarui");
     }
 
-    @UseGuards(AuthGuard)
     @Get('/current')    
     @HttpCode(200)
+    @UseGuards(AuthGuard)
     async profile(@User() user: CurrentUserRequest): Promise<WebResponse<AuthResponse>> {
         const result = await this.authService.profile(user);
         return buildResponse(HttpStatus.OK, result);
@@ -159,14 +159,67 @@ export class AuthController {
         } catch (error) {
             // Tangani kesalahan dengan redirect ke halaman login atau halaman error
             console.log(error);
-            const redirectUrl = `http://${localIp}:4200//password-reset?error=${error.message}`;
+            const redirectUrl = `http://${localIp}:4200/password-reset?error=${error.message}`;
             res.redirect(redirectUrl);
         }
     }
 
     @Post('/reset-password')
-    async resetPassword(@Body() request: ResetPassword): Promise<WebResponse<string>> {
+    async resetPassword(@Body() request: UpdatePassword): Promise<WebResponse<string>> {
         const result = await this.authService.resetPassword(request);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Post('/update-email')
+    @HttpCode(200)
+    @UseGuards(AuthGuard)
+    async updateEmailRequest(@User() user: CurrentUserRequest, @Body('email') email: string): Promise<WebResponse<string>> {
+        const result = await this.authService.updateEmailRequest(email, user);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/update-email/verify/:token')
+    @HttpCode(200)
+    @UseGuards(AuthGuard)
+    async verifyUpdateEmailRequestToken(@User() user: CurrentUserRequest, @Param('token') token: string, @Res() res: Response): Promise<WebResponse<string>>{
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
+                    }
+                }
+            }
+        }
+
+        try {
+            const result = await this.authService.verifyUpdateEmailRequestToken(token, user);
+            if(user.role.name.toLowerCase() === 'user') {
+                res.redirect(`http://${localIp}:4200/participants/${user.participantId}/profile/account`);
+            } else {
+                res.redirect(`http://${localIp}:4200/participants/${user.id}/account`)
+            }
+            return buildResponse(HttpStatus.OK, result);
+        } catch (error) {
+            // Tangani kesalahan dengan redirect ke halaman login atau halaman error
+            console.log(error);
+            const redirectUrl = `http://${localIp}:4200/password-reset?error=${error.message}`;
+            res.redirect(redirectUrl);
+        }
+    }
+
+    @Post('/update-password')
+    @HttpCode(200)
+    @UseGuards(AuthGuard)
+    async updatePassword(@Body() request: UpdatePassword, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
+        const result = await this.authService.updatePassword(request, user);
         return buildResponse(HttpStatus.OK, result);
     }
 

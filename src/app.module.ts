@@ -11,11 +11,16 @@ import { CotModule } from './cot/cot.module';
 import { ESignModule } from './e-sign/e-sign.module';
 import { ParticipantCotModule } from './participant-cot/participant-cot.module';
 import { SharedModule } from './shared/shared.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'), // Mengarah ke folder 'public' di root proyek
     }),
     CommonModule, 
     SharedModule,
@@ -32,4 +37,8 @@ import { SharedModule } from './shared/shared.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    console.log('Serving static files from:', join(__dirname, '..', 'public'));
+  }
+}

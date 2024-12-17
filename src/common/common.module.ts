@@ -52,7 +52,7 @@ import { CoreUtil } from 'src/common/utils/core.utils';
             new JwtService({
                 secret: configService.get<string>('ACCESS_TOKEN'),
                 signOptions: {
-                    expiresIn: '5m',
+                    expiresIn: '1h',
                 },
             }),
             inject: [ConfigService],

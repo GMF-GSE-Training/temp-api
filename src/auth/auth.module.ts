@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
-import { MailerModule } from "src/mailer/mailer.module";
+import { MailModule } from "src/mail/mail.module";
 
 @Module({
     imports: [
-        MailerModule,
+        MailModule,
     ],
     providers: [
         AuthService,

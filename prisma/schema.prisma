@@ -25,9 +25,11 @@ model User {
   accountVerificationToken  String?       @db.VarChar(255)
   emailChangeToken          String?       @db.VarChar(255)
   passwordResetToken        String?       @db.VarChar(255)
+  updateEmailToken          String?       @db.VarChar(255)
   roleId                    String
   dinas                     String?       @db.VarChar(50)
   verifiedAccount           Boolean       @default(false)
+
   role                      Role          @relation(fields: [roleId], references: [id])
   participant               Participant?  @relation(fields: [participantId], references: [id])
 

@@ -5,13 +5,14 @@ import * as QRCode from 'qrcode';
 import { ValidationService } from "../common/service/validation.service";
 import { ParticipantValidation } from "./participant.validation";
 import * as puppeteer from 'puppeteer';
-import { IdCardModel } from "../model/id-card.model";
 import { CurrentUserRequest } from "src/model/auth.model";
 import { Participant } from "@prisma/client";
 import { ActionAccessRights, ListRequest, Paging } from "src/model/web.model";
 import { ConfigService } from "@nestjs/config";
 import { CoreHelper } from "src/common/helpers/core.helper";
 import { PDFDocument, PDFImage } from "pdf-lib";
+import { join } from "path";
+import * as ejs from 'ejs';
 
 @Injectable()
 export class ParticipantService {
@@ -181,13 +182,27 @@ export class ParticipantService {
             throw new HttpException('ID Card tidak bisa diunduh, lengkapi data terlebih dahulu', 400);
         }
     
-        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.name, participant.company, participant.idNumber, participant.nationality);
+        const photoBase64 = participant.foto.toString('base64');
+        const qrCodeBase64 = participant.qrCode.toString('base64');
+        const photoType = this.getMediaType(participant.foto);
+        const qrCodeType = this.getMediaType(participant.qrCode);
     
-        const htmlContent = idCardModel.getHtmlTemplate();
+        // Render EJS template
+        const templatePath = join(__dirname, '..', 'templates', 'id-card', 'id-card.ejs');
+        const idCard = await ejs.renderFile(templatePath, {
+            photoBase64,
+            qrCodeBase64,
+            photoType,
+            qrCodeType,
+            name: participant.name,
+            company: participant.company,
+            idNumber: participant.idNumber,
+            nationality: participant.nationality,
+        });
     
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        await page.setContent(await htmlContent, { waitUntil: 'networkidle0' });
+        await page.setContent(idCard, { waitUntil: 'networkidle0' });
     
         const pdfBuffer = await page.pdf({ format: 'A4' });
     
@@ -212,7 +227,7 @@ export class ParticipantService {
         if (!participant) {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
-
+    
         console.log('SIM A:', participant.simA ? 'Ada' : 'Tidak Ada');
         console.log('KTP:', participant.ktp ? 'Ada' : 'Tidak Ada');
         console.log('Surat Sehat:', participant.suratSehatButaWarna ? 'Ada' : 'Tidak Ada');
@@ -221,7 +236,7 @@ export class ParticipantService {
         if (!participant.simA || !participant.ktp || !participant.suratSehatButaWarna || !participant.suratBebasNarkoba) {
             throw new HttpException('Dokumen belum lengkap, lengkapi data terlebih dahulu', 400);
         }
-
+    
         try {
             console.log('Tipe SIM A:', this.getMediaType(Buffer.from(participant.simA)));
             console.log('Tipe KTP:', this.getMediaType(Buffer.from(participant.ktp)));
@@ -302,12 +317,26 @@ export class ParticipantService {
         if (!participant.foto || !participant.company || !participant.nationality || !participant.qrCode) {
             throw new HttpException('ID Card tidak bisa dilihat, lengkapi data terlebih dahulu', 400);
         }
+
+        const photoBase64 = participant.foto.toString('base64');
+        const qrCodeBase64 = participant.qrCode.toString('base64');
+        const photoType = this.getMediaType(participant.foto);
+        const qrCodeType = this.getMediaType(participant.qrCode);
+
+        // Render EJS template
+        const templatePath = join(__dirname, '..', 'templates', 'id-card', 'id-card.ejs');
+        const idCard = await ejs.renderFile(templatePath, {
+            photoBase64,
+            qrCodeBase64,
+            photoType,
+            qrCodeType,
+            name: participant.name,
+            company: participant.company,
+            idNumber: participant.idNumber,
+            nationality: participant.nationality,
+        });
     
-        const idCardModel = new IdCardModel(participant.foto, participant.qrCode, participant.name, participant.company, participant.idNumber, participant.nationality);
-    
-        const htmlContent = idCardModel.getHtmlTemplate();
-    
-        return htmlContent;
+        return idCard;
     }
 
     async updateParticipant(participantId: string, req: UpdateParticipantRequest, user: CurrentUserRequest): Promise<string> {
@@ -544,11 +573,11 @@ export class ParticipantService {
         return this.coreHelper.validateActions(userRole, accessMap);
     }
 
-        private getMediaType(buffer: Buffer): string {
-            const header = buffer.toString('hex', 0, 4);
-            if (header.startsWith('89504e47')) return 'image/png'; // PNG
-            if (header.startsWith('ffd8ff')) return 'image/jpeg'; // JPEG
-            if (header.startsWith('25504446')) return 'application/pdf'; // PDF
-            throw new Error('Unable to detect file type');
-        }
+    private getMediaType(buffer: Buffer): string {
+        const header = buffer.toString('hex', 0, 4);
+        if (header.startsWith('89504e47')) return 'image/png'; // PNG
+        if (header.startsWith('ffd8ff')) return 'image/jpeg'; // JPEG
+        if (header.startsWith('25504446')) return 'application/pdf'; // PDF
+        throw new Error('Unable to detect file type');
+    }
 }

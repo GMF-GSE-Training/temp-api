@@ -23,10 +23,19 @@ export class CapabilityController {
 
     @Get('/:capabilityId')
     @HttpCode(200)
-    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
     async get(@Param('capabilityId', ParseUUIDPipe) capabilityId: string): Promise<WebResponse<CapabilityResponse>> {
-        const result = await this.capabilityService.getCapability(capabilityId);
+        const result = await this.capabilityService.getCapabilityById(capabilityId);
+        return buildResponse(HttpStatus.OK, result);
+    }
+
+    @Get('/:capabilityId/curriculum-syllabus')
+    @HttpCode(200)
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
+    @UseGuards(AuthGuard, RoleGuard)
+    async getCurriculumSyllabus(@Param('capabilityId', ParseUUIDPipe) capabilityId: string): Promise<WebResponse<CapabilityResponse>> {
+        const result = await this.capabilityService.getCurriculumSyllabus(capabilityId);
         return buildResponse(HttpStatus.OK, result);
     }
 

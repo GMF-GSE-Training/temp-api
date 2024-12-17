@@ -32,8 +32,8 @@ export interface CurrentUserRequest {
     },
 }
 
-export interface ResetPassword {
-    token: string;
+export interface UpdatePassword {
+    token?: string;
     newPassword: string;
     confirmNewPassword: string;
 }

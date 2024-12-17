@@ -40,7 +40,27 @@ export class CapabilityService {
         return result;
     }
 
-    async getCapability(capabilityId: string): Promise<CapabilityResponse> {
+    async getCapabilityById(capabilityId: string): Promise<CapabilityResponse> {
+        const capability = await this.prismaService.capability.findUnique({
+            where: {
+                id: capabilityId,
+            },
+            select: {
+                id: true,
+                ratingCode: true,
+                trainingCode: true,
+                trainingName: true,
+            },
+        });
+    
+        if(!capability) {
+            throw new HttpException('Capability Not Found', 404);
+        }
+    
+        return capability;
+    }
+
+    async getCurriculumSyllabus(capabilityId: string): Promise<CapabilityResponse> {
         const capability = await this.prismaService.capability.findUnique({
             where: {
                 id: capabilityId,

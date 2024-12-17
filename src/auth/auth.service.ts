@@ -1,13 +1,13 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../common/service/prisma.service";
 import { ValidationService } from "../common/service/validation.service";
-import { AuthResponse, CurrentUserRequest, RegisterUserRequest, ResetPassword } from "../model/auth.model";
+import { AuthResponse, CurrentUserRequest, RegisterUserRequest, UpdatePassword } from "../model/auth.model";
 import { LoginUserRequest } from "../model/auth.model";
 import { AuthValidation } from "./auth.validation";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { SendEmail } from "src/model/mailer.model";
-import { MailerService } from "src/mailer/mailer.service";
+import { SendEmail } from "src/model/mail.model";
+import { MailService } from "src/mail/mail.service";
 import { ConfigService } from "@nestjs/config";
 import * as os from 'os';
 import { CoreHelper } from "src/common/helpers/core.helper";
@@ -18,7 +18,7 @@ export class AuthService {
     constructor(
         private readonly validationService: ValidationService,
         private readonly prismaService: PrismaService,
-        private readonly mailerService: MailerService,
+        private readonly mailService: MailService,
         private readonly configService: ConfigService,
         private readonly coreHelper: CoreHelper,
         @Inject('ACCESS_JWT_SERVICE') private readonly accessJwtService: JwtService,
@@ -142,7 +142,7 @@ export class AuthService {
             }
         }
         
-        const verificationLink = `http://${localIp}:3000/auth/verify-account?token=${accountVerificationToken}`;
+        const verificationLink = `http://${localIp}:3000/auth/verify-account/${accountVerificationToken}`;
         
         const email: SendEmail = {
             from: {
@@ -154,10 +154,14 @@ export class AuthService {
                 address: user.email,
             }],
             subject: 'Email Verifikasi',
-            html: `<p>Klik <a href="${verificationLink}">link ini</a> untuk memverifikasi akun Anda.</p>`,
+            html: 'verify-account',
+            placeholderReplacements: {
+                username: user.name,
+                verificationLink: verificationLink,
+            }
         };
         
-        await this.mailerService.sendEmail(email);
+        await this.mailService.sendEmail(email);
 
         await this.prismaService.user.update({
             where: {
@@ -173,7 +177,6 @@ export class AuthService {
 
     async accountVerification(token: string): Promise<AuthResponse> {
         try {
-            console.log(token);
             const verifyToken = await  this.verificationJwtService.verifyAsync(token);
 
             const user = await this.prismaService.user.findUnique({
@@ -185,9 +188,6 @@ export class AuthService {
             if(!user) {
                 throw new HttpException('Pengguna tidak ditemukan', 404);
             }
-            
-            console.log(user);
-            console.log(!user.accountVerificationToken);
             
             if(!user.accountVerificationToken || user.accountVerificationToken !== token) {
                 throw new HttpException('Token ini tidak valid atau sudah digunakan', 400);
@@ -234,9 +234,9 @@ export class AuthService {
                 }
             });
         }
-        
+
         if(!user) {
-            throw new HttpException('Pengguna tidak ditemukan', 401);
+            throw new HttpException("Nomor Pegawai, email, atau kata sandi yang Anda masukkan tidak valid.", 400);
         }
         
         if(!user.verifiedAccount) {
@@ -246,7 +246,7 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
         
         if(!isPasswordValid) {
-            throw new HttpException("Nomor Pegawai, email, atau kata sandi yang Anda masukkan tidak valid.", 401);
+            throw new HttpException("Nomor Pegawai, email, atau kata sandi yang Anda masukkan tidak valid.", 400);
         }
         
         const payload = { id: user.id };
@@ -293,7 +293,8 @@ export class AuthService {
                 id: user.id,
                 accessToken: newAccessToken,
             });
-        } catch (err) {
+        } catch (error) {
+            console.log(error)
             throw new HttpException('Unauthorized', 401);
         }
     }
@@ -398,14 +399,14 @@ export class AuthService {
             if (addresses) {
                 for (const addr of addresses) {
                     if (addr.family === 'IPv4' && !addr.internal) {
-                    localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
-                    break;
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
                     }
                 }
             }
         }
         
-        const verificationLink = `http://${localIp}:3000/auth/verify-account?token=${accountVerificationToken}`;
+        const verificationLink = `http://${localIp}:3000/auth/verify-account/${accountVerificationToken}`;
         
         const sendEmail: SendEmail = {
             from: {
@@ -417,10 +418,14 @@ export class AuthService {
                 address: user.email,
             }],
             subject: 'Email Verifikasi',
-            html: `<p>Klik <a href="${verificationLink}">link ini</a> untuk memverifikasi akun Anda.</p>`,
+            html: 'resend-verification-account',
+            placeholderReplacements: {
+                username: user.name,
+                verificationLink: verificationLink,
+            }
         };
         
-        await this.mailerService.sendEmail(sendEmail);
+        await this.mailService.sendEmail(sendEmail);
         
         await this.prismaService.user.update({
             where: {
@@ -446,7 +451,7 @@ export class AuthService {
         if(user) {
             // Buat token reset password
             const payload = { id: user.id };
-            const passwordResetToken = this.verificationJwtService.sign(payload);
+            const passwordResetToken = await this.verificationJwtService.signAsync(payload);
             
             // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
             const networkInterfaces = os.networkInterfaces();
@@ -467,7 +472,7 @@ export class AuthService {
             
             // Kirim email reset password
             const resetPasswordLink = `http://${localIp}:3000/auth/verify-reset-password/${passwordResetToken}`;
-            await this.mailerService.sendEmail({
+            await this.mailService.sendEmail({
                 from: {
                     name: this.configService.get<string>('APP_NAME'),
                     address: this.configService.get<string>('MAIL_USER'),
@@ -477,7 +482,11 @@ export class AuthService {
                     address: email,
                 }],
                 subject: 'Reset Password',
-                html: `<p>Klik <a href="${resetPasswordLink}">link ini</a> untuk mereset password Anda.</p>`,
+                html: 'password-reset-verify',
+                placeholderReplacements: {
+                    username: user.name,
+                    verificationLink: resetPasswordLink,
+                }
             });
             
             await this.prismaService.user.update({
@@ -496,7 +505,7 @@ export class AuthService {
     async verifyPasswordResetRequestToken(token: string): Promise<boolean> {
         try {
             // Verifikasi token
-            const verifyToken = this.verificationJwtService.verify(token);
+            const verifyToken = await this.verificationJwtService.verifyAsync(token);
             const user = await this.prismaService.user.findUnique({
                 where: {
                     id: verifyToken.id,
@@ -516,11 +525,11 @@ export class AuthService {
         }
     }
 
-    async resetPassword(request: ResetPassword): Promise<string> {
-        const resetPasswordRequest = this.validationService.validate(AuthValidation.RESETPASSWORD, request);
+    async resetPassword(request: UpdatePassword): Promise<string> {
+        const resetPasswordRequest = this.validationService.validate(AuthValidation.UPDATEPASSWORD, request);
         try {
             // Verifikasi token
-            const verifyToken = this.verificationJwtService.verify(request.token);
+            const verifyToken = await this.verificationJwtService.verifyAsync(request.token);
             // Cari user berdasarkan email
             const user = await this.prismaService.user.findUnique({ 
                 where: {
@@ -554,6 +563,144 @@ export class AuthService {
         }
     }
 
+    async updateEmailRequest(email: string, user: CurrentUserRequest): Promise<string> {
+        const emailRequest = this.validationService.validate(AuthValidation.EMAIL, email);
+
+        if(email === user.email) {
+            throw new HttpException('Gagal mengubah alamat email Anda. Email yang baru masih sama dengan email sebelumnya.', 400);
+        }
+
+        await this.checkUserExists(undefined, emailRequest);
+
+        const payload = { 
+            id: user.id,
+            email: emailRequest,
+        };
+        const updateEmailToken = await this.verificationJwtService.signAsync(payload);
+
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
+                    }
+                }
+            }
+        }
+
+        const verificationLink = `http://${localIp}:3000/auth/update-email/verify/${updateEmailToken}`;
+
+        const sendEmail: SendEmail = {
+            from: {
+                name: this.configService.get<string>('APP_NAME'),
+                address: this.configService.get<string>('MAIL_USER'),
+            },
+            receptients: [{
+                name: user.name,
+                address: emailRequest,
+            }],
+            subject: 'Verifikasi Email Baru',
+            html: 'resend-verification-account',
+            placeholderReplacements: {
+                username: user.name,
+                verificationLink: verificationLink,
+            }
+        };
+
+        await this.mailService.sendEmail(sendEmail);
+
+        await this.prismaService.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                updateEmailToken: updateEmailToken,
+            }
+        });
+
+        return 'Email verifikasi email baru telah terkirim';
+    }
+
+    async verifyUpdateEmailRequestToken(token: string, user: CurrentUserRequest): Promise<string> {
+        try {
+            // Verifikasi token
+            const verifyToken = await this.verificationJwtService.verifyAsync(token);
+            const findUser = await this.prismaService.user.findUnique({
+                where: {
+                    id: verifyToken.id,
+                }
+            });
+            
+            if (!findUser) {
+                throw new HttpException('Pengguna tidak ditemukan', 404);
+            }
+
+            if(!findUser.updateEmailToken || findUser.updateEmailToken !== token || findUser.email === verifyToken.email) {
+                throw new HttpException('Token ini tidak valid atau sudah digunakan', 400);
+            }
+
+            await this.prismaService.$transaction(async (prisma) => {
+                // Update tabel `user`
+                await prisma.user.update({
+                    where: {
+                        id: user.id,
+                    },
+                    data: {
+                        email: verifyToken.email,
+                        updateEmailToken: null,
+                    },
+                });
+    
+                // Jika role adalah 'user', update tabel `participants`
+                if (user.role.name === 'user') {
+                    const participant = await prisma.participant.findUnique({
+                        where: {
+                            id: user.participantId, // Asumsikan `nik` adalah kolom penghubung
+                        },
+                    });
+    
+                    if (participant) {
+                        await prisma.participant.update({
+                            where: {
+                                id: participant.id,
+                            },
+                            data: {
+                                email: verifyToken.email,
+                            },
+                        });
+                    }
+                }
+            });
+
+            return 'Berhasil mengubah email';
+        } catch (error) {
+            throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
+        }
+    }
+
+    async updatePassword(request: UpdatePassword, user: CurrentUserRequest): Promise<string> {
+        const updatePasswordRequest = this.validationService.validate(AuthValidation.UPDATEPASSWORD, request);
+        
+        const hashedPassword = await bcrypt.hash(updatePasswordRequest.newPassword, 10);
+        await this.prismaService.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+        
+        return 'Password berhasil diubah';
+    }
+
     async logout(user: CurrentUserRequest): Promise<string> {
         await this.prismaService.user.update({
             where: {
@@ -567,7 +714,7 @@ export class AuthService {
         return 'Logout berhasil';
     }
 
-    async checkUserExists(idNumber: string, email: string) {
+    private async checkUserExists(idNumber?: string, email?: string) {
         if (idNumber) {
             const totalUserwithSameNoPegawai = await this.prismaService.user.count({
                 where: {
@@ -580,18 +727,20 @@ export class AuthService {
             }
         }
         
-        const totalUserwithSameEmail = await this.prismaService.user.count({
-            where: {
-                email: email,
+        if(email) {
+            const totalUserwithSameEmail = await this.prismaService.user.count({
+                where: {
+                    email: email,
+                }
+            });
+            
+            if(totalUserwithSameEmail != 0) {
+                throw new HttpException("Email sudah digunakan", 400);
             }
-        });
-        
-        if(totalUserwithSameEmail != 0) {
-            throw new HttpException("Email sudah digunakan", 400);
         }
     }
 
-    authSelectedFields() {
+    private authSelectedFields() {
         return {
             id: true,
             participantId: true,
@@ -606,7 +755,7 @@ export class AuthService {
         }
     }
 
-    toAuthResponse(user: AuthResponse): AuthResponse {
+    private toAuthResponse(user: AuthResponse): AuthResponse {
         return {
             id: user.id,
             idNumber: user.idNumber,
