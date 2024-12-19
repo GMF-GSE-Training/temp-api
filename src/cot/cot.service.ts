@@ -44,7 +44,9 @@ export class CotService {
         return 'Cot berhasil dibuat';
     }
 
-    async getCot(cotId: string): Promise<CotResponse> {
+    async getCot(cotId: string, user: CurrentUserRequest): Promise<CotResponse> {
+        const userRole = user.role.name.toLowerCase();
+
         const cot = await this.prismaService.cOT.findUnique({
             where: {
                 id: cotId
@@ -60,12 +62,41 @@ export class CotService {
                             }
                         }
                     }
-                }
+                },
+                _count: {
+                    select: {
+                        participantsCots: {
+                            where: userRole === 'lcu'
+                            ? {
+                                participant: {
+                                    dinas: user.dinas,
+                                }
+                            }
+                            : undefined,
+                        }
+                    }
+                },
             }
         });
     
         if(!cot) {
             throw new HttpException('Cot Tidak ditemukan', 404);
+        }
+    
+        if (userRole === 'user') {
+            const isParticipantLinked = await this.prismaService.participantsCOT.count({
+                where: {
+                    cotId: cotId,
+                    participantId: user.participantId,
+                },
+            });
+    
+            if (!isParticipantLinked) {
+                throw new HttpException(
+                    'Anda tidak bisa mengakses COT ini karena anda belum terdaftar',
+                    403,
+                );
+            }
         }
     
         // Mapping hasil query ke bentuk CotResponse
@@ -78,8 +109,9 @@ export class CotService {
             theoryInstructorCompetency: cot.theoryInstructorCompetency,
             practicalInstructor1: cot.practicalInstructor1,
             practicalInstructor2: cot.practicalInstructor2,
+            numberOfParticipants: cot._count.participantsCots,
             status: cot.status,
-            Capability: cot.capabilityCots[0]?.capability || null, // Ambil elemen pertama dari array
+            capability: cot.capabilityCots[0]?.capability || null,
         };
     
         return cotResponse;
@@ -195,8 +227,8 @@ export class CotService {
         if(request.searchQuery) {
             const searchQuery = request.searchQuery;
             whereClauseCapability.OR = [
-                { ratingCode: { contains: request.searchQuery, mode: 'insensitive' } },
-                { trainingName: { contains: request.searchQuery, mode: 'insensitive' } },
+                { ratingCode: { contains: searchQuery, mode: 'insensitive' } },
+                { trainingName: { contains: searchQuery, mode: 'insensitive' } },
             ]
         }
     
@@ -270,7 +302,7 @@ export class CotService {
             id: cot.id,
             startDate: cot.startDate,
             endDate: cot.endDate,
-            Capability: cot.capabilityCots[0]?.capability
+            capability: cot.capabilityCots[0]?.capability
                 ? {
                     ratingCode: cot.capabilityCots[0].capability.ratingCode,
                     trainingName: cot.capabilityCots[0].capability.trainingName

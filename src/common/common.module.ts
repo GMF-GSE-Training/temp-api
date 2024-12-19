@@ -10,7 +10,6 @@ import { ConfigService } from '@nestjs/config';
 import { MulterModule } from "@nestjs/platform-express";
 import { extname } from 'path';
 import { CoreHelper } from './helpers/core.helper';
-import { CoreUtil } from 'src/common/utils/core.utils';
 
 @Global()
 @Module({
@@ -45,7 +44,6 @@ import { CoreUtil } from 'src/common/utils/core.utils';
             useClass: ErrorFilter,
         },
         CoreHelper,
-        CoreUtil,
         {
             provide: 'ACCESS_JWT_SERVICE',
             useFactory: async (configService: ConfigService) =>
@@ -85,7 +83,6 @@ import { CoreUtil } from 'src/common/utils/core.utils';
         ValidationService,
         JwtModule,
         CoreHelper,
-        CoreUtil,
         'ACCESS_JWT_SERVICE',
         'REFRESH_JWT_SERVICE',
         'VERIFICATION_JWT_SERVICE',

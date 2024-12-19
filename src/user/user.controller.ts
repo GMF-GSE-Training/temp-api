@@ -22,16 +22,16 @@ export class UserController {
     }
 
     @Get('/:userId')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @Roles('Super Admin', 'Supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async get(@Param('userId', ParseUUIDPipe) userId: string, @User() user: CurrentUserRequest): Promise<WebResponse<UserResponse>> {
-        const result = await this.userService.getUser(userId, user);
+    async get(@Param('userId', ParseUUIDPipe) userId: string): Promise<WebResponse<UserResponse>> {
+        const result = await this.userService.getUser(userId);
         return buildResponse(HttpStatus.OK, result);
     }
 
     @Patch('/:userId')
-    @Roles('Super Admin', 'LCU')
+    @Roles('Super Admin')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async update(@Param('userId', ParseUUIDPipe) userId: string, @Body() req: UpdateUserRequest, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
@@ -40,7 +40,7 @@ export class UserController {
     }
 
     @Get('/list/result')
-    @Roles('Super Admin', 'Supervisor', 'LCU')
+    @Roles('Super Admin', 'Supervisor')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async list(
@@ -59,11 +59,11 @@ export class UserController {
     }
 
     @Delete('/:userId')
-    @Roles('Super Admin', 'LCU')
+    @Roles('Super Admin')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
-    async deleteUser(@Param('userId', ParseUUIDPipe) userId: string, @User() user: CurrentUserRequest): Promise<WebResponse<string>> {
-        const result = await this.userService.delete(userId, user);
+    async deleteUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<WebResponse<string>> {
+        const result = await this.userService.delete(userId);
         return buildResponse(HttpStatus.OK, result);
     }
 }

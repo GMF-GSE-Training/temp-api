@@ -1,19 +1,14 @@
 <div style="padding: 20px;">
-    <h1 style="font-size: 24px; color: #333;">
-        Halo, <%= username %>
-    </h1>
+    <h1 style="font-size: 24px; color: #333;">Halo, <%= username %></h1>
     <p style="font-size: 16px; color: #333; line-height: 1.5;">
-        Klik tombol di bawah untuk mengaktifkan akun dan menyelesaikan verifikasi alamat emailmu.
+        Anda baru saja meminta untuk mengubah email Anda menjadi <a href="<%= newEmail %>" style="color: #02507d;"><%= newEmail %></a>.
+        Mohon untuk memverifikasi email ini menggunakan link di bawah ini.
     </p>
     <p style="font-size: 16px; color: #333; line-height: 1.5;">
-        <a href="<%= verificationLink %>" style="color: #02507d;">
-            Link Verifikasi
-        </a>
+        <a href="<%= verificationLink %>" style="color: #02507d;">Link Verifikasi</a>
     </p>
     <p style="font-size: 16px; color: #333; line-height: 1.5;">
-        <strong>
-            Link verifikasi hanya berlaku selama 15 menit
-        </strong>
+        <strong>Link verifikasi hanya berlaku selama 15 menit</strong>
     </p>
     <p style="font-size: 16px; color: #333; line-height: 1.5;">
         Bila Anda tidak pernah melakukan permintaan di atas, Anda dapat mengabaikan email ini.

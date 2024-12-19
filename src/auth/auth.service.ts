@@ -565,19 +565,20 @@ export class AuthService {
 
     async updateEmailRequest(email: string, user: CurrentUserRequest): Promise<string> {
         const emailRequest = this.validationService.validate(AuthValidation.EMAIL, email);
-
+    
         if(email === user.email) {
             throw new HttpException('Gagal mengubah alamat email Anda. Email yang baru masih sama dengan email sebelumnya.', 400);
         }
-
+    
         await this.checkUserExists(undefined, emailRequest);
-
+    
         const payload = { 
             id: user.id,
             email: emailRequest,
         };
+    
         const updateEmailToken = await this.verificationJwtService.signAsync(payload);
-
+    
         // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
         const networkInterfaces = os.networkInterfaces();
         let localIp = 'localhost'; // Default fallback
@@ -594,9 +595,9 @@ export class AuthService {
                 }
             }
         }
-
+    
         const verificationLink = `http://${localIp}:3000/auth/update-email/verify/${updateEmailToken}`;
-
+    
         const sendEmail: SendEmail = {
             from: {
                 name: this.configService.get<string>('APP_NAME'),
@@ -607,15 +608,16 @@ export class AuthService {
                 address: emailRequest,
             }],
             subject: 'Verifikasi Email Baru',
-            html: 'resend-verification-account',
+            html: 'new-email-verify',
             placeholderReplacements: {
                 username: user.name,
+                newEmail: email,
                 verificationLink: verificationLink,
             }
         };
-
+    
         await this.mailService.sendEmail(sendEmail);
-
+    
         await this.prismaService.user.update({
             where: {
                 id: user.id,
@@ -624,7 +626,7 @@ export class AuthService {
                 updateEmailToken: updateEmailToken,
             }
         });
-
+    
         return 'Email verifikasi email baru telah terkirim';
     }
 
@@ -637,27 +639,27 @@ export class AuthService {
                     id: verifyToken.id,
                 }
             });
-            
+        
             if (!findUser) {
                 throw new HttpException('Pengguna tidak ditemukan', 404);
             }
-
+        
             if(!findUser.updateEmailToken || findUser.updateEmailToken !== token || findUser.email === verifyToken.email) {
                 throw new HttpException('Token ini tidak valid atau sudah digunakan', 400);
             }
-
+        
             await this.prismaService.$transaction(async (prisma) => {
                 // Update tabel `user`
                 await prisma.user.update({
                     where: {
-                        id: user.id,
+                        id: verifyToken.id,
                     },
                     data: {
                         email: verifyToken.email,
                         updateEmailToken: null,
                     },
                 });
-    
+            
                 // Jika role adalah 'user', update tabel `participants`
                 if (user.role.name === 'user') {
                     const participant = await prisma.participant.findUnique({
@@ -665,7 +667,7 @@ export class AuthService {
                             id: user.participantId, // Asumsikan `nik` adalah kolom penghubung
                         },
                     });
-    
+                
                     if (participant) {
                         await prisma.participant.update({
                             where: {
@@ -678,9 +680,10 @@ export class AuthService {
                     }
                 }
             });
-
+        
             return 'Berhasil mengubah email';
         } catch (error) {
+            console.log(error);
             throw new HttpException('Token tidak valid atau sudah kadaluarsa', 400);
         }
     }

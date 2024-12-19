@@ -94,18 +94,10 @@ export class UserService {
         return "User berhasil dibuat";
     }
 
-    async getUser(userId: string, user: CurrentUserRequest): Promise<UserResponse> {
+    async getUser(userId: string): Promise<UserResponse> {
         const findUser = await this.findUser(userId);
         if(!findUser) {
             throw new HttpException('User tidak ditemukan', 404);
-        }
-    
-        const userRole = user.role.name.toLowerCase();
-        const roleUser = await this.findRoleUser();
-    
-        if(userRole === 'lcu') {
-            this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
-            this.validateDinasForLcuRequest(findUser.dinas, user.dinas);
         }
     
         const result: UserResponse = {
@@ -133,14 +125,7 @@ export class UserService {
         const roleUser = await this.findRoleUser();
         const userRole = user.role.name.toLowerCase();
     
-        if(userRole === 'lcu') {
-            if(updateRequest.roleId) {
-                this.validateRoleForLcuOrSupervisorRequest(updateRequest.roleId, roleUser.id);
-            }
-            if(updateRequest.dinas) {
-                this.validateDinasForLcuRequest(updateRequest.dinas, user.dinas);
-            }
-        } else if(userRole === 'supervisor') {
+        if(userRole === 'supervisor') {
             if(updateRequest.roleId) {
                 this.validateRoleForLcuOrSupervisorRequest(updateRequest.roleId, roleUser.id);
             }
@@ -198,19 +183,11 @@ export class UserService {
         return "User berhasil diperbari";
     }
 
-    async delete(userId: string, user: CurrentUserRequest): Promise<string> {
+    async delete(userId: string): Promise<string> {
         const findUser = await this.findUser(userId);
 
         if(!findUser) {
             throw new HttpException('User tidak ditemukan', 404);
-        }
-
-        const userRole = user.role.name.toLowerCase();
-        const roleUser = await this.findRoleUser();
-
-        if(userRole === 'lcu') {
-            this.validateRoleForLcuOrSupervisorRequest(findUser.roleId, roleUser.id);
-            this.validateDinasForLcuRequest(findUser.dinas, user.dinas);
         }
 
         await this.prismaService.user.delete({
@@ -223,33 +200,18 @@ export class UserService {
     }
 
     async listUsers(request: ListRequest, user: CurrentUserRequest):Promise<{ data: UserResponse[], actions: ActionAccessRights, paging: Paging }> {
-        const userRole = user.role.name.toLowerCase();
-    
         const userSelectFields = this.userSelectFields();
         let whereCondition: any = {};
     
-        if (request.searchQuery) {
-            const searchQuery = request.searchQuery.toLowerCase();
-            if (userRole === 'super admin' || userRole === 'supervisor') {
-                whereCondition.OR = [
-                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
-                    { email: { contains: searchQuery, mode: 'insensitive' } },
-                    { name: { contains: searchQuery, mode: 'insensitive' } },
-                    { role: { name: { contains: searchQuery, mode: 'insensitive' } } },
-                    { dinas: { contains: searchQuery, mode: 'insensitive' } },
-                ];
-            } else {
-                whereCondition.OR = [
-                    { idNumber: { contains: searchQuery, mode: 'insensitive' } },
-                    { email: { contains: searchQuery, mode: 'insensitive' } },
-                    { name: { contains: searchQuery, mode: 'insensitive' } },
-                ];
-            }
-        }
-    
-        if (userRole === 'lcu') {
-            whereCondition.dinas = user.dinas;
-            whereCondition.role = { name: 'user' };
+        const searchQuery = request.searchQuery;
+        if (searchQuery) {
+            whereCondition.OR = [
+                { idNumber: { contains: searchQuery, mode: 'insensitive' } },
+                { email: { contains: searchQuery, mode: 'insensitive' } },
+                { name: { contains: searchQuery, mode: 'insensitive' } },
+                { role: { name: { contains: searchQuery, mode: 'insensitive' } } },
+                { dinas: { contains: searchQuery, mode: 'insensitive' } },
+            ];
         }
     
         // Hitung total data
@@ -269,6 +231,7 @@ export class UserService {
         const totalPage = Math.ceil(totalUsers / request.size);
         
         // Dapatkan actions berdasarkan role user
+        const userRole = user.role.name.toLowerCase();
         const actions = this.validateActions(userRole);
         
         // Format data user
@@ -391,7 +354,6 @@ export class UserService {
         const accessMap = {
             'super admin': { canEdit: true, canDelete: true },
             'supervisor': { canEdit: false, canDelete: false },
-            'lcu': { canEdit: true, canDelete: true },
         }
 
         return this.coreHelper.validateActions(userRole, accessMap);

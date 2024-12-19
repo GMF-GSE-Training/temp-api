@@ -31,6 +31,7 @@ export interface CotResponse {
     theoryInstructorCompetency?: string;
     practicalInstructor1?: string;
     practicalInstructor2?: string;
+    numberOfParticipants?: number;
     status?: string;
-    Capability?: Object;
+    capability?: Object;
 }

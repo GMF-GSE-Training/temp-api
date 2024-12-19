@@ -13,6 +13,7 @@ import { CoreHelper } from "src/common/helpers/core.helper";
 import { PDFDocument, PDFImage } from "pdf-lib";
 import { join } from "path";
 import * as ejs from 'ejs';
+import * as os from 'os';
 
 @Injectable()
 export class ParticipantService {
@@ -129,10 +130,6 @@ export class ParticipantService {
             this.validateDinasForLcuRequest(participant.dinas, user.dinas);
         }
     
-        if (!participant || !participant[fileName]) {
-            throw new HttpException('File tidak ditemukan', 404);
-        }
-    
         return participant[fileName];
     }
 
@@ -144,9 +141,6 @@ export class ParticipantService {
         }
     
         const userRole = user.role.name.toLowerCase();
-
-        console.log(participant.nik)
-        console.log(user.nik)
     
         if(userRole === 'user') {
             if(participant.nik !== user.nik) {
@@ -182,6 +176,25 @@ export class ParticipantService {
             throw new HttpException('ID Card tidak bisa diunduh, lengkapi data terlebih dahulu', 400);
         }
     
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
+                    }
+                }
+            }
+        }
+    
+        const gmfLogoUrl = `http://${localIp}:3000/assets/images/Logo_GMF_Aero_Asia.png`;
+    
         const photoBase64 = participant.foto.toString('base64');
         const qrCodeBase64 = participant.qrCode.toString('base64');
         const photoType = this.getMediaType(participant.foto);
@@ -190,6 +203,7 @@ export class ParticipantService {
         // Render EJS template
         const templatePath = join(__dirname, '..', 'templates', 'id-card', 'id-card.ejs');
         const idCard = await ejs.renderFile(templatePath, {
+            gmfLogoUrl,
             photoBase64,
             qrCodeBase64,
             photoType,
@@ -228,22 +242,8 @@ export class ParticipantService {
             throw new HttpException('Peserta tidak ditemukan', 404);
         }
     
-        console.log('SIM A:', participant.simA ? 'Ada' : 'Tidak Ada');
-        console.log('KTP:', participant.ktp ? 'Ada' : 'Tidak Ada');
-        console.log('Surat Sehat:', participant.suratSehatButaWarna ? 'Ada' : 'Tidak Ada');
-        console.log('Surat Bebas Narkoba:', participant.suratBebasNarkoba ? 'Ada' : 'Tidak Ada');
-    
         if (!participant.simA || !participant.ktp || !participant.suratSehatButaWarna || !participant.suratBebasNarkoba) {
             throw new HttpException('Dokumen belum lengkap, lengkapi data terlebih dahulu', 400);
-        }
-    
-        try {
-            console.log('Tipe SIM A:', this.getMediaType(Buffer.from(participant.simA)));
-            console.log('Tipe KTP:', this.getMediaType(Buffer.from(participant.ktp)));
-            console.log('Tipe Surat Sehat:', this.getMediaType(Buffer.from(participant.suratSehatButaWarna)));
-            console.log('Tipe Surat Bebas Narkoba:', this.getMediaType(Buffer.from(participant.suratBebasNarkoba)));
-        } catch (error) {
-            console.error('Error mendeteksi tipe file:', error);
         }
     
         const pdfDoc = await PDFDocument.create();
@@ -268,7 +268,7 @@ export class ParticipantService {
                     } else if (mimeType === 'image/png') {
                         embeddedImage = await pdfDoc.embedPng(imageBytes);
                     } else {
-                        console.warn(`Unsupported image type for ${fileName}`);
+                        console.log(`Format gambar '${fileName}' tidak didukung`);
                         return;
                     }
                 
@@ -287,7 +287,7 @@ export class ParticipantService {
                         height: scaledHeight,
                     });
                 } else {
-                    console.warn(`Unsupported file format for ${fileName}`);
+                    console.log(`Format gambar '${fileName}' tidak didukung`);
                 }
             } catch (error) {
                 console.error(`Error processing ${fileName}:`, error);
@@ -318,6 +318,24 @@ export class ParticipantService {
             throw new HttpException('ID Card tidak bisa dilihat, lengkapi data terlebih dahulu', 400);
         }
 
+        // Dapatkan alamat IP lokal secara dinamis untuk tahap pengembangan
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost'; // Default fallback
+        
+        // Iterasi melalui antarmuka jaringan untuk menemukan alamat IPv4 pertama
+        for (const interfaceName in networkInterfaces) {
+            const addresses = networkInterfaces[interfaceName];
+            if (addresses) {
+                for (const addr of addresses) {
+                    if (addr.family === 'IPv4' && !addr.internal) {
+                        localIp = addr.address; // Tetapkan alamat IPv4 non-internal pertama
+                        break;
+                    }
+                }
+            }
+        }
+
+        const gmfLogoUrl = `http://${localIp}:3000/assets/images/Logo_GMF_Aero_Asia.png`;
         const photoBase64 = participant.foto.toString('base64');
         const qrCodeBase64 = participant.qrCode.toString('base64');
         const photoType = this.getMediaType(participant.foto);
@@ -326,6 +344,7 @@ export class ParticipantService {
         // Render EJS template
         const templatePath = join(__dirname, '..', 'templates', 'id-card', 'id-card.ejs');
         const idCard = await ejs.renderFile(templatePath, {
+            gmfLogoUrl,
             photoBase64,
             qrCodeBase64,
             photoType,

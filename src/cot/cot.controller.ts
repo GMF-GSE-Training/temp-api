@@ -54,10 +54,10 @@ export class CotController {
 
     @Get('/:cotId')
     @HttpCode(200)
-    @Roles('super admin')
+    @Roles('super admin', 'supervisor', 'lcu', 'user')
     @UseGuards(AuthGuard, RoleGuard)
-    async get(@Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<CotResponse>> {
-        const result = await this.cotService.getCot(cotId);
+    async get(@User() user: CurrentUserRequest, @Param('cotId', ParseUUIDPipe) cotId: string): Promise<WebResponse<CotResponse>> {
+        const result = await this.cotService.getCot(cotId, user);
         return buildResponse(HttpStatus.OK, result);
     }
 

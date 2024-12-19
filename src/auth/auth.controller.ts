@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Post, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../shared/guard/auth.guard";
 import { AuthResponse, CurrentUserRequest, LoginUserRequest, RegisterUserRequest, UpdatePassword } from "../model/auth.model";
 import { buildResponse, WebResponse } from "../model/web.model";
@@ -202,16 +202,24 @@ export class AuthController {
         try {
             const result = await this.authService.verifyUpdateEmailRequestToken(token, user);
             if(user.role.name.toLowerCase() === 'user') {
-                res.redirect(`http://${localIp}:4200/participants/${user.participantId}/profile/account`);
+                res.redirect(`http://${localIp}:4200/participants/${user.participantId}/profile/account?success=${result}`);
             } else {
-                res.redirect(`http://${localIp}:4200/participants/${user.id}/account`)
+                res.redirect(`http://${localIp}:4200/users/${user.id}/account?success=${result}`)
             }
             return buildResponse(HttpStatus.OK, result);
         } catch (error) {
             // Tangani kesalahan dengan redirect ke halaman login atau halaman error
             console.log(error);
-            const redirectUrl = `http://${localIp}:4200/password-reset?error=${error.message}`;
-            res.redirect(redirectUrl);
+            if(user) {
+                if(user.role.name.toLowerCase() === 'user') {
+                    res.redirect(`http://${localIp}:4200/participants/${user.participantId}/profile/account?error=${error.message}`);
+                } else {
+                    res.redirect(`http://${localIp}:4200/users/${user.id}/account?error=${error.message}`)
+                }
+            } else {
+                const redirectUrl = `http://${localIp}:4200/home`;
+                res.redirect(redirectUrl);
+            }
         }
     }
 

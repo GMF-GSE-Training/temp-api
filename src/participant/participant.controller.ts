@@ -129,7 +129,7 @@ export class ParticipantController {
         const fileBuffer = await this.participantService.streamFile(participantId, 'simA', user);
         const result = fileBuffer.toString('base64');
         return buildResponse(HttpStatus.OK, result);
-    }
+    }x
 
     @Get('/:participantId/sim-b')
     @HttpCode(200)
@@ -231,7 +231,7 @@ export class ParticipantController {
     }
 
     @Get('/:participantId/download-document')
-    @Roles('super admin', 'lcu')
+    @Roles('super admin')
     @UseGuards(AuthGuard, RoleGuard)
     @HttpCode(200)
     async downloadDocument(@Param('participantId', ParseUUIDPipe) participantId: string): Promise<StreamableFile> {

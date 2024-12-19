@@ -224,12 +224,23 @@ export class ParticipantCotService {
             };
         }
     
+        const participantSelect = {
+            id: true,
+            idNumber: true,
+            name: true,
+            dinas: true,
+            // hanya tambahkan simB, simA, tglKeluarSuratSehatButaWarna, dan tglKeluarSuratBebasNarkoba jika bukan role 'user'
+            ...(userRole !== 'user' && {
+                simB: true,
+                simA: true,
+                tglKeluarSuratSehatButaWarna: true,
+                tglKeluarSuratBebasNarkoba: true,
+            })
+        };
+    
         const participantCot = await this.prismaService.cOT.findUnique({
             where: { id: cotId },
             include: {
-                capabilityCots: {
-                    select: { capability: true },
-                },
                 participantsCots: {
                     where: userRole === 'lcu'
                         ? {
@@ -240,19 +251,10 @@ export class ParticipantCotService {
                         }
                         : {
                             participant: participantCotWhereClause,
-                        },
+                    },
                     select: {
                         participant: {
-                            select: {
-                                id: true,
-                                idNumber: true,
-                                name: true,
-                                dinas: true,
-                                simB: true,
-                                simA: true,
-                                tglKeluarSuratSehatButaWarna: true,
-                                tglKeluarSuratBebasNarkoba: true,
-                            },
+                            select: participantSelect,
                         },
                     },
                     skip: (request.page - 1) * request.size,
@@ -289,11 +291,17 @@ export class ParticipantCotService {
         const participants = participantCot.participantsCots
             .map(pc => pc.participant)
             .filter(p => p !== null)
-            .map(participant => ({
-                ...participant,
-                simB: !!participant.simB,
-                simA: !!participant.simA,
-            }));
+            .map(participant => {
+                const participantData = {
+                    ...participant,
+                    // Jika role bukan 'user', simB dan simA akan tetap ada
+                    ...(userRole !== 'user' && {
+                        simB: !!participant.simB,
+                        simA: !!participant.simA,
+                    }),
+                };
+                return participantData;
+            });
     
         const actions = this.validateActions(userRole);
     
@@ -309,7 +317,6 @@ export class ParticipantCotService {
                 practicalInstructor2: participantCot.practicalInstructor2,
                 totalParticipants,
                 status: participantCot.status,
-                capability: participantCot.capabilityCots[0]?.capability || null,
                 participants: {
                     data: participants,
                     paging: {
@@ -345,10 +352,10 @@ export class ParticipantCotService {
 
     private validateActions(userRole: string): ActionAccessRights {
         const accessMap = {
-            'super admin': { canEdit: true, canDelete: true, canView: true, },
-            'supervisor': { canEdit: false, canDelete: false, canView: true, },
-            'lcu': { canEdit: true, canDelete: true, canView: true, },
-            'user': { canEdit: false, canDelete: false, canView: false, },
+            'super admin': { canPrint: true, canDelete: true, canView: true, },
+            'supervisor': { canPrint: false, canDelete: false, canView: true, },
+            'lcu': { canPrint: true, canDelete: true, canView: true, },
+            'user': { canPrint: false, canDelete: false, canView: false, },
         };
         
         return this.coreHelper.validateActions(userRole, accessMap);

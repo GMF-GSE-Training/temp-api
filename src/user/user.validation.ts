@@ -23,7 +23,7 @@ export class UserValidation {
         name: z.string().min(1).max(255).optional(),    
         password: z.string().min(8).max(255).refine((val) => passwordRegex.test(val), {
             message: "Password harus memiliki minimal satu huruf besar dan satu angka"
-        }),
+        }).optional(),
         dinas: z.string().min(1).max(20).optional().nullable(),
         roleId: z.string().uuid().min(1).optional(),
     });

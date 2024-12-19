@@ -12,17 +12,6 @@ export interface ParticipantCotResponse {
         practicalInstructor2: string;
         totalParticipants: number;
         status: string;
-        capability: {
-            id: string;
-            ratingCode: string;
-            trainingCode: string;
-            trainingName: string;
-            totalTheoryDurationRegGse: number;
-            totalPracticeDurationRegGse: number;
-            totalTheoryDurationCompetency: number;
-            totalPracticeDurationCompetency: number;
-            totalDuration: number;
-        };
         participants: {
             data: {
                 name: string;
@@ -31,8 +20,8 @@ export interface ParticipantCotResponse {
                 dinas: string;
                 simA?: boolean;
                 simB?: boolean;
-                tglKeluarSuratSehatButaWarna: Date;
-                tglKeluarSuratBebasNarkoba: Date;
+                tglKeluarSuratSehatButaWarna?: Date;
+                tglKeluarSuratBebasNarkoba?: Date;
             }[];
             paging: Paging;
             actions: ActionAccessRights;

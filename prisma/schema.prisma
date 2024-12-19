@@ -152,17 +152,23 @@ model ParticipantsCOT {
 }
 
 model Signature {
-  id              String        @id @default(uuid())
-  idNumber        String        @db.VarChar(20)
-  role            String        @db.VarChar(50)
-  name            String        @db.VarChar(50)
+  id              String          @id @default(uuid())
+  idNumber        String          @db.VarChar(20)
+  role            String          @db.VarChar(50)
+  name            String          @db.VarChar(50)
   eSign           Bytes
-  signFileName    String?       @db.VarChar(255)
-  status          Boolean       @default(false)
+  eSignFileName   String?         @db.VarChar(255)
+  signatureType   SignatureType
+  status          Boolean         @default(false)
 
   certificates    Certificate[]
 
   @@map("signatures")
+}
+
+enum SignatureType {
+  SIGNATURE1
+  SIGNATURE2
 }
 
 model Certificate {
