@@ -196,6 +196,7 @@ export class AuthService {
             const payload = { id: user.id };
             const refreshToken = await this.refreshJwtService.signAsync(payload);
             const accessToken = await this.accessJwtService.signAsync(payload);
+            
             await this.prismaService.user.update({
                 where: {
                     id: user.id

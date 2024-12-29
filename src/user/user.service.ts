@@ -47,20 +47,6 @@ export class UserService {
     
         const roleRequest = role.name.toLowerCase();
     
-        // Cek keberadaan data di tabel participant berdasarkan idNumber atau email
-        const existingParticipant = await this.prismaService.participant.findFirst({
-            where: {
-                OR: [
-                    { idNumber: createRequest.idNumber },
-                    { email: createRequest.email }
-                ]
-            }
-        });
-    
-        if (existingParticipant && roleRequest !== 'user') {
-            throw new HttpException('Akun dengan No Pegawai atau Email ini hanya dapat memiliki role "user"', 400);
-        }
-    
         if (roleRequest === 'user') {
             if(createRequest.participantId) {
                 const participant = await this.prismaService.participant.findFirst({
@@ -147,6 +133,31 @@ export class UserService {
     
         if(userRole !== 'super admin' && updateRequest.email) {
             throw new HttpException('Anda tidak bisa mengubah email pengguna', 400);
+        }
+    
+        const role = await this.prismaService.role.findUnique({
+            where: {
+                id: updateRequest.roleId
+            }
+        });
+    
+        if(!role) {
+            throw new HttpException('Role tidak valid', 400);
+        }
+    
+        const roleRequest = role.name.toLowerCase();
+    
+        if (roleRequest === 'user') {
+            this.validateNikForUser(updateRequest);
+        } else if (roleRequest === 'lcu') {
+            this.validateNikForNonUserRoles(updateRequest.nik);
+            this.validateDinas(updateRequest.dinas, roleRequest);
+        } else if(roleRequest === 'supervisor') {
+            this.validateNikForNonUserRoles(updateRequest.nik);
+            this.validateDinas(updateRequest.dinas, roleRequest);
+        } else {
+            this.validateNikForNonUserRoles(updateRequest.nik);
+            this.validateDinasForSuperAdmin(updateRequest.dinas);
         }
     
         for (const key of Object.keys(updateRequest)) {
