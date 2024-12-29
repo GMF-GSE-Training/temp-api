@@ -13,6 +13,7 @@ import { PrismaService } from "../../common/service/prisma.service";
         async canActivate(context: ExecutionContext): Promise<boolean> {
             const request = context.switchToHttp().getRequest();
             const accessToken = this.extractTokenFromCookie(request);
+            
             if (!accessToken) {
                 if(request.url.includes('auth/update-email/verify/')) {
                     return true;

@@ -491,7 +491,12 @@ export class ParticipantService {
         let whereClause: any = {};
     
         if (userRole === 'lcu') {
-            whereClause = { dinas: user.dinas };
+            whereClause = {
+                dinas: {
+                    equals: user.dinas,
+                    mode: "insensitive",
+                }
+            };
         }
         
         if (request.searchQuery) {

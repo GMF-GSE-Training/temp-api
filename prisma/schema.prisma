@@ -124,6 +124,7 @@ model COT {
 
   capabilityCots                  CapabilityCOT[]
   participantsCots                ParticipantsCOT[]
+  certificate                     Certificate[]
 
   @@map("cots")
 }
@@ -146,7 +147,6 @@ model ParticipantsCOT {
 
   participant     Participant?   @relation(fields: [participantId], references: [id])
   cot             COT            @relation(fields: [cotId], references: [id])
-  certificates    Certificate[]
 
   @@map("participantsCot")
 }
@@ -173,16 +173,15 @@ enum SignatureType {
 
 model Certificate {
   id                  String            @id @default(uuid())
-  participantCotId    String
+  cotId               String
   signatureId         String
   certificateNumber   String            @db.VarChar(50)
   attendance          Boolean
   theoryScore         Float
   practiceScore       Float
-  status              Boolean           @default(true)
 
-  participantsCot     ParticipantsCOT   @relation(fields: [participantCotId], references: [id])
-  Signature           Signature         @relation(fields: [signatureId], references: [id])
+  cot                 COT               @relation(fields: [cotId], references: [id])
+  signature           Signature         @relation(fields: [signatureId], references: [id])
 
   @@map("certificates")
 }

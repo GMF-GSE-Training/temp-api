@@ -47,6 +47,20 @@ export class UserService {
     
         const roleRequest = role.name.toLowerCase();
     
+        // Cek keberadaan data di tabel participant berdasarkan idNumber atau email
+        const existingParticipant = await this.prismaService.participant.findFirst({
+            where: {
+                OR: [
+                    { idNumber: createRequest.idNumber },
+                    { email: createRequest.email }
+                ]
+            }
+        });
+    
+        if (existingParticipant && roleRequest !== 'user') {
+            throw new HttpException('Akun dengan No Pegawai atau Email ini hanya dapat memiliki role "user"', 400);
+        }
+    
         if (roleRequest === 'user') {
             if(createRequest.participantId) {
                 const participant = await this.prismaService.participant.findFirst({
@@ -286,24 +300,34 @@ export class UserService {
     }
 
     private async validateParticipantByNik(request: CreateUserRequest) {
-        const participant = await this.prismaService.participant.findUnique({
-            where: { nik: request.nik },
+        const participant = await this.prismaService.participant.findFirst({
+            where: { 
+                OR: [
+                    { nik: request.nik },
+                    { email: request.email }
+                ]
+            },
         });
 
         // Validasi idNumber, name, dan dinas
         if(participant) {
-            if (request.idNumber && request.idNumber !== participant.idNumber) {
+            if (request.nik && request.nik !== participant.nik) {
+                throw new HttpException('NIK tidak sesuai dengan data participant', 400);
+            }
+            
+            if (request.idNumber && (request.idNumber !== participant.idNumber)) {
+                console.log(request.idNumber)
                 throw new HttpException('No Pegawai tidak sesuai dengan data participant', 400);
             }
-    
+            
             if (request.name && request.name !== participant.name) {
                 throw new HttpException('Nama tidak sesuai dengan data participant', 400);
             }
-    
+            
             if (request.email && request.email !== participant.email) {
                 throw new HttpException('Email tidak sesuai dengan data participant', 400);
             }
-    
+            
             if (request.dinas && request.dinas !== participant.dinas) {
                 throw new HttpException('Dinas tidak sesuai dengan data participant', 400);
             }

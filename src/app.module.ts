@@ -13,6 +13,7 @@ import { ParticipantCotModule } from './participant-cot/participant-cot.module';
 import { SharedModule } from './shared/shared.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { CertificateModule } from './certificate/certificate.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { join } from 'path';
     CotModule,
     ParticipantCotModule,
     ESignModule,
+    CertificateModule,
   ],
   controllers: [],
   providers: [],

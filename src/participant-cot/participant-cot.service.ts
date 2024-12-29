@@ -42,35 +42,12 @@ export class ParticipantCotService {
                     some: { cotId: cotId },
                 },
             },
-            ...(userRole === 'lcu' && { dinas: user.dinas }),
-            AND: [
-                {
-                    NOT: {
-                        participantsCots: {
-                            some: {
-                                cot: {
-                                    capabilityCots: {
-                                        some: { capabilityId: { in: capabilityIds } },
-                                    },
-                                },
-                            },
-                        },
-                    },
+            ...(userRole === 'lcu' && {
+                dinas: {
+                    equals: user.dinas,
+                    mode: "insensitive",
                 },
-                {
-                    NOT: {
-                        participantsCots: {
-                            some: {
-                                cot: {
-                                    OR: [
-                                        { startDate: { lte: endDate }, endDate: { gte: startDate } },
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                },
-            ],
+            }),
         };
     
         // Add search filters if provided
@@ -101,6 +78,8 @@ export class ParticipantCotService {
             }),
             this.prismaService.participant.count({ where: baseWhereClause }),
         ]);
+
+        console.log(unregisteredParticipants);
     
         const totalPage = Math.ceil(totalParticipants / request.size);
     
@@ -244,12 +223,14 @@ export class ParticipantCotService {
                 participantsCots: {
                     where: userRole === 'lcu'
                         ? {
+                            participantId: { not: null },
                             participant: {
                                 dinas: user.dinas,
                                 ...participantCotWhereClause,
                             }
                         }
                         : {
+                            participantId: { not: null },
                             participant: participantCotWhereClause,
                     },
                     select: {
@@ -354,7 +335,7 @@ export class ParticipantCotService {
         const accessMap = {
             'super admin': { canPrint: true, canDelete: true, canView: true, },
             'supervisor': { canPrint: false, canDelete: false, canView: true, },
-            'lcu': { canPrint: true, canDelete: true, canView: true, },
+            'lcu': { canPrint: false, canDelete: true, canView: true, },
             'user': { canPrint: false, canDelete: false, canView: false, },
         };
         

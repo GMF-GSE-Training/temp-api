@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .page-break { page-break-before: always; }
+        }
+        img {
+            height: 150px;
+            width: auto;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            text-align: center;
+            padding: 8px;
+        }
+        th {
+            background-color: #87CEEB;
+        }
+        .header {
+            font-weight: bold;
+            text-align: left;
+            background-color: #f0f8ff;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .total {
+            font-weight: bold;
+        }
+    </style>      
+</head>
+<body>
+    <img src="data:image/<%= photoType %>;base64,<%= photoBase64 %>" alt="Profile Picture">
+    <br>
+
+    <div>
+        <p><span>Name</span><span>: <%= name %></span></p>
+        <p><span>Place/Date of Birth</span><span>: <%= placeOrDateOfBirth %></span></p>
+        <p><span>Nationality</span><span>: <%= nationality %></span></p>
+        <p><span>Competencies</span><span>: <%= competencies %></span></p>
+        <p><span>Date</span><span>: Jakarta, <%= date %></span></p>
+        <p><span>Certificate Number</span><span>: <%= certificateNumber %></span></p>
+    </div>
+
+    <br>
+
+    <p>
+        Has successfully completed the <span><%= duration %></span> hours training, passed the written and practical examination
+    </p>
+    <p><span>Course Period</span><span>: <%= coursePeriode %></span></p>
+
+    <br>
+
+    <div>
+        <img src="data:image/<%= signature1Type %>;base64,<%= signature1Base64 %>" alt="Signature 1">
+        <p><span>Name</span><span>: <%= nameSignature1 %></span></p>
+        <p><span>Role</span><span>: <%= roleSignature1 %></span></p>
+    </div>
+
+    <br>
+
+    <div>
+        <img src="data:image/<%= signature2Type %>;base64,<%= signature2Base64 %>" alt="Signature 2">
+        <p><span>Name</span><span>: <%= nameSignature2 %></span></p>
+        <p><span>Role</span><span>: <%= roleSignature2 %></span></p>
+    </div>
+
+    <div class="section-title">Curriculum & Syllabus</div>
+    <table>
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Subject</th>
+                <th colspan="2">Hours</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>Theory</th>
+                <th>Practical</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td class="header">GSE Regulation</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <% let index = 1; %>
+            <% GSERegulation.forEach(item => { %>
+            <tr>
+                <td><%= index %></td>
+                <td><%= item.name %></td>
+                <td><%= item.theoryDuration %></td>
+                <td><%= item.practiceDuration === 0 ? "-" : item.practiceDuration %></td>
+            </tr>
+            <% }); %>
+            <tr>
+                <td></td>
+                <td class="header">Competencies</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <% Competencies.forEach(item => { %>
+            <tr>
+                <td><%= index %></td>
+                <td><%= item.name %></td>
+                <td><%= item.theoryDuration %></td>
+                <td><%= item.practiceDuration === 0 ? "-" : item.practiceDuration %></td>
+            </tr>
+            <% }); %>
+            <tr>
+                <td colspan="2" class="total">TOTAL</td>
+                <td>
+                    <%= totalDuration %>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Training Report</div>
+    <table>
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Training Name</th>
+                <th>Theory</th>
+                <th>Practical</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td><%= competencies %></td>
+                <td><%= theoryScore %></td>
+                <td><%= practiceScore %></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
