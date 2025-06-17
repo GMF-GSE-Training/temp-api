@@ -36,10 +36,10 @@ jobs:
           docker push gcr.io/gmf-training/dev-backend-web-server:latest
 
       - name: Deploy to Cloud Run
-        run: |
+        run: |-
           gcloud run deploy dev-backend-service \
             --image gcr.io/gmf-training/dev-backend-web-server:latest \
             --platform managed \
             --region asia-southeast1 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,PROTOCOL=https,HOST=0.0.0.0,FRONTEND_URL=https://gmf-utility-training.github.io/tu-frontend/,BACKEND_URL=https://dev-api.gmf-aeroasia.publicvm.com,DATABASE_URL=${{ secrets.DATABASE_URL_DEV }},QR_CODE_LINK=https://gmf-utility-training.github.io/tu-frontend/participants/{id}/detail,ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN_DEV }},REFRESH_TOKEN=${{ secrets.REFRESH_TOKEN_DEV }},VERIFICATION_TOKEN=${{ secrets.VERIFICATION_TOKEN_DEV }},MAIL_HOST=smtp.gmail.com,MAIL_PORT=587,MAIL_USER=${{ secrets.MAIL_USER_DEV }},MAIL_PASS=${{ secrets.MAIL_PASS_DEV }},APP_NAME=Admin GMF Training"
+            --set-env-vars "NODE_ENV=production,PROTOCOL=${{ secrets.PROTOCOL }},HOST=${{ secrets.HOST }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},BACKEND_URL=${{ secrets.BACKEND_URL }},DATABASE_URL=${{ secrets.DATABASE_URL_DEV }},QR_CODE_LINK=${{ secrets.QR_CODE_LINK }},ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }},REFRESH_TOKEN=${{ secrets.REFRESH_TOKEN }},VERIFICATION_TOKEN=${{ secrets.VERIFICATION_TOKEN }},MAIL_HOST=${{ secrets.MAIL_HOST }},MAIL_PORT=${{ secrets.MAIL_PORT }},MAIL_USER=${{ secrets.MAIL_USER }},MAIL_PASS=${{ secrets.MAIL_PASS }},APP_NAME=${{ secrets.APP_NAME }}"
