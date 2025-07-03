@@ -195,17 +195,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'simA',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('SIM A not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'simA',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'SIM A not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -218,17 +222,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'simB',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('SIM B not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'simB',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'SIM B not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -241,17 +249,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'foto',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('Foto not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'foto',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'Foto not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -264,17 +276,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'ktp',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('KTP not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'ktp',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'KTP not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -287,17 +303,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'suratSehatButaWarna',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('Surat Sehat Buta Warna not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'suratSehatButaWarna',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'Surat Sehat Buta Warna not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -310,17 +330,21 @@ export class ParticipantController {
     @User() user: CurrentUserRequest,
     @Res() res: Response,
   ): Promise<void> {
-    const fileBuffer = await this.participantService.streamFile(
-      participantId,
-      'suratBebasNarkoba',
-      user,
-    );
-    if (fileBuffer) {
-      const mediaType = this.coreHelper.getMediaType(fileBuffer);
-      res.setHeader('Content-Type', mediaType || 'application/octet-stream');
-      res.send(fileBuffer);
-    } else {
-      res.status(404).send('Surat Bebas Narkoba not found');
+    try {
+      const fileBuffer = await this.participantService.streamFile(
+        participantId,
+        'suratBebasNarkoba',
+        user,
+      );
+      if (fileBuffer) {
+        const mediaType = this.coreHelper.getMediaType(fileBuffer);
+        res.setHeader('Content-Type', mediaType || 'application/octet-stream');
+        res.send(fileBuffer);
+      } else {
+        res.status(404).json({ message: 'Surat Bebas Narkoba not found' });
+      }
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
@@ -333,15 +357,13 @@ export class ParticipantController {
     @Res() res: Response,
   ): Promise<void> {
     try {
-      // Cek participant
       let participant;
       try {
         participant = await this.participantService.getParticipantRaw(participantId);
       } catch (e) {
-        res.status(404).send('Participant not found');
+        res.status(404).json({ message: 'Participant not found' });
         return;
       }
-      // Ambil QR code
       const fileBuffer = await this.participantService.getQrCode(participantId);
       let sanitizedNama = 'Participant';
       if (participant && participant.name) {
@@ -355,14 +377,10 @@ export class ParticipantController {
         res.setHeader('Content-Disposition', disposition);
         res.send(fileBuffer);
       } else {
-        res.status(404).send('QR Code not found');
+        res.status(404).json({ message: 'QR Code not found' });
       }
     } catch (error) {
-      if (error.status === 404) {
-        res.status(404).send(error.message || 'Participant not found');
-      } else {
-        res.status(500).send(error.message || 'Internal Server Error');
-      }
+      res.status(error.status || 500).json({ message: error.message || 'Internal Server Error' });
     }
   }
 
