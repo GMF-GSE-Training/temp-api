@@ -162,6 +162,6 @@ pnpm prisma generate
 pnpm run seed
 ```
 
-## Lisensi
+### Lisensi
 
 MIT License
