@@ -18,7 +18,7 @@
 
 ## Deskripsi Proyek
 
-Repositori ini berisi kode *backend* untuk aplikasi 'GMF GSE Training', dibangun menggunakan framework NestJS dan terhubung ke database PostgreSQL. Backend ini menyediakan API untuk manajemen pengguna, autentikasi, otorisasi berbasis peran, serta fitur pelatihan dan sertifikasi.
+Repositori ini berisi kode _backend_ untuk aplikasi 'GMF GSE Training', dibangun menggunakan framework NestJS dan terhubung ke database PostgreSQL. Backend ini menyediakan API untuk manajemen pengguna, autentikasi, otorisasi berbasis peran, serta fitur pelatihan dan sertifikasi.
 
 ## Fitur Utama
 
@@ -90,6 +90,7 @@ APP_NAME="Admin GMF GSE Training"
 ```
 
 **Catatan:**
+
 - Jangan pernah commit file `.env` yang berisi data asli.
 - Gunakan variabel dummy pada contoh.
 - Untuk deployment production, sesuaikan domain dan kredensial.
@@ -132,6 +133,7 @@ pnpm run test:cov
 Deployment otomatis ke Cloud Run via GitHub Actions pada branch `backup/dev-2025-06-15`.
 
 **Pastikan secrets berikut sudah diatur di GitHub:**
+
 - GCP_SA_KEY
 - DATABASE_URL
 - ACCESS_TOKEN
@@ -144,6 +146,7 @@ Deployment otomatis ke Cloud Run via GitHub Actions pada branch `backup/dev-2025
 - APP_NAME
 
 **Penting:**
+
 - Nama secret harus sama persis dengan variabel environment aplikasi.
 - Jangan pernah menaruh data sensitif di README atau file publik.
 
@@ -165,4 +168,5 @@ pnpm run seed
 ### Lisensi
 
 MIT License
-# Trigger workflow
+
+# Trigger Workflow
